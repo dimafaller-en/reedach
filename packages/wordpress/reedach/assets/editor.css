@@ -1,0 +1,12 @@
+/* Reedach panel in the block editor sidebar. Marks in the text are styled from editor.js inside the canvas. */
+.reedach-panel { padding: 16px; }
+.reedach-panel .reedach-count { margin: 0 0 4px; padding-top: 20px; font-weight: 600; }
+.reedach-panel .reedach-list { list-style: none; margin: 0; padding: 0; }
+.reedach-panel .reedach-list li { margin: 0; }
+.reedach-panel .reedach-item { display: block; width: 100%; padding: 10px 0; border: 0; border-top: 1px solid #e0e0e0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.reedach-panel .reedach-item:focus-visible { outline: 2px solid var(--wp-admin-theme-color, #3858e9); outline-offset: 2px; }
+.reedach-panel .reedach-label { display: inline-block; margin: 0 6px 2px 0; padding: 1px 6px; border-radius: 2px; background: rgba(255, 61, 31, .12); color: #a3260f; font-size: 11px; font-weight: 600; }
+.reedach-panel .reedach-fragment { font-weight: 600; }
+.reedach-panel .reedach-item:hover .reedach-fragment, .reedach-panel .reedach-item.is-active .reedach-fragment { background: rgba(255, 61, 31, .2); }
+.reedach-panel .reedach-message { display: block; margin-top: 4px; color: #50575e; font-size: 12px; line-height: 1.5; }
+.reedach-panel .reedach-credit { margin: 0; padding-top: 16px; color: #757575; font-size: 12px; }

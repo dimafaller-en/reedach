@@ -73,3 +73,29 @@ jobs:
               npm publish -w "packages/$dir" --access public
             fi
           done
+
+  # WordPress plugin: a zip in the GitHub release of this tag. The committed build must be fresh.
+  wordpress:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: |
+          version=$(node -p "require('./packages/wordpress/package.json').version")
+          [ "v$version" = "$GITHUB_REF_NAME" ] || { echo "plugin $version does not match the tag $GITHUB_REF_NAME"; exit 1; }
+          npm run build -w reedach-wordpress
+          git diff --exit-code -- packages/wordpress/reedach
+          cd packages/wordpress && zip -qr "../../reedach-wordpress-$version.zip" reedach
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" --title "Reedach $GITHUB_REF_NAME" \
+            --notes "npm: reedach, reedach-widget, reedach-server. Docker: ghcr.io/${{ github.repository }}. WordPress plugin: reedach-wordpress zip below (Plugins → Add New → Upload)."
+          gh release upload "$GITHUB_REF_NAME" reedach-wordpress-*.zip --clobber

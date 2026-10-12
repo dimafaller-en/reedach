@@ -4,7 +4,7 @@
   "type": "module",
   "workspaces": ["packages/*"],
   "scripts": {
-    "build": "npm run build -w reedach-widget",
+    "build": "npm run build -w reedach-widget && npm run build -w reedach-wordpress",
     "test": "npm run build && node --test packages/*/test/*.test.mjs"
   },
   "engines": {
