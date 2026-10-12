@@ -20,10 +20,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 define( 'REEDACH_VERSION', '0.3.0' );
 
+// The Russian interface ships with the plugin, so installs from the GitHub archive get it too. A translation from
+// translate.wordpress.org comes first; the one in languages/ is the fallback. WordPress 6.5+ finds the .l10n.php file
+// next to the .mo path given here.
 add_action(
 	'init',
 	function () {
-		load_plugin_textdomain( 'reedach', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+		$locale = determine_locale();
+		if ( ! load_textdomain( 'reedach', WP_LANG_DIR . '/plugins/reedach-' . $locale . '.mo', $locale ) ) {
+			load_textdomain( 'reedach', __DIR__ . '/languages/reedach-' . $locale . '.mo', $locale );
+		}
 	}
 );
 
