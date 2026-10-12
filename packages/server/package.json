@@ -1,0 +1,29 @@
+{
+  "name": "reedach-server",
+  "version": "0.1.0",
+  "description": "Сервер Reedach: орфография (hunspell), морфология (Az.js + OpenCorpora) и подсказки по стилю для русского текста — библиотекой или по HTTP",
+  "license": "MIT",
+  "author": "Dima Faller <dima@dimafaller.ru>",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.mjs"
+  },
+  "bin": {
+    "reedach-server": "./src/cli.mjs"
+  },
+  "files": ["src", "README.md", "LICENSE", "NOTICE.md"],
+  "keywords": ["russian", "русский", "spelling", "hunspell", "morphology", "style", "linter", "api"],
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "az": "0.2.3",
+    "dictionary-en": "4.0.0",
+    "dictionary-ru": "3.0.0",
+    "reedach": "0.1.0"
+  },
+  "scripts": {
+    "start": "node src/cli.mjs",
+    "test": "node --test test/*.test.mjs"
+  }
+}

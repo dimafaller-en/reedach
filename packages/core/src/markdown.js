@@ -37,7 +37,7 @@ export function sourceBlocks(src){
 function spellingIssues(blocks,spelling){
  const issues=[];
  for(const item of spelling){const re=new RegExp('(?<!['+L+'])'+item.word.replace(/[-]/g,'\\-')+'(?!['+L+'])','g');
-  blocks.forEach((b,i)=>{for(const m of b.text.matchAll(re))issues.push({block:i,start:m.index,end:m.index+m[0].length,id:'spelling',category:'spelling',label:'Орфография',message:'Возможна опечатка: «'+item.word+'».',fix:item.suggestions.length?'Варианты: '+item.suggestions.join(', ')+'.':'Проверьте написание или добавьте слово в словарь.',word:item.word});});}
+  blocks.forEach((b,i)=>{for(const m of b.text.matchAll(re))issues.push({block:i,start:m.index,end:m.index+m[0].length,id:'spelling',category:'spelling',label:'Орфография',message:'Возможна опечатка: «'+item.word+'».',fix:item.suggestions?.length?'Варианты: '+item.suggestions.join(', ')+'.':'Проверьте написание или добавьте слово в словарь.',word:item.word,suggestions:item.suggestions??null});});}
  return issues;
 }
 // spelling: hunspell misses from the server; style: server (morphology) hints by block; local: dictionary hints by block.

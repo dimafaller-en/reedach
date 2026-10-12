@@ -9,15 +9,15 @@ Reedach работает у вас: в браузере или на вашем �
 Это подсказки, а не приговор. Проверка ищет по словарю и простым правилам, поэтому
 иногда ошибается. Она не заменяет редактора и профессиональные сервисы.
 
-> Проект в разработке. Сейчас готово ядро со словарём правил. Сервер с орфографией и
-> морфологией, виджет для любого сайта и плагин WordPress — следующие этапы.
+> Проект в разработке. Готовы ядро со словарём правил и сервер с орфографией и
+> морфологией. Виджет для любого сайта и плагин WordPress — следующие этапы.
 
 ## Из чего состоит
 
 | Часть | Что делает | Состояние |
 |---|---|---|
 | `packages/core` (npm `reedach`) | Словарь правил и проверка стиля, разбор Markdown. Без зависимостей, работает в браузере и в Node | готово |
-| `packages/server` | HTTP API и Docker-образ: орфография (hunspell) и морфология (Az.js + OpenCorpora) | следующий этап |
+| `packages/server` | HTTP API и Docker-образ: орфография (hunspell) и морфология (Az.js + OpenCorpora) | готово |
 | `packages/widget` | Подсветка замечаний прямо в поле ввода на любом сайте | позже |
 | WordPress | Плагин для редактора Gutenberg | позже |
 
@@ -41,6 +41,12 @@ for (const it of issues)
 `p` — абзац, `li` — пункт списка, `h` — заголовок. Длину предложения и абзаца можно
 настроить: `checkStyle(blocks, {maxSentenceWords: 25, maxParagraphWords: 120})`.
 
+## Сервер: орфография и морфология
+
+Сервер можно подключить библиотекой (`import {check} from 'reedach-server'`) или запустить
+в Docker и отправлять запросы по HTTP. Как настроить ключи и какие есть запросы — в
+[packages/server/README.md](packages/server/README.md).
+
 ## Словарь
 
 Правила лежат в [`packages/core/src/rules.js`](packages/core/src/rules.js): у каждого есть
@@ -57,6 +63,8 @@ for (const it of issues)
 npm test
 ```
 
+Для тестов орфографии нужна программа hunspell. Если её нет, эти тесты пропускаются.
+
 ## Лицензия
 
 MIT, © 2026 Дима Фаллер.
@@ -67,6 +75,6 @@ MIT, © 2026 Дима Фаллер.
 
 Reedach is a lightweight style checker for Russian text: bureaucratese, clichés, filler and
 vague words, long sentences. It runs in the browser or on your own server, and the text never
-leaves it. The core package `reedach` has no dependencies. A self-hosted server with spelling
-(hunspell) and morphology (Az.js + OpenCorpora), a drop-in widget and a WordPress plugin are
-in progress. MIT license.
+leaves it. The core package `reedach` has no dependencies. The self-hosted server `reedach-server` adds spelling
+(hunspell) and morphology (Az.js + OpenCorpora), as a library or an HTTP API in Docker. A drop-in
+widget and a WordPress plugin are in progress. MIT license.

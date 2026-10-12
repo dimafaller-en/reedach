@@ -10,7 +10,7 @@ const compiled=RULES.map(rule=>({rule,re:compile(rule)}));
 export const sentences=text=>[...text.matchAll(/[^.!?…]+(?:[.!?…]+|$)/g)].map(m=>({start:m.index,end:m.index+m[0].length,text:m[0]})).filter(s=>s.text.trim());
 const wordCount=s=>(s.match(new RegExp('['+L+'0-9]+(?:-['+L+']+)*','g'))||[]).length;
 const trimmed=(s,offset=0)=>{const lead=s.text.length-s.text.trimStart().length;return {start:s.start+offset+lead,end:s.start+offset+s.text.trimEnd().length};};
-const BUILTIN={
+export const BUILTIN={
  'long-sentence':{category:'length',message:'Длинное предложение: в нём легко потеряться.',fix:'Разделите на два-три предложения, по одной мысли в каждом.'},
  'long-paragraph':{category:'length',message:'Длинный абзац тяжело читать, особенно с телефона.',fix:'Разбейте абзац по мыслям: одна мысль — один абзац.'},
  'kotory-twice':{category:'kotory',message:'Несколько «который» в одном предложении запутывают.',fix:'Вынесите одну из частей в отдельное предложение или замените причастием.'},
