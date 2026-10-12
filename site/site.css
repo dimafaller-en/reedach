@@ -116,7 +116,7 @@ li::marker{color:var(--red)}
 .pair figcaption{margin-top:8px;font-size:14px;color:var(--muted)}
 
 /* Ways to connect */
-.ways{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:28px}
+.ways{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-top:28px}
 .way{display:flex;flex-direction:column;padding:24px;border:1px solid var(--line);border-radius:14px;background:var(--card);text-decoration:none}
 .way:hover{color:inherit;border-color:var(--ink)}
 .way b{font:600 24px/1.2 var(--serif)}

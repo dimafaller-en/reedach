@@ -65,6 +65,7 @@ Reedach работает у вас: в браузере или на вашем �
 | [Виджет на странице](#виджет-на-любую-страницу) | стиль; с сервером — ещё орфографию и морфологию | [packages/widget](packages/widget/README.md) |
 | [Сервер в Docker](#сервер-с-орфографией) | всё: орфографию, морфологию и стиль по HTTP API | [packages/server](packages/server/README.md) |
 | [Библиотека в коде](#библиотекой-в-коде) | стиль в браузере и Node; всё — в Node с hunspell | [packages/core](packages/core/README.md) |
+| [Плагин для WordPress](#плагин-для-wordpress) | стиль в редакторе блоков, без сервера | [packages/wordpress](packages/wordpress/README.md) |
 
 ### Виджет на любую страницу
 
@@ -74,7 +75,7 @@ Reedach работает у вас: в браузере или на вашем �
 русском и английском.
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/reedach-widget@0.1.2/dist/reedach.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/reedach-widget@0.2.0/dist/reedach.min.js" defer></script>
 
 <textarea data-reedach
   data-reedach-endpoint="https://checker.example.ru/v1"
@@ -236,6 +237,21 @@ const {issues} = await check({
 });
 ```
 
+### Плагин для WordPress
+
+Подсказки по стилю прямо в редакторе блоков. Проверка идёт в браузере автора, сервер не нужен,
+поэтому плагин работает на любом хостинге. Орфографии в плагине нет: для неё нужен сервер.
+
+![Редактор WordPress: замечания подсвечены в тексте записи, справа панель Reedach со списком](docs/screenshots/wordpress.png)
+
+- Панель Reedach в редакторе: список замечаний, нажатие выделяет фрагмент в тексте.
+- Подсветка в заголовке записи, абзацах, подзаголовках, списках, цитатах и подписях.
+- «Настройки → Reedach»: какие виды подсказок показывать авторам.
+
+Скачайте `reedach-wordpress-X.Y.Z.zip` из [последнего релиза](https://github.com/dimafaller-en/reedach/releases/latest)
+и загрузите в «Плагины → Добавить новый → Загрузить плагин». Нужны WordPress 6.5+ и PHP 7.4+.
+Плагин под лицензией GPL-2.0-or-later, подробнее — в [packages/wordpress](packages/wordpress/README.md).
+
 ## Орфография: hunspell
 
 Опечатки ищет [hunspell](https://github.com/hunspell/hunspell) — открытая программа проверки
@@ -345,5 +361,7 @@ It runs in the browser or on your own server, and the text never leaves it.
 - `reedach-widget` — a drop-in widget for any textarea: one `<script>` tag, no styles of its own.
 - `reedach-server` — spelling (hunspell) and morphology (Az.js + OpenCorpora), as a library
   or an HTTP API: `docker run ghcr.io/dimafaller-en/reedach`.
+- WordPress plugin — style hints in the block editor, no server needed: a zip in the
+  [latest release](https://github.com/dimafaller-en/reedach/releases/latest) (GPL-2.0-or-later).
 
 MIT license.

@@ -75,16 +75,17 @@
 </section>
 
 <section id="connect" class="wrap">
- <h2>Три способа подключить</h2>
+ <h2>Четыре способа подключить</h2>
  <div class="ways">
   <a class="way" href="#widget"><b>Виджет на странице</b><span>Стиль сразу, с сервером — ещё орфография и морфология.</span><code>&lt;script src="…/reedach.min.js"&gt;</code></a>
   <a class="way" href="#server"><b>Сервер в Docker</b><span>Всё вместе по HTTP API: орфография, морфология и стиль.</span><code>docker run ghcr.io/dimafaller-en/reedach</code></a>
   <a class="way" href="#library"><b>Библиотека в коде</b><span>Стиль в браузере и Node, всё — в Node с hunspell.</span><code>npm i reedach</code></a>
+  <a class="way" href="#wordpress"><b>Плагин для WordPress</b><span>Стиль прямо в редакторе блоков, без сервера, на любом хостинге.</span><code>reedach-wordpress.zip</code></a>
  </div>
 
  <h3 id="widget">Виджет на любую страницу</h3>
  <p>Подсветка ложится поверх текста в <code>textarea</code>, список замечаний обновляется, пока автор пишет. Нажатие на вариант заменяет слово в поле, Ctrl+Z отменяет замену. «Добавить в словарь» запоминает слово в браузере автора, а сайт может подключить своё хранилище. Интерфейс на русском и английском.</p>
-<pre><code class="language-xml hljs"><span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">&quot;https://cdn.jsdelivr.net/npm/reedach-widget@0.1.2/dist/reedach.min.js&quot;</span> <span class="hljs-attr">defer</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
+<pre><code class="language-xml hljs"><span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">&quot;https://cdn.jsdelivr.net/npm/reedach-widget@0.2.0/dist/reedach.min.js&quot;</span> <span class="hljs-attr">defer</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
 
 <span class="hljs-tag">&lt;<span class="hljs-name">textarea</span> <span class="hljs-attr">data-reedach</span>
   <span class="hljs-attr">data-reedach-endpoint</span>=<span class="hljs-string">&quot;https://checker.example.ru/v1&quot;</span>
@@ -193,6 +194,12 @@ checker.<span class="hljs-title function_">stop</span>();    <span class="hljs-c
   <span class="hljs-attr">ignore</span>: [<span class="hljs-string">&#x27;Reedach&#x27;</span>],            <span class="hljs-comment">// слова автора: формы тоже принимаются</span>
   <span class="hljs-attr">disable</span>: [<span class="hljs-string">&#x27;intensifiers&#x27;</span>],      <span class="hljs-comment">// выключить правило по id или целую категорию</span>
 });</code></pre>
+
+ <h3 id="wordpress">Плагин для WordPress</h3>
+ <p>Подсказки по стилю прямо в редакторе блоков. Проверка идёт в браузере автора, сервер не нужен, поэтому плагин работает на любом хостинге. Орфографии в плагине нет: для неё нужен сервер.</p>
+ <figure class="shot" style="margin:24px 0"><img src="img/wordpress.png" width="1440" height="900" loading="lazy" alt="Редактор WordPress: замечания подсвечены в тексте записи, справа панель Reedach со списком"></figure>
+ <p>В панели Reedach — список замечаний, нажатие выделяет фрагмент в тексте. Подсветка работает в заголовке записи, абзацах, подзаголовках, списках, цитатах и подписях. В «Настройках → Reedach» администратор выбирает, какие виды подсказок показывать авторам.</p>
+ <p>Скачайте <code>reedach-wordpress-X.Y.Z.zip</code> из <a href="https://github.com/dimafaller-en/reedach/releases/latest">последнего релиза</a> и загрузите в «Плагины → Добавить новый → Загрузить плагин». Нужны WordPress 6.5+ и PHP 7.4+. Лицензия плагина — GPL-2.0-or-later.</p>
 </section>
 
 <section id="spelling" class="wrap">
@@ -260,6 +267,7 @@ npm <span class="hljs-built_in">test</span></code></pre>
   <li><code>reedach</code> — the rule dictionary and style checker, no dependencies, browser and Node.</li>
   <li><code>reedach-widget</code> — a drop-in widget for any textarea: one <code>&lt;script&gt;</code> tag, no styles of its own.</li>
   <li><code>reedach-server</code> — spelling (hunspell) and morphology (Az.js + OpenCorpora), as a library or an HTTP API: <code>docker run ghcr.io/dimafaller-en/reedach</code>.</li>
+  <li>WordPress plugin — style hints in the block editor, no server needed: a zip in the <a href="https://github.com/dimafaller-en/reedach/releases/latest">latest release</a> (GPL-2.0-or-later).</li>
  </ul>
  <p>MIT license. Source code on <a href="https://github.com/dimafaller-en/reedach">GitHub</a>.</p>
 </section>

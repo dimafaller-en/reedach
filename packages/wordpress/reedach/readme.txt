@@ -4,7 +4,7 @@ Tags: russian, proofreading, writing, style, gutenberg
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.1.2
+Stable tag: 0.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -57,5 +57,5 @@ No, only with the block editor.
 
 == Changelog ==
 
-= 0.1.2 =
+= 0.2.0 =
 * First version: style hints in the block editor, marks in the text, settings for kinds of hints.
