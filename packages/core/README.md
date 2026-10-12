@@ -17,7 +17,8 @@ import {checkStyle, sourceBlocks, mergeIssues} from 'reedach';
 const markdown = 'В настоящее время мы осуществляем доставку хлеба.';
 const blocks = sourceBlocks(markdown);
 const issues = mergeIssues(blocks, {local: checkStyle(blocks)});
-// [{start, end, id, category, label, message, fix}, …] — start и end указывают в исходный текст
+// [{start, end, id, category, label, message, fix, replace?}, …] — start и end указывают в исходный текст,
+// replace — варианты замены, если они есть
 ```
 
 Без Markdown: `checkStyle([{text: '…', kind: 'p'}])`, где `kind` — `p` (абзац), `li` (пункт

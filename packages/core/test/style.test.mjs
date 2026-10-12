@@ -34,6 +34,8 @@ const SAMPLES={
  'pronoun-dannyy':'В данном случае заказчик отказался.',
  'bureaucratese-verbs':'Монтаж осуществляется силами подрядчика.',
  'bureaucratese-latinisms':'Нужна коммуникация с поставщиком.',
+ 'bureaucratese-turns':'В случае если нужно, позвоните.',
+ 'paronyms':'Он одел пальто и вышел.',
  'nominalization-support-verbs':'Мы произвели монтаж за два дня.',
  'stamp-cliche':'Опыт играет важную роль в таких проектах.',
  'stamp-newspaper-idioms':'Мы бежали сломя голову.',
@@ -102,8 +104,9 @@ test('rules have known category, short message and fix, no guillemets',()=>{
  for(const r of RULES){
   assert.ok(CATEGORIES[r.category],r.id+' category');
   for(const k of ['message','fix']){assert.equal(typeof r[k],'string',r.id+' '+k);assert.ok(r[k].length>5&&r[k].length<200,r.id+' '+k+' length');assert.ok(!/[«»"]/.test(r[k]),r.id+' '+k+' quotes');}
-  assert.ok(Array.isArray(r.words)&&r.words.length>0,r.id+' words');
-  for(const w of r.words){assert.equal(w,w.trim(),r.id+' '+w);assert.ok(!/\*./.test(w.replace(/\*(?=\s|$)/g,'')),r.id+' star not at word end: '+w);}
+  assert.ok(Array.isArray(r.words)&&r.words.length>0||Array.isArray(r.pairs)&&r.pairs.length>0,r.id+' words');
+  for(const v of Object.values({...r.swap,...r.hints}))assert.ok(!/[«»"]/.test(v),r.id+' quotes in '+v);
+  for(const w of r.words||[]){assert.equal(w,w.trim(),r.id+' '+w);assert.ok(!/\*./.test(w.replace(/\*(?=\s|$)/g,'')),r.id+' star not at word end: '+w);}
  }
 });
 test('every rule has a sample and no sample is orphaned',()=>{
@@ -180,4 +183,32 @@ test('a foreign word gets its own replacement',()=>{
  const fix=w=>checkStyle(textBlocks(w)).find(it=>it.id==='bureaucratese-latinisms')?.fix;
  assert.equal(fix('Релевантные ответы.'),'Заменить обычным словом: подходящий, нужный, уместный.');
  assert.equal(fix('Нерелевантные ответы.'),'Заменить обычным словом: неподходящий, лишний.');
+});
+
+test('a style hint offers replacements a click can insert, or only advice',()=>{
+ const hit=(w,id)=>checkStyle(textBlocks(w)).find(it=>it.id===id);
+ assert.deepEqual(hit('Релевантный ответ.','bureaucratese-latinisms').replace,['подходящий','нужный','уместный']);
+ // Without a server a dictionary form is no drop-in for «релевантные»: only the server's form makes a button.
+ assert.equal(hit('Релевантные ответы.','bureaucratese-latinisms').replace,undefined);
+ assert.deepEqual(hit('Релевантные ответы.','bureaucratese-latinisms').variants,['подходящий','нужный','уместный']);
+ assert.deepEqual(hit('Мы принимаем участие.','nominalization-support-verbs').replace,['участвуем']);
+ assert.deepEqual(hit('Вообщем, да.','mistake-spelling').replace,['в общем']);
+ const frame=hit('Работаем в рамках проекта.','bureaucratese-verbs');
+ assert.equal(frame.replace,undefined);
+ assert.equal(frame.fix,'Заменить предлогом: в, по, внутри.');
+});
+
+test('pleonasms keep the needed word as written, paronyms mark only the wrong word',()=>{
+ const hit=(w,id)=>{const it=checkStyle(textBlocks(w)).find(it=>it.id===id);return it&&[w.slice(it.start,it.end),it.replace];};
+ assert.deepEqual(hit('Купили памятные сувениры.','pleonasm-pairs'),['памятные сувениры',['сувениры']]);
+ assert.deepEqual(hit('Он одел пальто.','paronyms'),['одел',undefined]);
+ assert.deepEqual(hit('Одеть пальто.','paronyms'),['Одеть',['надеть']]);
+ assert.equal(hit('Мама одела ребёнка.','paronyms'),undefined);
+ assert.deepEqual(hit('Новая предвыборная компания.','paronyms'),['компания',['кампания']]);
+});
+test('typography hints offer the corrected characters',()=>{
+ const fixes=w=>checkStyle(textBlocks(w)).filter(it=>it.id.startsWith('typo-')&&it.replace).map(it=>w.slice(it.start,it.end)+'→'+it.replace[0]);
+ assert.deepEqual(fixes('Пн-пт 10:00-18:00, 8-12 мм.'),['Пн-пт→Пн–пт','10:00-18:00→10:00–18:00','8-12 мм→8–12 мм']);
+ assert.deepEqual(fixes('Дом №5, 25-ый, м2, г.Москва, т.е.'),['№5→№ 5','-ый→-й','м2→м²','г.Москва→г. Москва','т.е.→т. е.']);
+ assert.deepEqual(fixes('Дата 2020-10-12, тел. 8-800-555-35-35, версия 1.2.3, x86-64.'),[]);
 });
