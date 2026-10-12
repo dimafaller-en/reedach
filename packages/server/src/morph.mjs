@@ -80,11 +80,11 @@ function inflect(found,word){
  }
  return word;
 }
-// issues from checkStyle on the same blocks: one-word replacements get the form of the word found.
+// issues from checkStyle on the same blocks: variants (dictionary forms) become replacements in the found word's form.
 export async function inflectReplacements(issues,blocks){
- const todo=issues.filter(it=>it.replace&&!it.exact);if(!todo.length)return issues;
+ const todo=issues.filter(it=>it.variants);if(!todo.length)return issues;
  await init();
  // In a phrase («личного бренда», «веб-сайта») the form comes from its last word.
- for(const it of todo){const found=(blocks[it.block]?.text.slice(it.start,it.end)||'').split(/[\s-]+/).pop();if(/^[А-Яа-яЁё]+$/.test(found))it.replace=it.replace.map(w=>inflect(found,w));}
+ for(const it of todo){const found=(blocks[it.block]?.text.slice(it.start,it.end)||'').split(/[\s-]+/).pop();if(/^[А-Яа-яЁё]+$/.test(found))it.replace=it.variants.map(w=>inflect(found,w));}
  return issues;
 }

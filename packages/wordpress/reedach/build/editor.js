@@ -115,7 +115,7 @@
   function pairRule(rule, [forms, near, where, right, note]) {
     const f = "(?<![" + L + "])" + alt(forms) + "(?![" + L + "])", n = alt(near), after = f + "(?=\\s+" + n + "(?![" + L + "]))", before = "(?<=(?<![" + L + "])" + n + "\\s+)" + f;
     const words = /^[а-яё]+(?:,\s*[а-яё]+)*$/i.test(right) ? right.split(/,\s*/) : null;
-    return { rule: { ...rule, pairs: void 0, fix: "Правильно: " + right + ". " + note, ...words && { replace: words, exact: false } }, re: new RegExp(where === "до" ? before : where === "любой" ? after + "|" + before : after, "g") };
+    return { rule: { ...rule, pairs: void 0, fix: "Правильно: " + right + ". " + note, ...words && { variants: words } }, re: new RegExp(where === "до" ? before : where === "любой" ? after + "|" + before : after, "g") };
   }
   var compiled = RULES.flatMap((rule) => rule.pairs ? rule.pairs.map((p) => pairRule(rule, p)) : [{ rule, re: compile(rule) }]);
   var keyRe = /* @__PURE__ */ new Map();
@@ -131,8 +131,26 @@
     if (h && (!k || h.length > k.length)) return { ...rule, fix: rule.hints[h] };
     if (!k) return rule;
     const parts = found.split(/\s+/), all = rule.swap[k].split(/,\s*/).filter(Boolean).map((w) => w.replace(/\$(\d)/g, (_, n) => parts[n - 1] || ""));
-    const replace2 = [...new Set(rule.exact ? all : all.filter((w) => !/\s/.test(w)))];
-    return { ...rule, fix: (rule.exact ? "Заменить: " : "Заменить обычным словом: ") + all.join(", ") + ".", ...replace2.length && { replace: replace2, exact: !!rule.exact } };
+    const fix = (rule.exact ? "Заменить: " : "Заменить обычным словом: ") + all.join(", ") + ".";
+    if (rule.exact) return { ...rule, fix, replace: [...new Set(all)], exact: true };
+    const variants = [...new Set(all.filter((w) => !/\s/.test(w)))];
+    return { ...rule, fix, ...variants.length && { variants, key: k } };
+  };
+  var INF = /(?:ть|ти|чь)(?:ся|сь)?$/;
+  var ADJ = /(?:ый|ий|ой)$/;
+  var NOUN = /(?:ия|ие|ость)$/;
+  var asIs = (found, key, v) => {
+    const w = norm(found).split(/[\s-]+/).pop();
+    if (key && w === key) return true;
+    if (INF.test(w)) return INF.test(v);
+    if (ADJ.test(w)) return ADJ.test(v);
+    if (NOUN.test(w)) return !INF.test(v) && !ADJ.test(v);
+    return false;
+  };
+  var offered = (r, found) => {
+    if (!r.variants) return r;
+    const { key, ...rest } = r, replace2 = r.variants.filter((v) => asIs(found, key, v));
+    return replace2.length ? { ...rest, replace: replace2 } : rest;
   };
   var sentences = (text) => [...text.matchAll(/[^.!?…]+(?:[.!?…]+|$)/g)].map((m) => ({ start: m.index, end: m.index + m[0].length, text: m[0] })).filter((s) => s.text.trim());
   var wordCount = (s) => (s.match(new RegExp("[" + L + "0-9]+(?:-[" + L + "]+)*", "g")) || []).length;
@@ -239,7 +257,7 @@
   var NOMINAL = new RegExp("(?:(?<![" + L + "])[" + L + "]+(?:ние|ния|нию|нием|нии|ость|ости|остью|ция|ции|цию|цией)(?![" + L + "])\\s+){2,}[" + L + "]+(?:ние|ния|нию|нием|нии|ость|ости|остью|ция|ции|цию|цией)(?![" + L + "])", "gi");
   var REPEAT_SKIP = /* @__PURE__ */ new Set(["который", "которая", "которое", "которые", "которых", "которым", "потому", "только", "сейчас", "больше", "меньше", "просто", "сделать", "делать", "чтобы", "когда", "после", "через", "between", "about"]);
   function checkStyle(blocks, { maxSentenceWords = 25, maxParagraphWords = 120 } = {}) {
-    const issues = [], add = (block, start, end, id, rule) => issues.push({ block, start, end, id, category: rule.category, label: CATEGORIES[rule.category] || rule.category, message: rule.message, fix: rule.fix, ...rule.replace && { replace: rule.replace, exact: rule.exact } });
+    const issues = [], add = (block, start, end, id, rule) => issues.push({ block, start, end, id, category: rule.category, label: CATEGORIES[rule.category] || rule.category, message: rule.message, fix: rule.fix, ...rule.replace && { replace: rule.replace }, ...rule.exact && { exact: true }, ...rule.variants && { variants: rule.variants } });
     blocks.forEach((b, i) => {
       const text = b.text, low = norm(text), list = sentences(text);
       for (const { rule, re } of compiled) {
@@ -250,7 +268,10 @@
             const s = sentenceAt(list, m.index);
             if (!s || low.slice(s.start, m.index).trim() !== "") continue;
           }
-          add(i, m.index, m.index + m[0].length, rule.id, swapped(rule, m[0], text.slice(m.index, m.index + m[0].length)));
+          {
+            const found = text.slice(m.index, m.index + m[0].length);
+            add(i, m.index, m.index + m[0].length, rule.id, offered(swapped(rule, m[0], found), found));
+          }
         }
       }
       const before = new Uint32Array(text.length + 1);

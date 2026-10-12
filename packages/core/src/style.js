@@ -12,7 +12,7 @@ const alt=list=>'(?:'+list.split('|').map(w=>w.trim().split(/\s+/).map(tokenSour
 function pairRule(rule,[forms,near,where,right,note]){
  const f='(?<!['+L+'])'+alt(forms)+'(?!['+L+'])',n=alt(near),after=f+'(?=\\s+'+n+'(?!['+L+']))',before='(?<=(?<!['+L+'])'+n+'\\s+)'+f;
  const words=/^[а-яё]+(?:,\s*[а-яё]+)*$/i.test(right)?right.split(/,\s*/):null;
- return {rule:{...rule,pairs:undefined,fix:'Правильно: '+right+'. '+note,...(words&&{replace:words,exact:false})},re:new RegExp(where==='до'?before:where==='любой'?after+'|'+before:after,'g')};
+ return {rule:{...rule,pairs:undefined,fix:'Правильно: '+right+'. '+note,...(words&&{variants:words})},re:new RegExp(where==='до'?before:where==='любой'?after+'|'+before:after,'g')};
 }
 const compiled=RULES.flatMap(rule=>rule.pairs?rule.pairs.map(p=>pairRule(rule,p)):[{rule,re:compile(rule)}]);
 // A rule with swap gives the replacement for the exact word found; the longest matching key wins. A key is a stem
@@ -29,9 +29,17 @@ const swapped=(rule,word,found=word)=>{
  if(h&&(!k||h.length>k.length))return {...rule,fix:rule.hints[h]};
  if(!k)return rule;
  const parts=found.split(/\s+/),all=rule.swap[k].split(/,\s*/).filter(Boolean).map(w=>w.replace(/\$(\d)/g,(_,n)=>parts[n-1]||''));
- const replace=[...new Set(rule.exact?all:all.filter(w=>!/\s/.test(w)))];
- return {...rule,fix:(rule.exact?'Заменить: ':'Заменить обычным словом: ')+all.join(', ')+'.',...(replace.length&&{replace,exact:!!rule.exact})};
+ const fix=(rule.exact?'Заменить: ':'Заменить обычным словом: ')+all.join(', ')+'.';
+ if(rule.exact)return {...rule,fix,replace:[...new Set(all)],exact:true};
+ const variants=[...new Set(all.filter(w=>!/\s/.test(w)))];
+ return {...rule,fix,...(variants.length&&{variants,key:k})};
 };
+// variants are dictionary forms. The server puts them in the found word's form; without it a click inserts them as
+// written, so they become buttons only where the found word is a dictionary form of the same kind too:
+// «осуществлять → делать», but not «осуществляет → делать».
+const INF=/(?:ть|ти|чь)(?:ся|сь)?$/,ADJ=/(?:ый|ий|ой)$/,NOUN=/(?:ия|ие|ость)$/;
+const asIs=(found,key,v)=>{const w=norm(found).split(/[\s-]+/).pop();if(key&&w===key)return true;if(INF.test(w))return INF.test(v);if(ADJ.test(w))return ADJ.test(v);if(NOUN.test(w))return !INF.test(v)&&!ADJ.test(v);return false;};
+const offered=(r,found)=>{if(!r.variants)return r;const {key,...rest}=r,replace=r.variants.filter(v=>asIs(found,key,v));return replace.length?{...rest,replace}:rest;};
 export const sentences=text=>[...text.matchAll(/[^.!?…]+(?:[.!?…]+|$)/g)].map(m=>({start:m.index,end:m.index+m[0].length,text:m[0]})).filter(s=>s.text.trim());
 const wordCount=s=>(s.match(new RegExp('['+L+'0-9]+(?:-['+L+']+)*','g'))||[]).length;
 const trimmed=(s,offset=0)=>{const lead=s.text.length-s.text.trimStart().length;return {start:s.start+offset+lead,end:s.start+offset+s.text.trimEnd().length};};
@@ -121,11 +129,11 @@ const NOMINAL=new RegExp('(?:(?<!['+L+'])['+L+']+(?:ние|ния|нию|ние�
 const REPEAT_SKIP=new Set(['который','которая','которое','которые','которых','которым','потому','только','сейчас','больше','меньше','просто','сделать','делать','чтобы','когда','после','через','between','about']);
 // blocks: [{text, kind:'p'|'li'|'h', tag?:'H1'|'H2'…}] → issues: [{block,start,end,id,category,label,message,fix}]
 export function checkStyle(blocks,{maxSentenceWords=25,maxParagraphWords=120}={}){
- const issues=[],add=(block,start,end,id,rule)=>issues.push({block,start,end,id,category:rule.category,label:CATEGORIES[rule.category]||rule.category,message:rule.message,fix:rule.fix,...(rule.replace&&{replace:rule.replace,exact:rule.exact})});
+ const issues=[],add=(block,start,end,id,rule)=>issues.push({block,start,end,id,category:rule.category,label:CATEGORIES[rule.category]||rule.category,message:rule.message,fix:rule.fix,...(rule.replace&&{replace:rule.replace}),...(rule.exact&&{exact:true}),...(rule.variants&&{variants:rule.variants})});
  blocks.forEach((b,i)=>{
   const text=b.text,low=norm(text),list=sentences(text);
   // A start-only rule needs nothing but spaces between the sentence start and the match.
-  for(const {rule,re} of compiled){if(!re)continue;re.lastIndex=0;for(const m of low.matchAll(re)){if(rule.start){const s=sentenceAt(list,m.index);if(!s||low.slice(s.start,m.index).trim()!=='')continue;}add(i,m.index,m.index+m[0].length,rule.id,swapped(rule,m[0],text.slice(m.index,m.index+m[0].length)));}}
+  for(const {rule,re} of compiled){if(!re)continue;re.lastIndex=0;for(const m of low.matchAll(re)){if(rule.start){const s=sentenceAt(list,m.index);if(!s||low.slice(s.start,m.index).trim()!=='')continue;}{const found=text.slice(m.index,m.index+m[0].length);add(i,m.index,m.index+m[0].length,rule.id,offered(swapped(rule,m[0],found),found));}}}
   // Blocks map every character to the source; gaps are spaces that stand for code, an image or a line break, not typos.
   // before[k] = gaps before offset k, so "a gap inside s..e" costs the same however many gaps the block has.
   const before=new Uint32Array(text.length+1);for(const j of b.gaps||[])if(j>=0&&j<text.length)before[j+1]++;for(let k=1;k<=text.length;k++)before[k]+=before[k-1];

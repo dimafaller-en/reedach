@@ -187,7 +187,10 @@ test('a foreign word gets its own replacement',()=>{
 
 test('a style hint offers replacements a click can insert, or only advice',()=>{
  const hit=(w,id)=>checkStyle(textBlocks(w)).find(it=>it.id===id);
- assert.deepEqual(hit('Релевантные ответы.','bureaucratese-latinisms').replace,['подходящий','нужный','уместный']);
+ assert.deepEqual(hit('Релевантный ответ.','bureaucratese-latinisms').replace,['подходящий','нужный','уместный']);
+ // Without a server a dictionary form is no drop-in for «релевантные»: only the server's form makes a button.
+ assert.equal(hit('Релевантные ответы.','bureaucratese-latinisms').replace,undefined);
+ assert.deepEqual(hit('Релевантные ответы.','bureaucratese-latinisms').variants,['подходящий','нужный','уместный']);
  assert.deepEqual(hit('Мы принимаем участие.','nominalization-support-verbs').replace,['участвуем']);
  assert.deepEqual(hit('Вообщем, да.','mistake-spelling').replace,['в общем']);
  const frame=hit('Работаем в рамках проекта.','bureaucratese-verbs');
@@ -198,7 +201,8 @@ test('a style hint offers replacements a click can insert, or only advice',()=>{
 test('pleonasms keep the needed word as written, paronyms mark only the wrong word',()=>{
  const hit=(w,id)=>{const it=checkStyle(textBlocks(w)).find(it=>it.id===id);return it&&[w.slice(it.start,it.end),it.replace];};
  assert.deepEqual(hit('Купили памятные сувениры.','pleonasm-pairs'),['памятные сувениры',['сувениры']]);
- assert.deepEqual(hit('Он одел пальто.','paronyms'),['одел',['надеть']]);
+ assert.deepEqual(hit('Он одел пальто.','paronyms'),['одел',undefined]);
+ assert.deepEqual(hit('Одеть пальто.','paronyms'),['Одеть',['надеть']]);
  assert.equal(hit('Мама одела ребёнка.','paronyms'),undefined);
  assert.deepEqual(hit('Новая предвыборная компания.','paronyms'),['компания',['кампания']]);
 });

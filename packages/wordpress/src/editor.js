@@ -177,7 +177,8 @@ function show(it) {
 const short = s => (s.length > 70 ? s.slice(0, 67).trimEnd() + '…' : s);
 
 // A suggested word replaces the fragment right in the block, keeping its formatting; the editor's Undo takes it back.
-// The text is not touched unless the author clicks. Without a server the word comes in its dictionary form.
+// The text is not touched unless the author clicks. There is no server here, so the core offers a synonym
+// only where the found word is a dictionary form too («осуществлять → делать», not «осуществляет → делать»).
 const capital = (it, word) => (/^\p{Lu}/u.test(it.fragment) ? word[0].toUpperCase() + word.slice(1) : word);
 function replace(it, word) {
  const text = capital(it, word);
