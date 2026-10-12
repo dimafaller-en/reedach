@@ -15,3 +15,13 @@ test('hints land on the same words in the source',()=>{
  const [typo]=mergeIssues(blocks,{spelling:[{word:'Вторая',suggestions:[]}]});
  assert.equal(src.slice(typo.start,typo.end),'Вторая');
 });
+
+test('unclosed marks do not rescan the line, links with inner parentheses still parse',()=>{
+ for(const bad of ['<a'.repeat(80000),'!['.repeat(80000),']('.repeat(80000),'![a]('.repeat(40000)]){
+  const t=performance.now();sourceBlocks(bad);assert.ok(performance.now()-t<1000,bad.slice(0,6)+' took too long');
+ }
+ assert.equal(sourceBlocks('Смотри [вики](https://ru.wikipedia.org/wiki/Тест_(значения)) и <b>жирный</b> ![x](a.png) текст.')[0].text,'Смотри вики и жирный   текст.');
+ assert.equal(sourceBlocks('a ](b <c')[0].text,'a ](b <c');
+ const long='x'.repeat(200000),[b]=sourceBlocks('Строка\n'+long);
+ assert.equal(b.text.length,7+long.length);
+});

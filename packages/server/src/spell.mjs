@@ -11,7 +11,8 @@ const spellError=(code,message)=>Object.assign(new Error(message),{status:503,co
 // Words worth checking: letters with inner hyphens; links, e-mails, abbreviations, words with digits
 // and English contractions (isn't, couldn’t) are skipped.
 export function words(text,{limit=20000}={}){
- const seen=new Set(),clean=String(text).replace(/https?:\/\/\S+|www\.\S+|[\w.+-]+@[\w-]+\.[\w.-]+/g,' ');
+ // An e-mail starts only where its run of characters starts: otherwise a long word is rescanned from every letter.
+ const seen=new Set(),clean=String(text).replace(/https?:\/\/\S+|www\.\S+|(?<![\w.+-])[\w.+-]+@[\w-]+\.[\w.-]+/g,' ');
  for(const [w] of clean.matchAll(/(?<![\w-])[A-Za-zА-Яа-яЁё]+(?:[-'’][A-Za-zА-Яа-яЁё]+)*(?![\w-])/g))if(w.length>1&&!/['’]/.test(w)&&w!==w.toUpperCase()&&seen.size<limit)seen.add(w);
  return [...seen];
 }

@@ -167,3 +167,11 @@ test('a word left between removed HTML tags is not a doubled word',()=>{
  const blocks=sourceBlocks('Слово <br> слово.');
  assert.deepEqual(checkStyle(blocks).filter(i=>i.id==='word-double'),[]);
 });
+
+test('long words and many hints stay fast',()=>{
+ for(const bad of ['а'.repeat(20000),'й'.repeat(20000),'а,'.repeat(50000),'во-первых '.repeat(10000),'- а\n'.repeat(20000)]){
+  const t=performance.now();checkStyle(textBlocks(bad));assert.ok(performance.now()-t<3000,JSON.stringify(bad.slice(0,6))+' took too long');
+ }
+ const mixed=checkStyle(textBlocks('Слово тeкст и site/тeкст.')).filter(it=>it.id==='typo-mixed-script');
+ assert.deepEqual(mixed.map(it=>[it.start,it.end]),[[6,11]]);
+});

@@ -165,9 +165,10 @@ checker.<span class="hljs-title function_">stop</span>();    <span class="hljs-c
    <tr><td><code>REEDACH_KEYS</code></td><td>обязательно</td><td>ключи доступа</td></tr>
    <tr><td><code>PORT</code></td><td><code>3000</code></td><td>порт</td></tr>
    <tr><td><code>HOST</code></td><td><code>0.0.0.0</code></td><td>адрес</td></tr>
-   <tr><td><code>REEDACH_MAX_BYTES</code></td><td><code>1000000</code></td><td>максимальный размер запроса</td></tr>
+   <tr><td><code>REEDACH_MAX_BYTES</code></td><td><code>200000</code></td><td>максимальный размер запроса в байтах (200 КБ — около 100 тысяч знаков русского текста)</td></tr>
    <tr><td><code>REEDACH_CONCURRENCY</code></td><td><code>2</code></td><td>сколько проверок идёт одновременно</td></tr>
    <tr><td><code>REEDACH_QUEUE</code></td><td><code>20</code></td><td>сколько запросов может ждать; остальные получат 503</td></tr>
+   <tr><td><code>REEDACH_TIMEOUT</code></td><td><code>20000</code></td><td>сколько миллисекунд может идти одна проверка; дольше — 503</td></tr>
    <tr><td><code>REEDACH_DEMO</code></td><td>—</td><td><code>1</code> — страница-пример по адресу <code>/demo/</code></td></tr>
   </tbody>
  </table></div>

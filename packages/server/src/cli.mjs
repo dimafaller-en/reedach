@@ -6,7 +6,7 @@ const env=process.env,num=(name,fallback)=>{const v=Number(env[name]);return Num
 let keys,server;
 try{
  keys=parseKeys(env.REEDACH_KEYS);if(!keys.length)throw new Error('Задайте REEDACH_KEYS: ключ=https://ваш-сайт.ru; второй-ключ');
- server=createServer({keys,maxBytes:num('REEDACH_MAX_BYTES',1_000_000),concurrency:num('REEDACH_CONCURRENCY',2),queue:num('REEDACH_QUEUE',20),demo:env.REEDACH_DEMO==='1'});
+ server=createServer({keys,maxBytes:num('REEDACH_MAX_BYTES',200_000),concurrency:num('REEDACH_CONCURRENCY',2),queue:num('REEDACH_QUEUE',20),timeout:num('REEDACH_TIMEOUT',20000),demo:env.REEDACH_DEMO==='1'});
 }catch(e){console.error('reedach: '+e.message);process.exit(1);}
 const port=num('PORT',3000),host=env.HOST||'0.0.0.0';
 server.listen(port,host,()=>console.log('reedach: слушаю '+host+':'+port+', ключей: '+keys.length+(env.REEDACH_DEMO==='1'?', пример: /demo/':'')));

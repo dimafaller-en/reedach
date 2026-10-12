@@ -23,3 +23,8 @@ test('plain sentences and headings stay clean',async()=>{
  assert.deepEqual(await check('Мы привезли стекло и поставили его в раму.'),[]);
  assert.deepEqual(await morphCheck([{text:'Сделав работу, мы ушли',kind:'h'}]),[]);
 });
+
+test('a made-up word of thousands of letters is not parsed',async()=>{
+ const t=performance.now();await morphCheck([{text:'а'.repeat(95000)+' был сделан',kind:'p'}]);
+ assert.ok(performance.now()-t<3000);
+});

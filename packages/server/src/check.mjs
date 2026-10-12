@@ -13,7 +13,8 @@ const identity=b=>({text:b.text,kind:['h','li'].includes(b.kind)?b.kind:'p',map:
 
 // input: {markdown | text | blocks:[{text,kind}], ignore:[own words], disable:[rule ids or categories], checks:[...]}
 // Markdown and text hints point into the source string; block hints carry `block` and point into that block's text.
-export async function check(input,{suggester:sg=suggester(),limits={}}={}){
+// Options for running elsewhere: `suggester` and `misspelled` replace the hunspell calls (the HTTP server's workers ask its main thread).
+export async function check(input,{suggester:sg=suggester(),misspelled:ms=misspelled,limits={}}={}){
  const lim={...LIMITS,...limits},{markdown,text,blocks:raw}=input??{};
  let blocks,blocksInput=false;
  if(typeof markdown==='string')blocks=sourceBlocks(markdown);
@@ -23,7 +24,7 @@ export async function check(input,{suggester:sg=suggester(),limits={}}={}){
  const list=(v,name)=>{if(v==null)return [];if(!Array.isArray(v)||v.some(x=>typeof x!=='string'))throw bad('Поле '+name+' должно быть списком строк');return v.slice(0,5000);};
  const ignore=list(input.ignore,'ignore'),disable=new Set(list(input.disable,'disable')),checks=new Set(input.checks==null?CHECKS:list(input.checks,'checks'));
  const [spelling,morph]=await Promise.all([
-  checks.has('spelling')?findSpelling(blocks,ignore,sg,lim):[],
+  checks.has('spelling')?findSpelling(blocks,ignore,sg,lim,ms):[],
   checks.has('morph')?morphCheck(blocks).catch(()=>[]):[],
  ]);
  const local=checks.has('style')?checkStyle(blocks):[];
@@ -32,8 +33,8 @@ export async function check(input,{suggester:sg=suggester(),limits={}}={}){
 }
 
 // Misspelled words minus own words; suggestions for the first few within a time budget, the rest get null (ask /v1/suggest).
-async function findSpelling(blocks,ignore,sg,lim){
- const found=(await misspelled(words(blocks.map(b=>b.text).join('\n')))).filter(w=>!known(w,ignore));
+async function findSpelling(blocks,ignore,sg,lim,ms){
+ const found=(await ms(words(blocks.map(b=>b.text).join('\n')))).filter(w=>!known(w,ignore));
  const result=found.map(word=>({word,suggestions:null}));
  const deadline=new Promise(resolve=>setTimeout(resolve,lim.suggestBudget).unref());
  await Promise.race([deadline,Promise.all(result.slice(0,lim.suggestWords).map(item=>sg.suggest(item.word).then(s=>{item.suggestions=s;},()=>{})))]);
@@ -51,5 +52,8 @@ export function rules(){
  const pick=(id,r)=>({id,category:r.category,label:r.label||CATEGORIES[r.category]||r.category,message:r.message,fix:r.fix});
  return {categories:{...CATEGORIES,spelling:'Орфография'},rules:[...RULES.map(r=>pick(r.id,r)),...Object.entries(BUILTIN).map(([id,r])=>pick(id,r)),...Object.entries(MORPH_RULES).map(([id,r])=>pick(id,r))]};
 }
+
+// hunspell for the HTTP server's workers, run in the main thread.
+export const spellHost={misspelled:list=>misspelled(list),suggest:word=>suggester().suggest(word)};
 
 export function closeChecks(){shared?.close();shared=null;}

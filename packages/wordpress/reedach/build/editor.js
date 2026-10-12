@@ -147,12 +147,24 @@
     ["typo-dash", /(?<=\S) --? (?=\S)/g],
     ["typo-repeat-punct", /[!?]{3,}|!!|\?\?|,{2,}|;{2,}|(?<![.?!])\.\.(?!\.)|\.{4,}/g],
     // «И.И. Иванов», «Иванов И.И.», «А.Пушкин»; «Ф.И.О.» and «до Н.Э.» are abbreviations, not initials.
-    ["typo-initials", /(?<!\p{L})[А-ЯЁ]\.[А-ЯЁ]\.(?=\s?[А-ЯЁ][а-яё])|(?<=[А-ЯЁ][а-яё]+\s)[А-ЯЁ]\.[А-ЯЁ]\.(?!\p{L})|(?<![\p{L}.])[А-ЯЁ]\.(?=[А-ЯЁ][а-яё]{2,})/gu],
-    ["typo-mixed-script", /\p{L}*(?:\p{Script=Cyrillic}\p{Script=Latin}|\p{Script=Latin}\p{Script=Cyrillic})\p{L}*/gu]
+    ["typo-initials", /(?<!\p{L})[А-ЯЁ]\.[А-ЯЁ]\.(?=\s?[А-ЯЁ][а-яё])|(?<=[А-ЯЁ][а-яё]+\s)[А-ЯЁ]\.[А-ЯЁ]\.(?!\p{L})|(?<![\p{L}.])[А-ЯЁ]\.(?=[А-ЯЁ][а-яё]{2,})/gu]
   ];
-  var technical = (text, s) => {
-    const a = text.lastIndexOf(" ", s) + 1, e = text.indexOf(" ", s);
-    return /[/@&=]/.test(text.slice(a, e < 0 ? text.length : e));
+  var MIXED = /\p{Script=Cyrillic}\p{Script=Latin}|\p{Script=Latin}\p{Script=Cyrillic}/u;
+  var technical = (text) => {
+    const marks = new Uint8Array(text.length);
+    for (const m of text.matchAll(/[^ ]+/g)) if (/[/@&=]/.test(m[0])) marks.fill(1, m.index, m.index + m[0].length);
+    return (s) => marks[s] === 1;
+  };
+  var sentenceAt = (list, at) => {
+    let lo = 0, hi = list.length - 1, hit = null;
+    while (lo <= hi) {
+      const mid = lo + hi >> 1;
+      if (list[mid].start <= at) {
+        hit = list[mid];
+        lo = mid + 1;
+      } else hi = mid - 1;
+    }
+    return hit;
   };
   function unpaired(text) {
     const out = [], open = [];
@@ -187,12 +199,19 @@
         if (!re) continue;
         re.lastIndex = 0;
         for (const m of low.matchAll(re)) {
-          if (rule.start && !list.some((s) => s.start <= m.index && low.slice(s.start, m.index).trim() === "")) continue;
+          if (rule.start) {
+            const s = sentenceAt(list, m.index);
+            if (!s || low.slice(s.start, m.index).trim() !== "") continue;
+          }
           add(i, m.index, m.index + m[0].length, rule.id, rule);
         }
       }
-      const gap = (s, e) => (b.gaps || []).some((j) => j >= s && j < e), plain = (s, e) => (!b.map || b.map[e - 1] - b.map[s] === e - 1 - s) && !gap(s, e);
-      for (const [id, re] of TYPO) for (const m of text.matchAll(re)) if (plain(m.index, m.index + m[0].length) && !technical(text, m.index)) add(i, m.index, m.index + m[0].length, id, BUILTIN[id]);
+      const before = new Uint32Array(text.length + 1);
+      for (const j of b.gaps || []) if (j >= 0 && j < text.length) before[j + 1]++;
+      for (let k = 1; k <= text.length; k++) before[k] += before[k - 1];
+      const gap = (s, e) => before[e] - before[s] > 0, plain = (s, e) => (!b.map || b.map[e - 1] - b.map[s] === e - 1 - s) && !gap(s, e), tech = technical(text);
+      for (const [id, re] of TYPO) for (const m of text.matchAll(re)) if (plain(m.index, m.index + m[0].length) && !tech(m.index)) add(i, m.index, m.index + m[0].length, id, BUILTIN[id]);
+      for (const m of text.matchAll(/\p{L}+/gu)) if (MIXED.test(m[0]) && plain(m.index, m.index + m[0].length) && !tech(m.index)) add(i, m.index, m.index + m[0].length, "typo-mixed-script", BUILTIN["typo-mixed-script"]);
       for (const m of text.matchAll(/"[^"\n]*"/g)) if (/[А-Яа-яЁё]/.test(m[0])) add(i, m.index, m.index + m[0].length, "typo-quotes", BUILTIN["typo-quotes"]);
       for (const k of unpaired(text)) add(i, k, k + 1, "typo-unpaired", BUILTIN["typo-unpaired"]);
       for (const m of low.matchAll(new RegExp("(?<![" + L + "])([" + L + "]+)\\s+\\1(?![-" + L + "])", "g"))) if (!DOUBLE_OK.has(m[1]) && plain(m.index, m.index + m[0].length)) add(i, m.index, m.index + m[0].length, "word-double", BUILTIN["word-double"]);

@@ -43,10 +43,14 @@ const TYPO=[
  ['typo-repeat-punct',/[!?]{3,}|!!|\?\?|,{2,}|;{2,}|(?<![.?!])\.\.(?!\.)|\.{4,}/g],
  // «И.И. Иванов», «Иванов И.И.», «А.Пушкин»; «Ф.И.О.» and «до Н.Э.» are abbreviations, not initials.
  ['typo-initials',/(?<!\p{L})[А-ЯЁ]\.[А-ЯЁ]\.(?=\s?[А-ЯЁ][а-яё])|(?<=[А-ЯЁ][а-яё]+\s)[А-ЯЁ]\.[А-ЯЁ]\.(?!\p{L})|(?<![\p{L}.])[А-ЯЁ]\.(?=[А-ЯЁ][а-яё]{2,})/gu],
- ['typo-mixed-script',/\p{L}*(?:\p{Script=Cyrillic}\p{Script=Latin}|\p{Script=Latin}\p{Script=Cyrillic})\p{L}*/gu],
 ];
+// Mixed scripts are checked word by word: one pattern over the whole text backtracked for seconds on a long word.
+const MIXED=/\p{Script=Cyrillic}\p{Script=Latin}|\p{Script=Latin}\p{Script=Cyrillic}/u;
 // Addresses, e-mails and HTML entities are not prose: no typography hints inside them.
-const technical=(text,s)=>{const a=text.lastIndexOf(' ',s)+1,e=text.indexOf(' ',s);return /[/@&=]/.test(text.slice(a,e<0?text.length:e));};
+// Marked once per block (a looked-up word per hint made a long text with many hints quadratic).
+const technical=text=>{const marks=new Uint8Array(text.length);for(const m of text.matchAll(/[^ ]+/g))if(/[/@&=]/.test(m[0]))marks.fill(1,m.index,m.index+m[0].length);return s=>marks[s]===1;};
+// The last sentence starting at or before `at` (sentences are in order), by binary search.
+const sentenceAt=(list,at)=>{let lo=0,hi=list.length-1,hit=null;while(lo<=hi){const mid=(lo+hi)>>1;if(list[mid].start<=at){hit=list[mid];lo=mid+1;}else hi=mid-1;}return hit;};
 // Brackets and guillemets without a pair. Not brackets: «а)», «1)», «п. 2)», smileys «:)», «:-(», «:))»;
 // a lone «»» or ««» between spaces is a navigation arrow.
 function unpaired(text){
@@ -72,10 +76,14 @@ export function checkStyle(blocks,{maxSentenceWords=25,maxParagraphWords=120}={}
  const issues=[],add=(block,start,end,id,rule)=>issues.push({block,start,end,id,category:rule.category,label:CATEGORIES[rule.category]||rule.category,message:rule.message,fix:rule.fix});
  blocks.forEach((b,i)=>{
   const text=b.text,low=norm(text),list=sentences(text);
-  for(const {rule,re} of compiled){if(!re)continue;re.lastIndex=0;for(const m of low.matchAll(re)){if(rule.start&&!list.some(s=>s.start<=m.index&&low.slice(s.start,m.index).trim()===''))continue;add(i,m.index,m.index+m[0].length,rule.id,rule);}}
+  // A start-only rule needs nothing but spaces between the sentence start and the match.
+  for(const {rule,re} of compiled){if(!re)continue;re.lastIndex=0;for(const m of low.matchAll(re)){if(rule.start){const s=sentenceAt(list,m.index);if(!s||low.slice(s.start,m.index).trim()!=='')continue;}add(i,m.index,m.index+m[0].length,rule.id,rule);}}
   // Blocks map every character to the source; gaps are spaces that stand for code, an image or a line break, not typos.
-  const gap=(s,e)=>(b.gaps||[]).some(j=>j>=s&&j<e),plain=(s,e)=>(!b.map||b.map[e-1]-b.map[s]===e-1-s)&&!gap(s,e);
-  for(const [id,re] of TYPO)for(const m of text.matchAll(re))if(plain(m.index,m.index+m[0].length)&&!technical(text,m.index))add(i,m.index,m.index+m[0].length,id,BUILTIN[id]);
+  // before[k] = gaps before offset k, so "a gap inside s..e" costs the same however many gaps the block has.
+  const before=new Uint32Array(text.length+1);for(const j of b.gaps||[])if(j>=0&&j<text.length)before[j+1]++;for(let k=1;k<=text.length;k++)before[k]+=before[k-1];
+  const gap=(s,e)=>before[e]-before[s]>0,plain=(s,e)=>(!b.map||b.map[e-1]-b.map[s]===e-1-s)&&!gap(s,e),tech=technical(text);
+  for(const [id,re] of TYPO)for(const m of text.matchAll(re))if(plain(m.index,m.index+m[0].length)&&!tech(m.index))add(i,m.index,m.index+m[0].length,id,BUILTIN[id]);
+  for(const m of text.matchAll(/\p{L}+/gu))if(MIXED.test(m[0])&&plain(m.index,m.index+m[0].length)&&!tech(m.index))add(i,m.index,m.index+m[0].length,'typo-mixed-script',BUILTIN['typo-mixed-script']);
   for(const m of text.matchAll(/"[^"\n]*"/g))if(/[А-Яа-яЁё]/.test(m[0]))add(i,m.index,m.index+m[0].length,'typo-quotes',BUILTIN['typo-quotes']);
   for(const k of unpaired(text))add(i,k,k+1,'typo-unpaired',BUILTIN['typo-unpaired']);
   for(const m of low.matchAll(new RegExp('(?<!['+L+'])(['+L+']+)\\s+\\1(?![-'+L+'])','g')))if(!DOUBLE_OK.has(m[1])&&plain(m.index,m.index+m[0].length))add(i,m.index,m.index+m[0].length,'word-double',BUILTIN['word-double']);

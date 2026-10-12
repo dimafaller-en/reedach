@@ -66,3 +66,24 @@ test('rules are listed for settings screens',async()=>{
  assert.equal(res.status,200);
  assert.ok((await res.json()).rules.length>50);
 });
+
+test('a check that runs too long is stopped, the server keeps answering',async()=>{
+ const slow=createServer({keys:parseKeys(BACK),timeout:1});await new Promise(r=>slow.listen(0,'127.0.0.1',r));
+ try{
+  const at='http://127.0.0.1:'+slow.address().port;
+  const res=await fetch(at+'/v1/check',{method:'POST',headers:{authorization:'Bearer '+BACK,'content-type':'application/json'},body:JSON.stringify(style)});
+  assert.equal(res.status,503);
+  assert.equal((await res.json()).error.code,'timeout');
+  assert.equal((await fetch(at+'/health')).status,200);
+ }finally{slow.close();}
+});
+
+test('JSON nested thousands deep is refused without keeping a worker busy',async()=>{
+ const deep='{"text":"Тест","x":'+'['.repeat(10000)+']'.repeat(10000)+'}';
+ const own=createServer({keys:parseKeys(BACK),concurrency:1,queue:0});await new Promise(r=>own.listen(0,'127.0.0.1',r));
+ try{
+  const post=body=>fetch('http://127.0.0.1:'+own.address().port+'/v1/check',{method:'POST',headers:{authorization:'Bearer '+BACK,'content-type':'application/json'},body});
+  assert.equal((await post(deep)).status,422);
+  assert.equal((await post(JSON.stringify(style))).status,200);
+ }finally{own.close();}
+});

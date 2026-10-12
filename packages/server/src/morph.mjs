@@ -5,9 +5,11 @@ const require=createRequire(import.meta.url),Az=require('az'),DICTS=path.join(pa
 let ready=null;
 const init=()=>ready??=new Promise((resolve,reject)=>Az.Morph.init(DICTS,error=>error?reject(error):resolve()));
 const cache=new Map();
+// Russian words are shorter than 40 letters; Az.js spends seconds on a made-up word of thousands, so those are not parsed.
+const MAX_WORD=40;
 function parse(word){
  const key=word.toLowerCase();let hit=cache.get(key);
- if(!hit){let p;try{p=Az.Morph(key)[0];}catch{}hit={pos:p?.tag?.POS||'',cas:p?.tag?.CAse||'',lemma:String(p?.normalize()?.word||key),score:p?.score||0};if(cache.size>50000)cache.clear();cache.set(key,hit);}
+ if(!hit){let p;try{if(key.length<=MAX_WORD)p=Az.Morph(key)[0];}catch{}hit={pos:p?.tag?.POS||'',cas:p?.tag?.CAse||'',lemma:String(p?.normalize()?.word||key),score:p?.score||0};if(cache.size>50000)cache.clear();cache.set(key,hit);}
  return hit;
 }
 const RULES={

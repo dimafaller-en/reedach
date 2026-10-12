@@ -2,7 +2,8 @@ import http from 'node:http';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {createHash,timingSafeEqual} from 'node:crypto';
-import {check,suggest,rules} from './check.mjs';
+import {Worker} from 'node:worker_threads';
+import {suggest,rules,spellHost} from './check.mjs';
 // HTTP API. Every /v1 call needs a key. A key may list the sites whose pages can call it from the browser;
 // calls without an Origin header (from a site's own server) work with any valid key.
 // The server keeps nothing: texts are not stored and not logged.
@@ -31,9 +32,35 @@ function demoFiles(){
  return new Map(Object.entries(map).map(([url,p])=>[url,{body:readFileSync(file(p)),type:types[p.split('.').pop()]}]));
 }
 
-export function createServer({keys,maxBytes=1_000_000,concurrency=2,queue=20,demo=false}={}){
+// Checks run in worker threads, at most one per slot: the server keeps answering while a long text is checked,
+// and a check running longer than `timeout` ms is stopped together with its worker; the next call starts a fresh one.
+// Workers ask this thread for hunspell (see worker.mjs); an answer to a stopped worker is dropped.
+function workers(timeout){
+ const answer=(w,{id,op,arg})=>Promise.resolve().then(()=>op==='suggest'?spellHost.suggest(arg):spellHost.misspelled(arg))
+  .then(value=>({id,value}),e=>({id,error:{message:e.message,status:e.status,code:e.code}}))
+  .then(reply=>{try{w.postMessage({answer:reply});}catch{}});
+ const free=[],all=new Set();
+ const spawn=()=>{const w=new Worker(new URL('./worker.mjs',import.meta.url));w.unref();all.add(w);w.once('exit',()=>all.delete(w));return w;};
+ return {
+  run(input){
+   const w=free.pop()||spawn();
+   return new Promise((resolve,reject)=>{
+    const end=(keep,fn,value)=>{clearTimeout(timer);w.off('message',onMessage).off('error',onError).off('exit',onExit);if(keep)free.push(w);else w.terminate();fn(value);};
+    const onMessage=m=>m.ask?answer(w,m.ask):m.error?end(true,reject,Object.assign(new Error(m.error.message),m.error)):end(true,resolve,m.result);
+    const onError=e=>end(false,reject,e),onExit=()=>end(false,reject,fail(500,'internal','Проверка прервалась'));
+    const timer=setTimeout(()=>end(false,reject,fail(503,'timeout','Текст проверяется слишком долго')),timeout);
+    w.on('message',onMessage).on('error',onError).on('exit',onExit);
+    // Copying to the worker throws at once on JSON nested thousands deep; the worker stays idle and goes back to the pool.
+    try{w.postMessage({input});}catch{end(true,reject,fail(422,'validation','Слишком глубокая вложенность JSON'));}
+   });
+  },
+  close(){for(const w of all)w.terminate();},
+ };
+}
+
+export function createServer({keys,maxBytes=200_000,concurrency=2,queue=20,timeout=20000,demo=false}={}){
  if(!keys?.length)throw new Error('Нужен хотя бы один ключ доступа');
- const pages=demo?demoFiles():null;
+ const pages=demo?demoFiles():null,pool=workers(timeout);
  const entries=keys.map(k=>({...k,hash:digest(k.key)})),siteOrigins=new Set(entries.flatMap(k=>k.origins));
  const find=token=>{const h=digest(token);let hit=null;for(const k of entries)if(timingSafeEqual(h,k.hash))hit=k;return hit;};
  let active=0;const waiting=[];
@@ -61,7 +88,7 @@ export function createServer({keys,maxBytes=1_000_000,concurrency=2,queue=20,dem
    if(!key)throw fail(401,'unauthorized','Нужен ключ доступа');
    if(origin&&!key.origins.includes(origin))throw fail(403,'origin','Этот ключ не работает на этом сайте');
    if(url.pathname==='/v1/rules'&&req.method==='GET')return send(200,rules());
-   const route=url.pathname==='/v1/check'?b=>check(b):url.pathname==='/v1/suggest'?b=>suggest(b?.words):null;
+   const route=url.pathname==='/v1/check'?b=>pool.run(b):url.pathname==='/v1/suggest'?b=>suggest(b?.words):null;
    if(!route)throw fail(404,'not_found','Нет такого адреса');
    if(req.method!=='POST')throw fail(405,'method','Используйте POST');
    if(!/^application\/json\b/i.test(req.headers['content-type']||''))throw fail(415,'content_type','Нужен JSON');
@@ -74,7 +101,7 @@ export function createServer({keys,maxBytes=1_000_000,concurrency=2,queue=20,dem
    send(status,{error:{code:e.code||'internal',message:status===500?'Внутренняя ошибка':e.message}},e.code==='busy'?{'retry-after':'5'}:status===413?{connection:'close'}:{});
   }
  });
- server.requestTimeout=30000;server.headersTimeout=10000;
+ server.requestTimeout=30000;server.headersTimeout=10000;server.on('close',()=>pool.close());
  return server;
 }
 

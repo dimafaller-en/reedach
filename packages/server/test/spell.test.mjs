@@ -47,3 +47,10 @@ test('a hung hunspell is replaced and the next word still works',{skip},async()=
   assert.ok((await sg.suggest('превет')).includes('привет'));
  }finally{sg.close();}
 });
+
+test('a long run of letters or dots is not rescanned for e-mails',()=>{
+ for(const bad of ['a'.repeat(80000),'.'.repeat(80000),'a.'.repeat(40000)]){
+  const t=performance.now();words(bad);assert.ok(performance.now()-t<1000,bad.slice(0,4)+' took too long');
+ }
+ assert.deepEqual(words('пишите на test.user+1@mail.example.ru или x@y.z'),['пишите','на','или']);
+});
