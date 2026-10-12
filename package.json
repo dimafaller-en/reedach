@@ -1,0 +1,12 @@
+{
+  "name": "yasno-monorepo",
+  "private": true,
+  "type": "module",
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "test": "node --test packages/*/test/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

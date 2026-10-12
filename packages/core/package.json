@@ -1,0 +1,23 @@
+{
+  "name": "yasno",
+  "version": "0.1.0",
+  "description": "Лёгкая проверка русского текста на канцелярит, штампы и воду: словарь правил, работает в браузере и в Node без зависимостей",
+  "license": "MIT",
+  "author": "Dima Faller <dima@dimafaller.ru>",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.js",
+    "./style": "./src/style.js",
+    "./rules": "./src/rules.js",
+    "./markdown": "./src/markdown.js"
+  },
+  "files": ["src", "README.md", "LICENSE", "NOTICE.md"],
+  "keywords": ["russian", "русский", "style", "linter", "infostyle", "информационный стиль", "канцелярит", "proofreading"],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  }
+}
