@@ -1,6 +1,6 @@
 {
   "name": "reedach-wordpress",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "description": "Reedach plugin for WordPress: style hints for Russian text in the block editor",
   "license": "GPL-2.0-or-later",
@@ -9,7 +9,7 @@
     "build": "node build.mjs"
   },
   "dependencies": {
-    "reedach": "0.2.0"
+    "reedach": "0.3.0"
   },
   "devDependencies": {
     "esbuild": "0.28.2"

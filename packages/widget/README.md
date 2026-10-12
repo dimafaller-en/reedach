@@ -16,7 +16,7 @@
 ## Подключение одной строкой
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/reedach-widget@0.2.0/dist/reedach.min.js"
+<script src="https://cdn.jsdelivr.net/npm/reedach-widget@0.3.0/dist/reedach.min.js"
         integrity="sha384-WkLSRGvjoxfrginR5euzDIdu9SgY0Y6zzQh0+1mQJ+anwpw72Dq1+PtANcaqo/tC"
         crossorigin="anonymous" defer></script>
 

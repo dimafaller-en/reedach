@@ -4,7 +4,7 @@ Tags: russian, proofreading, writing, style, gutenberg
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.2.0
+Stable tag: 0.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -57,6 +57,12 @@ Chrome and Edge 105+, Safari 17.2+, Firefox 140+. In older browsers the list of 
 No, only with the block editor.
 
 == Changelog ==
+
+= 0.3.0 =
+* Many hints offer a ready replacement: click the suggested word to put it in the text, Undo takes it back.
+* Own replacement for every word in bureaucratese, clichés, borrowings, slang, common mistakes and colloquialisms.
+* New hints: paronyms (only next to a word that makes the mistake certain), about 120 borrowings and slang words, 50 pleonasms, 60 bureaucratic turns.
+* Typography: hyphen in ranges, three dots, abbreviations without a space, m2, ordinal numbers, №, (c).
 
 = 0.2.0 =
 * First version: style hints in the block editor, marks in the text, settings for kinds of hints.
