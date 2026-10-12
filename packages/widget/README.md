@@ -110,4 +110,6 @@ docker run -p 3000:3000 -e REEDACH_DEMO=1 -e REEDACH_KEYS="демо-ключ-н�
 
 Откройте `http://localhost:3000/demo/` и введите ключ.
 
+История версий всех пакетов — в [CHANGELOG.md](https://github.com/dimafaller-en/reedach/blob/main/CHANGELOG.md).
+
 MIT, © 2026 Дима Фаллер.

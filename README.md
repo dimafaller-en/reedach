@@ -14,7 +14,7 @@
 сказать проще. Подсказки появляются прямо в поле ввода, пока автор пишет.
 
 Reedach работает у вас: в браузере или на вашем сервере. Текст никуда не уходит.
-Сайт проекта — [dimafaller.ru/reedach](https://dimafaller.ru/reedach/).
+Сайт проекта — [dimafaller.ru/reedach](https://dimafaller.ru/reedach/). Что нового — в [истории версий](CHANGELOG.md).
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/demo-dark.png">

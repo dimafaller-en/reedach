@@ -100,7 +100,10 @@ jobs:
           cd packages/wordpress && zip -qr "../../reedach-wordpress-$version.zip" reedach
       - env:
           GH_TOKEN: ${{ github.token }}
+        # Release notes: this version's section of CHANGELOG.md plus where to get the packages.
         run: |
-          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" --title "Reedach $GITHUB_REF_NAME" \
-            --notes "npm: reedach, reedach-widget, reedach-server. Docker: ghcr.io/${{ github.repository }}. WordPress plugin: reedach-wordpress zip below (Plugins → Add New → Upload)."
+          awk -v v="## ${GITHUB_REF_NAME#v} " 'index($0, v) == 1 {f = 1; next} /^## / {f = 0} f' CHANGELOG.md > notes.md
+          [ -s notes.md ] || { echo "CHANGELOG.md has no section for ${GITHUB_REF_NAME#v}"; exit 1; }
+          printf '\nnpm: reedach, reedach-widget, reedach-server. Docker: ghcr.io/%s. WordPress: the zip below, Plugins → Add New → Upload.\n' "${{ github.repository }}" >> notes.md
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" --title "Reedach $GITHUB_REF_NAME" --notes-file notes.md
           gh release upload "$GITHUB_REF_NAME" reedach-wordpress-*.zip --clobber

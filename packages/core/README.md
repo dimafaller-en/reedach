@@ -26,4 +26,6 @@ maxParagraphWords: 120})`.
 
 Словарь правил, источники и лицензии — в README и NOTICE.md [репозитория проекта](https://github.com/dimafaller-en/reedach).
 
+История версий всех пакетов — в [CHANGELOG.md](https://github.com/dimafaller-en/reedach/blob/main/CHANGELOG.md).
+
 MIT, © 2026 Дима Фаллер.

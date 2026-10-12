@@ -28,6 +28,8 @@ npm run build -w reedach-wordpress
 Сборка закоммичена. Версия плагина в `reedach.php` и `readme.txt` должна совпадать с
 `package.json`, иначе сборка остановится. Архив для релиза собирает GitHub по тегу `vX.Y.Z`.
 
+История версий всех пакетов — в [CHANGELOG.md](https://github.com/dimafaller-en/reedach/blob/main/CHANGELOG.md).
+
 ## Лицензия
 
 GPL-2.0-or-later. Ядро Reedach и словарь правил внутри сборки — под MIT, см. `reedach/NOTICE.txt`.
