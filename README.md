@@ -82,7 +82,7 @@ Reedach работает у вас: в браузере или на вашем �
 русском и английском.
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/reedach-widget@0.3.0/dist/reedach.min.js"
+<script src="https://cdn.jsdelivr.net/npm/reedach-widget@0.3.1/dist/reedach.min.js"
         integrity="sha384-+b0TQ8Vfz4ZeaWhABr7Pv49jCYTZoajS8qaSb4Ty/3PEoOCLY7QiECW5epXAnrxA"
         crossorigin="anonymous" defer></script>
 

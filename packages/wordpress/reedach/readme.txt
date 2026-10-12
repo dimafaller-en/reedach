@@ -4,7 +4,7 @@ Tags: russian, proofreading, writing, style, gutenberg
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.3.0
+Stable tag: 0.3.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -57,6 +57,9 @@ Chrome and Edge 105+, Safari 17.2+, Firefox 140+. In older browsers the list of 
 No, only with the block editor.
 
 == Changelog ==
+
+= 0.3.1 =
+* The bundled Russian translation loads with load_textdomain; a translation from translate.wordpress.org comes first.
 
 = 0.3.0 =
 * Many hints offer a ready replacement: click the suggested word to put it in the text, Undo takes it back.
