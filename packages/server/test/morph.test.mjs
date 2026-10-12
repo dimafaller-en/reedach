@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {morphCheck} from '../src/morph.mjs';
+import {morphCheck,inflectReplacements} from '../src/morph.mjs';
+import {checkStyle} from 'reedach';
 
 const check=async text=>(await morphCheck([{text,kind:'p'}])).map(it=>[it.id,text.slice(it.start,it.end)]);
 
@@ -27,4 +28,11 @@ test('plain sentences and headings stay clean',async()=>{
 test('a made-up word of thousands of letters is not parsed',async()=>{
  const t=performance.now();await morphCheck([{text:'а'.repeat(95000)+' был сделан',kind:'p'}]);
  assert.ok(performance.now()-t<3000);
+});
+
+test('a replacement takes the form of the word it replaces',async()=>{
+ const variants=async text=>{const blocks=[{text,kind:'p'}];return (await inflectReplacements(checkStyle(blocks),blocks)).filter(it=>it.replace).map(it=>it.replace);};
+ assert.deepEqual(await variants('Релевантных запросов нет.'),[['подходящих','нужных','уместных']]);
+ assert.deepEqual(await variants('Мы минимизировали расходы.'),[['сократили','уменьшили']]);
+ assert.deepEqual(await variants('Получили фидбек.'),[['отзыв','отклик']]);
 });

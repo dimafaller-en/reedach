@@ -59,3 +59,32 @@ export async function morphCheck(blocks){
  return issues;
 }
 export const MORPH_RULES=RULES;
+
+// A click puts the replacement in place of the found word, so it takes that word's form: «релевантные» → «подходящие».
+// The parse of the found word is the one with the replacement's part of speech («фичи» is a noun here, not a verb);
+// a noun keeps its own gender and, when its base form is plural («возможности»), its number.
+const FAMILY={INFN:'verb',VERB:'verb',ADJF:'adj',PRTF:'adj',ADJS:'adjs',PRTS:'adjs',NOUN:'noun',ADVB:'advb'};
+const KEEP={verb:['NMbr','TEns','PErs','GNdr','MOod','INvl'],adj:['NMbr','CAse','GNdr','ANim'],adjs:['NMbr','GNdr'],noun:['NMbr','CAse'],advb:[]};
+function inflect(found,word){
+ const lower=found.toLowerCase();if(lower.length>MAX_WORD||word.length>MAX_WORD)return word;
+ let parses,targets;try{parses=Az.Morph(lower);targets=Az.Morph(word);}catch{return word;}
+ for(const f of parses){
+  const fam=FAMILY[f.tag.POS],t=fam&&targets.find(x=>FAMILY[x.tag.POS]===fam);if(!t)continue;
+  if(fam==='advb')return word;
+  const keep=KEEP[fam].filter(k=>!(fam==='noun'&&k==='NMbr'&&t.tag.NMbr==='plur'));
+  const want=keep.map(k=>f.tag[k]).filter(Boolean);if(fam==='noun'&&t.tag.NMbr==='plur')want.push('plur');
+  if(fam==='verb'&&f.tag.POS==='VERB'&&t.tag.POS==='INFN')want.push('VERB');
+  if(f.tag.POS==='INFN')return t.normalize()?.word||word;
+  try{const r=t.inflect(want);if(r?.word)return r.word;}catch{}
+  return word;
+ }
+ return word;
+}
+// issues from checkStyle on the same blocks: one-word replacements get the form of the word found.
+export async function inflectReplacements(issues,blocks){
+ const todo=issues.filter(it=>it.replace&&!it.exact);if(!todo.length)return issues;
+ await init();
+ // In a phrase («личного бренда», «веб-сайта») the form comes from its last word.
+ for(const it of todo){const found=(blocks[it.block]?.text.slice(it.start,it.end)||'').split(/[\s-]+/).pop();if(/^[А-Яа-яЁё]+$/.test(found))it.replace=it.replace.map(w=>inflect(found,w));}
+ return issues;
+}

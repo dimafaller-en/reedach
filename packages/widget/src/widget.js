@@ -104,13 +104,17 @@ class Checker{
  }
  #fragment(it){const t=this.value.slice(it.start,it.end).replace(/\s+/g,' ').trim();return t.length>70?t.slice(0,67)+'…':t;}
  #actions(it,i){
+  // A style hint with ready replacements: buttons only, a style word is not a typo for the dictionary.
+  // The replacement starts with a capital letter when the found word does.
+  if(Array.isArray(it.replace)&&it.replace.length){const cap=/^\p{Lu}/u.test(this.value.slice(it.start,it.end)),up=w=>cap?w[0].toUpperCase()+w.slice(1):w;return '<div class="reedach-actions">'+it.replace.map(w=>this.#variant(i,up(w))).join('')+'</div>';}
   if(!it.word)return '';
   const t=this.t,v=this.variants.get(it.word);let out='';
-  if(Array.isArray(v))out=v.length?v.map(w=>'<button type="button" class="reedach-variant" data-reedach-replace="'+i+'" data-reedach-value="'+esc(w)+'" aria-label="'+esc(t('replace',{word:w}))+'">'+esc(w)+'</button>').join(''):'<span class="reedach-note">'+esc(t('noVariants'))+'</span>';
+  if(Array.isArray(v))out=v.length?v.map(w=>this.#variant(i,w)).join(''):'<span class="reedach-note">'+esc(t('noVariants'))+'</span>';
   else if(v==='loading')out='<span class="reedach-note">'+esc(t('loading'))+'</span>';
   else if(this.send)out='<button type="button" class="reedach-action" data-reedach-variants="'+esc(it.word)+'">'+esc(t('variants'))+'</button>';
   return '<div class="reedach-actions">'+out+'<button type="button" class="reedach-action" data-reedach-add="'+esc(it.word)+'">'+esc(t('add',{word:it.word}))+'</button></div>';
  }
+ #variant(i,w){return '<button type="button" class="reedach-variant" data-reedach-replace="'+i+'" data-reedach-value="'+esc(w)+'" aria-label="'+esc(this.t('replace',{word:w}))+'">'+esc(w)+'</button>';}
  #renderPanel(){
   const {panel,issues,busy,error,t}=this;
   const head='<div class="reedach-head"><div class="reedach-title" role="heading" aria-level="2">'+esc(t('title'))+(busy?'':' <span class="reedach-count">'+issues.length+'</span>')+'</div><button type="button" class="reedach-close" data-reedach-close>'+esc(t('close'))+'</button></div>';

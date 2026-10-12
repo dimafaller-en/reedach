@@ -21,6 +21,7 @@ return array(
 	'nominalization' => 'Отглагольное',
 	'evaluation' => 'Оценка',
 	'time' => 'Паразит времени',
+	'paronym' => 'Пароним',
 	'pleonasm' => 'Плеоназм',
 	'repetition' => 'Повтор',
 	'adjective' => 'Прилагательное',
