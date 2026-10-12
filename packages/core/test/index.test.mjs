@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {checkStyle,sourceBlocks,mergeIssues,RULES} from 'yasno';
+import {checkStyle,sourceBlocks,mergeIssues,RULES} from 'reedach';
 
 test('the README example finds hints at their place in the source',()=>{
  const markdown='В настоящее время мы осуществляем монтаж перегородок.';

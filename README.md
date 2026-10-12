@@ -1,10 +1,10 @@
-# Ясно
+# Reedach
 
 Лёгкая проверка русского текста для сайтов и редакторов: канцелярит, штампы, вода,
 неконкретные и оценочные слова, длинные предложения и абзацы. Подсказывает, что можно
 сказать проще, и объясняет почему.
 
-Ясно работает у вас: в браузере или на вашем сервере. Текст никуда не отправляется.
+Reedach работает у вас: в браузере или на вашем сервере. Текст никуда не отправляется.
 
 Это подсказки, а не приговор. Проверка ищет по словарю и простым правилам, поэтому
 иногда ошибается. Она не заменяет редактора и профессиональные сервисы.
@@ -16,7 +16,7 @@
 
 | Часть | Что делает | Состояние |
 |---|---|---|
-| `packages/core` (npm `yasno`) | Словарь правил и проверка стиля, разбор Markdown. Без зависимостей, работает в браузере и в Node | готово |
+| `packages/core` (npm `reedach`) | Словарь правил и проверка стиля, разбор Markdown. Без зависимостей, работает в браузере и в Node | готово |
 | `packages/server` | HTTP API и Docker-образ: орфография (hunspell) и морфология (Az.js + OpenCorpora) | следующий этап |
 | `packages/widget` | Подсветка замечаний прямо в поле ввода на любом сайте | позже |
 | WordPress | Плагин для редактора Gutenberg | позже |
@@ -24,7 +24,7 @@
 ## Как пользоваться ядром
 
 ```js
-import {checkStyle, sourceBlocks, mergeIssues} from 'yasno';
+import {checkStyle, sourceBlocks, mergeIssues} from 'reedach';
 
 const markdown = 'В настоящее время мы осуществляем монтаж перегородок.';
 const blocks = sourceBlocks(markdown);              // абзацы, пункты списков, заголовки
@@ -65,8 +65,8 @@ MIT, © 2026 Дима Фаллер.
 
 ## In English
 
-Yasno is a lightweight style checker for Russian text: bureaucratese, clichés, filler and
+Reedach is a lightweight style checker for Russian text: bureaucratese, clichés, filler and
 vague words, long sentences. It runs in the browser or on your own server, and the text never
-leaves it. The core package `yasno` has no dependencies. A self-hosted server with spelling
+leaves it. The core package `reedach` has no dependencies. A self-hosted server with spelling
 (hunspell) and morphology (Az.js + OpenCorpora), a drop-in widget and a WordPress plugin are
 in progress. MIT license.

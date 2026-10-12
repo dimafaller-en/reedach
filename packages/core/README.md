@@ -1,6 +1,6 @@
-# yasno
+# reedach
 
-Ядро проекта «Ясно»: лёгкая проверка русского текста на канцелярит, штампы, воду,
+Ядро проекта Reedach: лёгкая проверка русского текста на канцелярит, штампы, воду,
 неконкретные и оценочные слова, длинные предложения и абзацы. Без зависимостей,
 работает в браузере и в Node. Текст никуда не отправляется.
 
@@ -8,7 +8,7 @@
 и не заменяет редактора.
 
 ```js
-import {checkStyle, sourceBlocks, mergeIssues} from 'yasno';
+import {checkStyle, sourceBlocks, mergeIssues} from 'reedach';
 
 const markdown = 'В настоящее время мы осуществляем монтаж перегородок.';
 const blocks = sourceBlocks(markdown);

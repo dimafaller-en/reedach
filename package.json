@@ -1,5 +1,5 @@
 {
-  "name": "yasno-monorepo",
+  "name": "reedach-monorepo",
   "private": true,
   "type": "module",
   "workspaces": ["packages/*"],
