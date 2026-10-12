@@ -7,6 +7,8 @@ const esc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 const tokenSource=t=>t.endsWith('*')?esc(norm(t.slice(0,-1)))+'['+L+']*':esc(norm(t));
 function compile(rule){const alts=(rule.words||[]).map(w=>w.trim().split(/\s+/).map(tokenSource).join('\\s+'));return alts.length?new RegExp('(?<!['+L+'])(?:'+alts.join('|')+')(?!['+L+'])','g'):null;}
 const compiled=RULES.map(rule=>({rule,re:compile(rule)}));
+// A rule with swap gives the replacement for the exact word found; the longest matching stem wins.
+const swapped=(rule,word)=>{if(!rule.swap)return rule;const k=Object.keys(rule.swap).filter(k=>word.startsWith(k)).sort((a,b)=>b.length-a.length)[0];return k?{...rule,fix:'Заменить обычным словом: '+rule.swap[k]+'.'}:rule;};
 export const sentences=text=>[...text.matchAll(/[^.!?…]+(?:[.!?…]+|$)/g)].map(m=>({start:m.index,end:m.index+m[0].length,text:m[0]})).filter(s=>s.text.trim());
 const wordCount=s=>(s.match(new RegExp('['+L+'0-9]+(?:-['+L+']+)*','g'))||[]).length;
 const trimmed=(s,offset=0)=>{const lead=s.text.length-s.text.trimStart().length;return {start:s.start+offset+lead,end:s.start+offset+s.text.trimEnd().length};};
@@ -77,7 +79,7 @@ export function checkStyle(blocks,{maxSentenceWords=25,maxParagraphWords=120}={}
  blocks.forEach((b,i)=>{
   const text=b.text,low=norm(text),list=sentences(text);
   // A start-only rule needs nothing but spaces between the sentence start and the match.
-  for(const {rule,re} of compiled){if(!re)continue;re.lastIndex=0;for(const m of low.matchAll(re)){if(rule.start){const s=sentenceAt(list,m.index);if(!s||low.slice(s.start,m.index).trim()!=='')continue;}add(i,m.index,m.index+m[0].length,rule.id,rule);}}
+  for(const {rule,re} of compiled){if(!re)continue;re.lastIndex=0;for(const m of low.matchAll(re)){if(rule.start){const s=sentenceAt(list,m.index);if(!s||low.slice(s.start,m.index).trim()!=='')continue;}add(i,m.index,m.index+m[0].length,rule.id,swapped(rule,m[0]));}}
   // Blocks map every character to the source; gaps are spaces that stand for code, an image or a line break, not typos.
   // before[k] = gaps before offset k, so "a gap inside s..e" costs the same however many gaps the block has.
   const before=new Uint32Array(text.length+1);for(const j of b.gaps||[])if(j>=0&&j<text.length)before[j+1]++;for(let k=1;k<=text.length;k++)before[k]+=before[k-1];

@@ -175,3 +175,9 @@ test('long words and many hints stay fast',()=>{
  const mixed=checkStyle(textBlocks('Слово тeкст и site/тeкст.')).filter(it=>it.id==='typo-mixed-script');
  assert.deepEqual(mixed.map(it=>[it.start,it.end]),[[6,11]]);
 });
+
+test('a foreign word gets its own replacement',()=>{
+ const fix=w=>checkStyle(textBlocks(w)).find(it=>it.id==='bureaucratese-latinisms')?.fix;
+ assert.equal(fix('Релевантные ответы.'),'Заменить обычным словом: подходящий, нужный, уместный.');
+ assert.equal(fix('Нерелевантные ответы.'),'Заменить обычным словом: неподходящий, лишний.');
+});
