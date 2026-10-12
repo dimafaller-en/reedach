@@ -346,4 +346,4 @@ It runs in the browser or on your own server, and the text never leaves it.
 - `reedach-server` — spelling (hunspell) and morphology (Az.js + OpenCorpora), as a library
   or an HTTP API: `docker run ghcr.io/dimafaller-en/reedach`.
 
-A WordPress plugin is next. MIT license.
+MIT license.

@@ -62,6 +62,9 @@
   <div class="find"><h3>Оценки и усилители</h3><p class="ex"><s>очень надёжный</s>, <s>уникальный</s></p><p>Оценка не даёт проверить утверждение. Назвать признак или цифру.</p></div>
   <div class="find"><h3>Паразиты времени</h3><p class="ex"><s>в настоящее время</s> <span class="fix">сейчас</span></p><p>Вступление о нынешнем времени ничего не добавляет. Убрать или назвать дату.</p></div>
   <div class="find"><h3>Тяжёлый синтаксис</h3><p class="ex"><s>который…, который…</s></p><p>Два «который» подряд, страдательный залог, длинные предложения и абзацы. Разбить, начать с того, кто действует.</p></div>
+  <div class="find"><h3>Частые ошибки</h3><p class="ex"><s>согласно договора</s> <span class="fix">согласно договору</span></p><p>«Вообщем», «из за», «по приезду», «оплатить за». В подсказке сразу написано, как правильно.</p></div>
+  <div class="find"><h3>Просторечия</h3><p class="ex"><s>ложит</s> <span class="fix">кладёт</span></p><p>«Ихний», «хочут», «щас» в письменном тексте выглядят как ошибка. Подсказка предлагает литературную форму.</p></div>
+  <div class="find"><h3>Типографика</h3><p class="ex"><s>"Стандарт" - модель</s> <span class="fix">«Стандарт» — модель</span></p><p>Прямые кавычки, дефис вместо тире, лишние пробелы, непарные скобки и латинская буква внутри русского слова.</p></div>
   <div class="find"><h3>Опечатки</h3><p class="ex"><s>даволен</s> <span class="fix">доволен</span></p><p>Варианты исправления одним нажатием и свой словарь для слов автора.</p></div>
  </div>
  <p class="note">Для опечаток и морфологии нужен сервер Reedach, остальное работает и в браузере.</p>
@@ -247,7 +250,7 @@ checker.<span class="hljs-title function_">stop</span>();    <span class="hljs-c
  <h3 id="dev">Разработка</h3>
 <pre><code class="language-bash hljs">npm ci
 npm <span class="hljs-built_in">test</span></code></pre>
- <p>Для тестов орфографии нужна программа hunspell. Если её нет, эти тесты пропускаются. Новая версия выходит по тегу <code>vX.Y.Z</code>: GitHub прогоняет тесты, публикует пакеты в npm и собирает образ. Плагин для WordPress — следующий этап.</p>
+ <p>Для тестов орфографии нужна программа hunspell. Если её нет, эти тесты пропускаются. Новая версия выходит по тегу <code>vX.Y.Z</code>: GitHub прогоняет тесты, публикует пакеты в npm и собирает образ.</p>
 </section>
 
 <section id="en" class="wrap" lang="en">
@@ -258,7 +261,7 @@ npm <span class="hljs-built_in">test</span></code></pre>
   <li><code>reedach-widget</code> — a drop-in widget for any textarea: one <code>&lt;script&gt;</code> tag, no styles of its own.</li>
   <li><code>reedach-server</code> — spelling (hunspell) and morphology (Az.js + OpenCorpora), as a library or an HTTP API: <code>docker run ghcr.io/dimafaller-en/reedach</code>.</li>
  </ul>
- <p>A WordPress plugin is next. MIT license. Source code on <a href="https://github.com/dimafaller-en/reedach">GitHub</a>.</p>
+ <p>MIT license. Source code on <a href="https://github.com/dimafaller-en/reedach">GitHub</a>.</p>
 </section>
 </main>
 
