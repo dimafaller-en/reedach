@@ -7,9 +7,9 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
-    container: node:24.19.0-alpine3.23
+    container: alpine:3.23
     steps:
+      - run: apk add --no-cache nodejs npm hunspell git
       - uses: actions/checkout@v4
-      - run: apk add --no-cache hunspell
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm test

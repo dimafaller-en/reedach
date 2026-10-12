@@ -4,7 +4,8 @@
   "type": "module",
   "workspaces": ["packages/*"],
   "scripts": {
-    "test": "node --test packages/*/test/*.test.mjs"
+    "build": "npm run build -w reedach-widget",
+    "test": "npm run build && node --test packages/*/test/*.test.mjs"
   },
   "engines": {
     "node": ">=22"

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reedach — пример</title>
+<link rel="stylesheet" href="demo.css">
+<script src="reedach.min.js" defer></script>
+<script src="demo.js" defer></script>
+</head>
+<body>
+<main class="demo">
+ <header class="demo-head">
+  <h1>Reedach</h1>
+  <p class="demo-lead" data-ru="Проверка русского текста на вашем сервере: орфография, канцелярит, штампы, вода и тяжёлый синтаксис. Подсказки появляются прямо в поле и обновляются, пока вы пишете." data-en="A Russian text checker on your own server: spelling, bureaucratese, clichés, filler and heavy syntax. Hints appear right in the field and update as you type.">Проверка русского текста на вашем сервере: орфография, канцелярит, штампы, вода и тяжёлый синтаксис. Подсказки появляются прямо в поле и обновляются, пока вы пишете.</p>
+ </header>
+
+ <form class="demo-settings" id="settings" autocomplete="off">
+  <label class="demo-field demo-key"><span data-ru="Ключ доступа" data-en="Access key">Ключ доступа</span>
+   <input id="key" name="key" type="text" spellcheck="false" placeholder="REEDACH_KEYS">
+  </label>
+  <label class="demo-field"><span data-ru="Формат" data-en="Format">Формат</span>
+   <select id="format" name="format"><option value="text" data-ru="Текст" data-en="Text">Текст</option><option value="markdown">Markdown</option></select>
+  </label>
+  <label class="demo-field"><span data-ru="Язык интерфейса" data-en="Interface">Язык интерфейса</span>
+   <select id="lang" name="lang"><option value="ru">Русский</option><option value="en">English</option></select>
+  </label>
+  <button class="demo-button" id="run" type="submit" data-ru="Проверить" data-en="Check">Проверить</button>
+ </form>
+
+ <div class="demo-work">
+  <div class="demo-editor">
+   <label class="demo-label" for="text" data-ru="Текст" data-en="Text">Текст</label>
+   <textarea id="text" spellcheck="false">В настоящее время наша компания осуществляет доставку стеклянных перегородок по всему городу. Мы являемся надёжным партнёром и предлагаем уникальные решения высочайшего качества.
+
+Сделав замер, наш специалист, который приезжает в удобное время, который знает своё дело, подберёт стекло. Решение о монтаже принято заказчиком.
+
+Мы очень стараемся и действительно делаем всё возможное, чтобы превет каждый клиент остался доволен.</textarea>
+   <p class="demo-hint" data-ru="Ключ задаётся при запуске сервера: REEDACH_KEYS=&quot;ключ=адрес этой страницы&quot;. Без ключа пример проверит только стиль." data-en="The key is set when the server starts: REEDACH_KEYS=&quot;key=this page's origin&quot;. Without a key the demo checks style only.">Ключ задаётся при запуске сервера: REEDACH_KEYS="ключ=адрес этой страницы". Без ключа пример проверит только стиль.</p>
+  </div>
+  <aside class="demo-panel" id="hints" hidden></aside>
+ </div>
+</main>
+</body>
+</html>

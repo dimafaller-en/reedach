@@ -46,6 +46,21 @@ test('limits and bad requests',async()=>{
  assert.equal((await call('/v1/check',{key:BACK})).status,405);
 });
 
+test('the demo page is served only when switched on, and only its own files',async()=>{
+ assert.equal((await call('/demo/')).status,401);
+ const demo=createServer({keys:parseKeys(BACK),demo:true});await new Promise(r=>demo.listen(0,'127.0.0.1',r));
+ const at='http://127.0.0.1:'+demo.address().port;
+ try{
+  const page=await fetch(at+'/demo/');
+  assert.equal(page.status,200);assert.match(page.headers.get('content-type'),/text\/html/);assert.match(page.headers.get('content-security-policy'),/script-src 'self'/);
+  assert.match(await page.text(),/reedach\.min\.js/);
+  assert.equal((await fetch(at+'/demo/reedach.min.js')).status,200);
+  assert.equal((await fetch(at+'/demo',{redirect:'manual'})).status,308);
+  assert.equal((await fetch(at+'/demo/../package.json')).status,401);
+  assert.equal((await fetch(at+'/demo/%2e%2e/package.json')).status,401);
+ }finally{demo.close();}
+});
+
 test('rules are listed for settings screens',async()=>{
  const res=await call('/v1/rules',{key:BACK});
  assert.equal(res.status,200);

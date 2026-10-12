@@ -1,4 +1,6 @@
 import http from 'node:http';
+import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
 import {createHash,timingSafeEqual} from 'node:crypto';
 import {check,suggest,rules} from './check.mjs';
 // HTTP API. Every /v1 call needs a key. A key may list the sites whose pages can call it from the browser;
@@ -20,8 +22,17 @@ export function parseKeys(value){
 const digest=s=>createHash('sha256').update(s).digest();
 const fail=(status,code,message)=>Object.assign(new Error(message),{status,code});
 
-export function createServer({keys,maxBytes=1_000_000,concurrency=2,queue=20}={}){
+// Demo page from reedach-widget: four fixed files read once, nothing else is served.
+function demoFiles(){
+ const file=p=>fileURLToPath(new URL(p,import.meta.resolve('reedach-widget/package.json')));
+ const types={html:'text/html; charset=utf-8',css:'text/css; charset=utf-8',js:'text/javascript; charset=utf-8'};
+ const map={'/demo/':'demo/index.html','/demo/demo.css':'demo/demo.css','/demo/demo.js':'demo/demo.js','/demo/reedach.min.js':'dist/reedach.min.js'};
+ return new Map(Object.entries(map).map(([url,p])=>[url,{body:readFileSync(file(p)),type:types[p.split('.').pop()]}]));
+}
+
+export function createServer({keys,maxBytes=1_000_000,concurrency=2,queue=20,demo=false}={}){
  if(!keys?.length)throw new Error('Нужен хотя бы один ключ доступа');
+ const pages=demo?demoFiles():null;
  const entries=keys.map(k=>({...k,hash:digest(k.key)})),siteOrigins=new Set(entries.flatMap(k=>k.origins));
  const find=token=>{const h=digest(token);let hit=null;for(const k of entries)if(timingSafeEqual(h,k.hash))hit=k;return hit;};
  let active=0;const waiting=[];
@@ -34,6 +45,12 @@ export function createServer({keys,maxBytes=1_000_000,concurrency=2,queue=20}={}
   try{
    const url=new URL(req.url,'http://localhost');
    if(url.pathname==='/health'&&req.method==='GET')return send(200,{ok:true});
+   if(pages&&req.method==='GET'&&(url.pathname==='/demo'||pages.has(url.pathname))){
+    if(url.pathname==='/demo'){res.writeHead(308,{location:'/demo/'});return res.end();}
+    const page=pages.get(url.pathname);
+    res.writeHead(200,{'content-type':page.type,'cache-control':'no-cache','x-content-type-options':'nosniff','content-security-policy':"default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"});
+    return res.end(page.body);
+   }
    if(req.method==='OPTIONS'){
     if(!origin||!siteOrigins.has(origin))return send(403,{error:{code:'origin',message:'Этому сайту доступ не разрешён'}});
     res.writeHead(204,{'access-control-allow-origin':origin,'access-control-allow-methods':'GET, POST','access-control-allow-headers':'authorization, content-type','access-control-max-age':'600',vary:'Origin'});return res.end();

@@ -1,0 +1,28 @@
+{
+  "name": "reedach-widget",
+  "version": "0.1.0",
+  "description": "Виджет Reedach: подсказки по русскому тексту прямо в поле ввода на любом сайте — без сервера или с сервером Reedach",
+  "license": "MIT",
+  "author": "Dima Faller <dima@dimafaller.ru>",
+  "type": "module",
+  "sideEffects": ["./src/auto.js"],
+  "exports": {
+    ".": "./src/index.js",
+    "./auto": "./src/auto.js",
+    "./reedach.min.js": "./dist/reedach.min.js",
+    "./package.json": "./package.json"
+  },
+  "files": ["src", "dist", "demo", "README.md", "LICENSE", "NOTICE.md"],
+  "keywords": ["russian", "русский", "textarea", "proofreading", "style", "widget", "spelling"],
+  "dependencies": {
+    "reedach": "0.1.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
+  },
+  "scripts": {
+    "build": "esbuild src/auto.js --bundle --minify --format=iife --target=es2022 --charset=utf8 --legal-comments=none --outfile=dist/reedach.min.js",
+    "prepack": "npm run build",
+    "test": "node --test test/*.test.mjs"
+  }
+}

@@ -50,3 +50,9 @@ export function mergeIssues(blocks,{spelling=[],style=[],local=[]}){
  const found=[...spellingIssues(blocks,spelling),...kept,...style.filter(it=>blocks[it.block]&&it.start<it.end&&it.end<=blocks[it.block].text.length)];
  return found.map(it=>{const b=blocks[it.block];return {...it,start:b.map[it.start],end:b.map[it.end-1]+1};}).sort((a,b)=>a.start-b.start||b.end-a.end);
 }
+// Plain text → paragraphs split by blank lines; every UTF-16 unit keeps its own offset (emoji take two).
+export function textBlocks(text){
+ const blocks=[];
+ for(const m of String(text).matchAll(/[^\n]+(?:\n(?!\s*\n)[^\n]*)*/g)){const t=m[0].replace(/\n/g," ");if(t.trim())blocks.push({text:t,kind:"p",map:Array.from({length:t.length},(_,i)=>m.index+i)});}
+ return blocks;
+}

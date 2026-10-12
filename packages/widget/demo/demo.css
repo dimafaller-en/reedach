@@ -1,0 +1,68 @@
+/* Demo page. The part after "Widget" is an example of widget styles: copy it to your site and change the colors. */
+:root{
+ --bg:#f6f6f2;--paper:#fff;--ink:#1b1f1a;--muted:#5d6459;--line:#dfe2d8;--accent:#d7f25b;--accent-ink:#2f4a12;
+ --spell:#c0392b;--long:rgba(96,112,214,.14);--word:rgba(215,242,91,.6);--active:#ffd54a;--blend:multiply;
+ --tip-bg:#1b1f1a;--tip-ink:#f4f6ef;
+ color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+ :root{--bg:#141713;--paper:#1c201b;--ink:#e9ece4;--muted:#a1a89b;--line:#30362e;--accent:#c5e04a;--accent-ink:#d9f07a;
+  --spell:#ff8a7a;--long:rgba(150,165,255,.18);--word:rgba(215,242,91,.32);--active:#e9c23b;--blend:screen;
+  --tip-bg:#e9ece4;--tip-ink:#141713;color-scheme:dark}
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+.demo{max-width:1240px;margin:0 auto;padding:48px 32px 64px}
+.demo-head h1{margin:0;font-size:clamp(32px,4vw,44px);line-height:1.1;letter-spacing:-.02em}
+.demo-lead{max-width:68ch;margin:12px 0 0;color:var(--muted);font-size:18px}
+.demo-settings{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;gap:16px;align-items:end;margin:32px 0 24px}
+.demo-field{display:grid;gap:6px;font-size:14px;color:var(--muted)}
+.demo-field input,.demo-field select{height:40px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font:inherit;font-size:15px}
+.demo-field input{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:14px}
+.demo-button{height:40px;padding:0 20px;border:0;border-radius:8px;background:var(--accent);color:#1b1f1a;font:inherit;font-weight:600;cursor:pointer}
+.demo-button:hover{filter:brightness(.96)}
+:is(.demo-field input,.demo-field select,.demo-button,.demo textarea,.reedach-panel button):focus-visible{outline:2px solid var(--accent-ink);outline-offset:2px}
+.demo-work{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:28px;align-items:start}
+.demo-editor{position:relative;min-width:0}
+.demo-label{display:block;margin-bottom:6px;font-size:14px;color:var(--muted)}
+.demo textarea{display:block;width:100%;min-height:440px;padding:18px 20px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);font:17px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;resize:vertical}
+.demo-hint{margin:10px 0 0;font-size:14px;color:var(--muted)}
+
+/* Widget */
+::highlight(reedach-word){background-color:var(--word)}
+::highlight(reedach-long){background-color:var(--long)}
+::highlight(reedach-spell){text-decoration:underline wavy var(--spell);text-decoration-thickness:1.5px;text-underline-offset:3px}
+::highlight(reedach-active){background-color:var(--active);color:#1b1f1a}
+.reedach-mirror{mix-blend-mode:var(--blend)}
+.reedach-panel{position:sticky;top:16px;max-height:calc(100vh - 32px);overflow:auto;padding:16px 18px;border:1px solid var(--line);border-radius:10px;background:var(--paper);font-size:14px;line-height:1.45}
+.reedach-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:6px}
+.reedach-title{font-size:16px;font-weight:650}
+.reedach-count{margin-left:4px;color:var(--muted);font-weight:500}
+.reedach-close,.reedach-action{padding:0;border:0;background:none;color:var(--accent-ink);font:inherit;font-size:13px;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+.reedach-status,.reedach-credit{margin:8px 0 0;color:var(--muted)}
+.reedach-error{margin:8px 0;padding:8px 10px;border-radius:6px;background:rgba(192,57,43,.1);color:var(--ink)}
+.reedach-list{margin:0;padding:0;list-style:none}
+.reedach-item{padding:10px 0;border-top:1px solid var(--line)}
+.reedach-jump{display:block;width:100%;padding:0;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.reedach-jump:hover .reedach-fragment{text-decoration:underline;text-underline-offset:2px}
+.reedach-label{display:inline-block;margin-right:4px;padding:1px 6px;border-radius:4px;background:var(--word);color:var(--ink);font-size:12px;font-weight:600}
+.reedach-spell .reedach-label{background:rgba(192,57,43,.14)}
+.reedach-long .reedach-label{background:var(--long)}
+.reedach-fragment{font-weight:500}
+.reedach-message{margin:4px 0 0;color:var(--muted)}
+.reedach-actions{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin-top:8px}
+.reedach-variant{padding:2px 10px;border:1px solid var(--line);border-radius:999px;background:var(--bg);color:var(--ink);font:inherit;font-size:13px;cursor:pointer}
+.reedach-variant:hover{border-color:var(--accent-ink)}
+.reedach-note{color:var(--muted);font-size:13px}
+.reedach-tooltip{max-width:320px;padding:8px 10px;border-radius:6px;background:var(--tip-bg);color:var(--tip-ink);font-size:13px;line-height:1.4;box-shadow:0 6px 20px rgba(0,0,0,.18)}
+.reedach-tooltip .reedach-label{background:none;padding:0;color:inherit}
+
+@media (max-width:960px){
+ .demo{padding:28px 16px 48px}
+ .demo-settings{grid-template-columns:1fr 1fr}
+ .demo-key{grid-column:1/-1}
+ .demo-button{grid-column:1/-1}
+ .demo-work{grid-template-columns:1fr}
+ .demo textarea{min-height:320px;font-size:16px}
+ .reedach-panel{position:static;max-height:none}
+}

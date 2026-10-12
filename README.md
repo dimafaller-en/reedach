@@ -9,8 +9,8 @@ Reedach работает у вас: в браузере или на вашем �
 Это подсказки, а не приговор. Проверка ищет по словарю и простым правилам, поэтому
 иногда ошибается. Она не заменяет редактора и профессиональные сервисы.
 
-> Проект в разработке. Готовы ядро со словарём правил и сервер с орфографией и
-> морфологией. Виджет для любого сайта и плагин WordPress — следующие этапы.
+> Проект в разработке. Готовы ядро со словарём правил, сервер с орфографией и
+> морфологией и виджет для любого сайта. Плагин WordPress — следующий этап.
 
 ## Из чего состоит
 
@@ -18,7 +18,7 @@ Reedach работает у вас: в браузере или на вашем �
 |---|---|---|
 | `packages/core` (npm `reedach`) | Словарь правил и проверка стиля, разбор Markdown. Без зависимостей, работает в браузере и в Node | готово |
 | `packages/server` | HTTP API и Docker-образ: орфография (hunspell) и морфология (Az.js + OpenCorpora) | готово |
-| `packages/widget` | Подсветка замечаний прямо в поле ввода на любом сайте | позже |
+| `packages/widget` | Подсветка замечаний прямо в поле ввода на любом сайте | готово |
 | WordPress | Плагин для редактора Gutenberg | позже |
 
 ## Как пользоваться ядром
@@ -46,6 +46,12 @@ for (const it of issues)
 Сервер можно подключить библиотекой (`import {check} from 'reedach-server'`) или запустить
 в Docker и отправлять запросы по HTTP. Как настроить ключи и какие есть запросы — в
 [packages/server/README.md](packages/server/README.md).
+
+## Виджет для сайта
+
+Подключается одной строкой `<script>` или через `import {attach} from 'reedach-widget'`. Без сервера
+проверяет стиль, с сервером — ещё и орфографию. Своих цветов не приносит: оформление задаёт сайт.
+Подробности и пример стилей — в [packages/widget/README.md](packages/widget/README.md).
 
 ## Словарь
 
@@ -76,5 +82,5 @@ MIT, © 2026 Дима Фаллер.
 Reedach is a lightweight style checker for Russian text: bureaucratese, clichés, filler and
 vague words, long sentences. It runs in the browser or on your own server, and the text never
 leaves it. The core package `reedach` has no dependencies. The self-hosted server `reedach-server` adds spelling
-(hunspell) and morphology (Az.js + OpenCorpora), as a library or an HTTP API in Docker. A drop-in
-widget and a WordPress plugin are in progress. MIT license.
+(hunspell) and morphology (Az.js + OpenCorpora), as a library or an HTTP API in Docker. The drop-in widget `reedach-widget`
+shows hints right in a textarea on any site. A WordPress plugin is in progress. MIT license.

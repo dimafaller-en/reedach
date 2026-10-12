@@ -1,4 +1,4 @@
-import {checkStyle,sourceBlocks,mergeIssues,RULES,BUILTIN,CATEGORIES} from 'reedach';
+import {checkStyle,sourceBlocks,textBlocks,mergeIssues,RULES,BUILTIN,CATEGORIES} from 'reedach';
 import {morphCheck,MORPH_RULES} from './morph.mjs';
 import {words,known,misspelled,Suggester} from './spell.mjs';
 // One check = spelling (hunspell) + morphology (Az.js) + dictionary style hints (reedach core), merged into one list.
@@ -8,14 +8,8 @@ const bad=message=>Object.assign(new Error(message),{status:422,code:'validation
 let shared=null;
 const suggester=()=>shared??=new Suggester();
 
-// Plain text: paragraphs split by blank lines, every UTF-16 unit keeps its own offset (emoji take two).
-const offsets=(length,from=0)=>Array.from({length},(_,i)=>from+i);
-function textBlocks(text){
- const blocks=[];
- for(const m of text.matchAll(/[^\n]+(?:\n(?!\s*\n)[^\n]*)*/g)){const t=m[0].replace(/\n/g,' ');if(t.trim())blocks.push({text:t,kind:'p',map:offsets(t.length,m.index)});}
- return blocks;
-}
-const identity=b=>({text:b.text,kind:['h','li'].includes(b.kind)?b.kind:'p',map:offsets(b.text.length)});
+// Blocks from the caller: every UTF-16 unit keeps its own offset (emoji take two).
+const identity=b=>({text:b.text,kind:['h','li'].includes(b.kind)?b.kind:'p',map:Array.from({length:b.text.length},(_,i)=>i)});
 
 // input: {markdown | text | blocks:[{text,kind}], ignore:[own words], disable:[rule ids or categories], checks:[...]}
 // Markdown and text hints point into the source string; block hints carry `block` and point into that block's text.
