@@ -44,7 +44,7 @@
     "reedach": "0.1.0"
   },
   "peerDependencies": {
-    "reedach-widget": "0.1.0"
+    "reedach-widget": "^0.1.0"
   },
   "peerDependenciesMeta": {
     "reedach-widget": {

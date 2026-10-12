@@ -66,7 +66,8 @@ jobs:
           for dir in core widget server; do
             name=$(node -p "require('./packages/$dir/package.json').name")
             version=$(node -p "require('./packages/$dir/package.json').version")
-            if npm view "$name@$version" version >/dev/null 2>&1; then
+            # Empty answer = this version is not on npm yet (also when the package is new).
+            if [ "$(npm view "$name@$version" version 2>/dev/null)" = "$version" ]; then
               echo "$name@$version is already on npm, skipping"
             else
               npm publish -w "packages/$dir" --access public
