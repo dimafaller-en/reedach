@@ -41,6 +41,8 @@ import {attach} from 'reedach-widget';
 const checker = attach(document.querySelector('textarea'), {
   endpoint: '/api/reedach',      // сервер Reedach или посредник с тем же API; без него — только стиль
   key: null,                     // ключ, если браузер обращается к серверу Reedach напрямую
+  request: null,                 // своя функция (path, body, {signal}) → ответ сервера: для входа по cookie,
+                                 // CSRF-токена и т. п.; path — '/check' или '/suggest'; заменяет endpoint и key
   format: 'markdown',            // 'text' (по умолчанию) или 'markdown'
   panel: document.querySelector('#hints'),  // куда выводить список; без него — под полем
   lang: 'en',                    // язык интерфейса; по умолчанию берётся из <html lang>
@@ -60,6 +62,9 @@ checker.stop();    // убрать подсветку и список
 
 Повторный `attach()` на то же поле запускает проверку заново. Если сайт меняет текст в поле из кода,
 а не руками автора, вызовите `checker.check()` или отправьте полю событие `input`.
+
+Для модульной сборки без своего бандлера есть один файл со всем внутри:
+`import {attach} from 'reedach-widget/reedach.esm.js'` (или скопируйте `dist/reedach.esm.js` к себе).
 
 ## Оформление
 

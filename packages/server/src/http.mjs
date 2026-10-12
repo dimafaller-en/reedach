@@ -24,7 +24,8 @@ const fail=(status,code,message)=>Object.assign(new Error(message),{status,code}
 
 // Demo page from reedach-widget: four fixed files read once, nothing else is served.
 function demoFiles(){
- const file=p=>fileURLToPath(new URL(p,import.meta.resolve('reedach-widget/package.json')));
+ let base;try{base=import.meta.resolve('reedach-widget/package.json');}catch{throw new Error('Для страницы-примера установите пакет reedach-widget');}
+ const file=p=>fileURLToPath(new URL(p,base));
  const types={html:'text/html; charset=utf-8',css:'text/css; charset=utf-8',js:'text/javascript; charset=utf-8'};
  const map={'/demo/':'demo/index.html','/demo/demo.css':'demo/demo.css','/demo/demo.js':'demo/demo.js','/demo/reedach.min.js':'dist/reedach.min.js'};
  return new Map(Object.entries(map).map(([url,p])=>[url,{body:readFileSync(file(p)),type:types[p.split('.').pop()]}]));

@@ -22,7 +22,7 @@ function paintAll(){
  for(const [name,h] of Object.entries(sets))h.size?CSS.highlights.set('reedach-'+name,h):CSS.highlights.delete('reedach-'+name);
 }
 
-// attach(textarea, {endpoint, key, format, panel, lang, delay, dictionary, disable, onChange, onClose}) → checker.
+// attach(textarea, {endpoint, key, request, format, panel, lang, delay, dictionary, disable, onChange, onClose}) → checker.
 // Attaching to a field that is already checked runs the check again.
 export function attach(source,options={}){
  const open=attached.get(source);
@@ -31,9 +31,11 @@ export function attach(source,options={}){
 }
 
 class Checker{
- constructor(source,{endpoint=null,key=null,format='text',panel=null,lang,delay=1000,dictionary=localDictionary(),disable=[],onChange,onClose}={}){
+ constructor(source,{endpoint=null,key=null,request:send=null,format='text',panel=null,lang,delay=1000,dictionary=localDictionary(),disable=[],onChange,onClose}={}){
   if(!(source instanceof HTMLTextAreaElement))throw new TypeError('Reedach: attach() expects a textarea');
-  Object.assign(this,{source,endpoint,key,format,delay,dictionary,disable:new Set(disable),onChange,onClose});
+  Object.assign(this,{source,format,delay,dictionary,disable:new Set(disable),onChange,onClose});
+  // Server calls go through the site's own function when given (cookies, CSRF), else straight to the endpoint.
+  this.send=send||(endpoint?(path,body,o={})=>request(endpoint,path,body,{key,...o}):null);
   this.t=strings(lang);this.issues=[];this.value=source.value;this.busy=true;this.error='';this.variants=new Map();
   this.mirror=Object.assign(document.createElement('div'),{className:'reedach-mirror'});this.mirror.setAttribute('aria-hidden','true');
   Object.assign(this.mirror.style,{position:'absolute',zIndex:'1',boxSizing:'border-box',margin:'0',overflow:'hidden',whiteSpace:'pre-wrap',overflowWrap:'break-word',borderStyle:'solid',borderColor:'transparent',color:'transparent',background:'none',pointerEvents:'none'});
@@ -75,8 +77,8 @@ class Checker{
   const controller=new AbortController(),value=this.source.value;this.controller=controller;
   const local=()=>{const blocks=this.format==='markdown'?sourceBlocks(value):textBlocks(value);return mergeIssues(blocks,{local:checkStyle(blocks)});};
   let issues,error='';
-  if(this.endpoint){
-   try{const ignore=await this.dictionary.list();({issues}=await request(this.endpoint,'/check',{[this.format==='markdown'?'markdown':'text']:value,ignore,disable:[...this.disable]},{key:this.key,signal:controller.signal}));}
+  if(this.send){
+   try{const ignore=await this.dictionary.list();({issues}=await this.send('/check',{[this.format==='markdown'?'markdown':'text']:value,ignore,disable:[...this.disable]},{signal:controller.signal}));}
    catch(e){if(e.name==='AbortError')return;error=this.t('serverFailed',{error:e.message||'?'});issues=local();}
   }else issues=local();
   // The text changed while we waited: these offsets are stale. Typing already set a timer; a script
@@ -106,7 +108,7 @@ class Checker{
   const t=this.t,v=this.variants.get(it.word);let out='';
   if(Array.isArray(v))out=v.length?v.map(w=>'<button type="button" class="reedach-variant" data-reedach-replace="'+i+'" data-reedach-value="'+esc(w)+'" aria-label="'+esc(t('replace',{word:w}))+'">'+esc(w)+'</button>').join(''):'<span class="reedach-note">'+esc(t('noVariants'))+'</span>';
   else if(v==='loading')out='<span class="reedach-note">'+esc(t('loading'))+'</span>';
-  else if(this.endpoint)out='<button type="button" class="reedach-action" data-reedach-variants="'+esc(it.word)+'">'+esc(t('variants'))+'</button>';
+  else if(this.send)out='<button type="button" class="reedach-action" data-reedach-variants="'+esc(it.word)+'">'+esc(t('variants'))+'</button>';
   return '<div class="reedach-actions">'+out+'<button type="button" class="reedach-action" data-reedach-add="'+esc(it.word)+'">'+esc(t('add',{word:it.word}))+'</button></div>';
  }
  #renderPanel(){
@@ -128,7 +130,7 @@ class Checker{
  }
  async #loadVariants(word){
   this.variants.set(word,'loading');this.#renderPanel();
-  try{const {suggestions}=await request(this.endpoint,'/suggest',{words:[word]},{key:this.key});this.variants.set(word,Array.isArray(suggestions?.[word])?suggestions[word]:[]);}
+  try{const {suggestions}=await this.send('/suggest',{words:[word]});this.variants.set(word,Array.isArray(suggestions?.[word])?suggestions[word]:[]);}
   catch{this.variants.delete(word);}
   if(!this.closed)this.#renderPanel();
  }

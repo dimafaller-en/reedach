@@ -11,8 +11,22 @@
   "bin": {
     "reedach-server": "./src/cli.mjs"
   },
-  "files": ["src", "README.md", "LICENSE", "NOTICE.md"],
-  "keywords": ["russian", "русский", "spelling", "hunspell", "morphology", "style", "linter", "api"],
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE",
+    "NOTICE.md"
+  ],
+  "keywords": [
+    "russian",
+    "русский",
+    "spelling",
+    "hunspell",
+    "morphology",
+    "style",
+    "linter",
+    "api"
+  ],
   "engines": {
     "node": ">=22"
   },
@@ -20,8 +34,15 @@
     "az": "0.2.3",
     "dictionary-en": "4.0.0",
     "dictionary-ru": "3.0.0",
-    "reedach": "0.1.0",
+    "reedach": "0.1.0"
+  },
+  "peerDependencies": {
     "reedach-widget": "0.1.0"
+  },
+  "peerDependenciesMeta": {
+    "reedach-widget": {
+      "optional": true
+    }
   },
   "scripts": {
     "start": "node src/cli.mjs",
