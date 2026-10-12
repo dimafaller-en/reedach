@@ -30,6 +30,9 @@ Reedach работает у вас: в браузере или на вашем �
 | Оценки и усилители | надёжный, уникальный, очень, действительно | назвать признак или цифру |
 | Паразиты времени | в настоящее время | убрать или назвать дату |
 | Тяжёлый синтаксис | два «который» подряд, страдательный залог, длинные предложения и абзацы | разбить, начать с того, кто действует |
+| Частые ошибки | вообщем, по приезду, согласно договора, оплатить за | правильное написание в подсказке |
+| Просторечия | ихний, ложит, щас | литературная форма |
+| Типографика | прямые кавычки, дефис вместо тире, лишние пробелы, непарные скобки, «!!!», латинская буква в русском слове | ёлочки, тире, один пробел |
 | Опечатки | даволен | варианты исправления одним нажатием |
 
 Для опечаток и морфологии нужен сервер Reedach, остальное работает и в браузере.
@@ -71,7 +74,7 @@ Reedach работает у вас: в браузере или на вашем �
 русском и английском.
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/reedach-widget@0.1.1/dist/reedach.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/reedach-widget@0.1.2/dist/reedach.min.js" defer></script>
 
 <textarea data-reedach
   data-reedach-endpoint="https://checker.example.ru/v1"
@@ -277,7 +280,7 @@ const {issues} = await check({
 
 ## Словарь
 
-Правила лежат в [`packages/core/src/rules.js`](packages/core/src/rules.js): 75 правил в 24
+Правила лежат в [`packages/core/src/rules.js`](packages/core/src/rules.js): 82 правила в 27
 категориях. У каждого правила есть категория, объяснение, совет и список слов:
 
 ```js
@@ -290,7 +293,8 @@ const {issues} = await check({
 Звёздочка в конце слова означает «любое окончание»: `осуществл*` найдёт «осуществляет»,
 «осуществление» и «осуществлять». Правило с `start: true` срабатывает только в начале
 предложения, как «В настоящее время». Любое правило или целую категорию можно выключить
-через `disable`.
+через `disable`. Например, если сайт сам расставляет кавычки и тире, выключите
+`typo-quotes`, `typo-dash`, `typo-double-space`, `typo-space-before` и `typo-space-after`.
 
 Это простые подсказки. Проверка ищет по словарю и простым правилам, поэтому иногда
 ошибается и не заменяет редактора.
@@ -333,9 +337,9 @@ MIT, © 2026 Дима Фаллер.
 
 ## In English
 
-Reedach checks Russian text for bureaucratese, clichés, filler and vague words, heavy syntax
-and typos, and shows hints right in a textarea as you type. It runs in the browser or on your
-own server, and the text never leaves it.
+Reedach checks Russian text for bureaucratese, clichés, filler and vague words, heavy syntax,
+common mistakes, typography and typos, and shows hints right in a textarea as you type.
+It runs in the browser or on your own server, and the text never leaves it.
 
 - `reedach` — the rule dictionary and style checker, no dependencies, browser and Node.
 - `reedach-widget` — a drop-in widget for any textarea: one `<script>` tag, no styles of its own.

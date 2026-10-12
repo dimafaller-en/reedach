@@ -1,6 +1,6 @@
 {
   "name": "reedach",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Лёгкая проверка русского текста на канцелярит, штампы и воду: словарь правил, работает в браузере и в Node без зависимостей",
   "license": "MIT",
   "author": "Dima Faller <dima@dimafaller.ru>",

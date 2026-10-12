@@ -23,7 +23,47 @@ export const BUILTIN={
  'thin-section':{category:'structure',message:'Под подзаголовком почти нет текста.',fix:'Допишите раздел или объедините его с соседним.'},
  'ya-start':{category:'structure',message:'Много предложений начинаются с «Я»: текст звучит как рассказ о себе.',fix:'Начните часть предложений с того, что важно читателю: с дела, факта, результата.'},
  'question-run':{category:'syntax',message:'Вопросы подряд выглядят как приём, а не как мысль.',fix:'Оставьте один вопрос или замените вопросы утверждением.'},
+ 'word-double':{category:'repetition',message:'Слово стоит два раза подряд.',fix:'Уберите лишнее слово.'},
+ 'typo-double-space':{category:'typography',message:'Два пробела подряд.',fix:'Оставьте один пробел.'},
+ 'typo-space-before':{category:'typography',message:'Лишний пробел перед знаком препинания или внутри скобок и кавычек.',fix:'Уберите пробел: «двери, окна», «(окна)».'},
+ 'typo-space-after':{category:'typography',message:'После запятой или точки с запятой нет пробела.',fix:'Поставьте пробел после знака.'},
+ 'typo-quotes':{category:'typography',message:'Прямые кавычки в русском тексте выглядят как набор с клавиатуры.',fix:'Поставьте ёлочки: «Стандарт», а внутри других кавычек — „лапки“.'},
+ 'typo-unpaired':{category:'typography',message:'У скобки или кавычки нет пары.',fix:'Закройте скобку или кавычку либо уберите лишнюю.'},
+ 'typo-dash':{category:'typography',message:'Дефис вместо тире.',fix:'Между словами — длинное тире с пробелами: «Москва — столица». Между числами — короткое без пробелов: «5–10».'},
+ 'typo-repeat-punct':{category:'typography',message:'Знак препинания повторяется.',fix:'Оставьте один знак. Можно только «?!», «?..», «!..» и многоточие.'},
+ 'typo-initials':{category:'typography',message:'Инициалы слиплись.',fix:'Разделите пробелом: «И. И. Иванов».'},
+ 'typo-mixed-script':{category:'typography',message:'В слове смешаны русские и латинские буквы: так бывает после копирования. Поиск и проверка орфографии такое слово не узнают.',fix:'Наберите слово заново на одной раскладке.'},
 };
+// Typography: [id, pattern]; a match must not span removed markup or a joined line break (see plain below).
+const TYPO=[
+ ['typo-double-space',/(?<=\S) {2,}(?=\S)/g],
+ ['typo-space-before',/(?<=\S) +(?=[,;](?![-()DPp])|\)|»(?!\s|$)|[.!?](?=\s|$))|(?<=[^\s\d]) +(?=:(?=\s|$))|(?<=[(«]) +(?=\S)/g],
+ ['typo-space-after',/,(?=[A-Za-zА-Яа-яЁё])|;(?![DPp](?![A-Za-zА-Яа-яЁё]))(?=[A-Za-zА-Яа-яЁё])/g],
+ ['typo-dash',/(?<=\S) --? (?=\S)/g],
+ ['typo-repeat-punct',/[!?]{3,}|!!|\?\?|,{2,}|;{2,}|(?<![.?!])\.\.(?!\.)|\.{4,}/g],
+ // «И.И. Иванов», «Иванов И.И.», «А.Пушкин»; «Ф.И.О.» and «до Н.Э.» are abbreviations, not initials.
+ ['typo-initials',/(?<!\p{L})[А-ЯЁ]\.[А-ЯЁ]\.(?=\s?[А-ЯЁ][а-яё])|(?<=[А-ЯЁ][а-яё]+\s)[А-ЯЁ]\.[А-ЯЁ]\.(?!\p{L})|(?<![\p{L}.])[А-ЯЁ]\.(?=[А-ЯЁ][а-яё]{2,})/gu],
+ ['typo-mixed-script',/\p{L}*(?:\p{Script=Cyrillic}\p{Script=Latin}|\p{Script=Latin}\p{Script=Cyrillic})\p{L}*/gu],
+];
+// Addresses, e-mails and HTML entities are not prose: no typography hints inside them.
+const technical=(text,s)=>{const a=text.lastIndexOf(' ',s)+1,e=text.indexOf(' ',s);return /[/@&=]/.test(text.slice(a,e<0?text.length:e));};
+// Brackets and guillemets without a pair. Not brackets: «а)», «1)», «п. 2)», smileys «:)», «:-(», «:))»;
+// a lone «»» or ««» between spaces is a navigation arrow.
+function unpaired(text){
+ const out=[],open=[];
+ for(let k=0;k<text.length;k++){const c=text[k],before=text.slice(Math.max(0,k-6),k);
+  if('()«»'.indexOf(c)<0)continue;
+  if((c==='('||c===')')&&/[:;=]-?[()]*$/.test(before))continue;
+  if((c==='«'||c==='»')&&/(?:^|\s)$/.test(before)&&/^(?:\s|$)/.test(text.slice(k+1)))continue;
+  if(c==='('||c==='«'){open.push(k);continue;}
+  const top=open.length?open[open.length-1]:-1;
+  if(top>=0&&text[top]===(c===')'?'(':'«')){open.pop();continue;}
+  if(c===')'&&/(?:^|\s)(?:\p{L}|\p{L}?\.?\s?[\d.]{1,4})$/u.test(before))continue;
+  out.push(k);
+ }
+ return [...out,...open];
+}
+const DOUBLE_OK=new Set(['да','нет','ну','так','вот','ни','ха','хе','ой','ах','ох','эх','бла','тук','кап']);
 const PASSIVE=new RegExp('(?<!['+L+'])(?:был|была|было|были|будет|будут)\\s+['+L+']+(?:ан|ян|ен|ён|т)(?:а|о|ы)?(?!['+L+'])','gi');
 const NOMINAL=new RegExp('(?:(?<!['+L+'])['+L+']+(?:ние|ния|нию|нием|нии|ость|ости|остью|ция|ции|цию|цией)(?!['+L+'])\\s+){2,}['+L+']+(?:ние|ния|нию|нием|нии|ость|ости|остью|ция|ции|цию|цией)(?!['+L+'])','gi');
 const REPEAT_SKIP=new Set(['который','которая','которое','которые','которых','которым','потому','только','сейчас','больше','меньше','просто','сделать','делать','чтобы','когда','после','через','between','about']);
@@ -33,6 +73,12 @@ export function checkStyle(blocks,{maxSentenceWords=25,maxParagraphWords=120}={}
  blocks.forEach((b,i)=>{
   const text=b.text,low=norm(text),list=sentences(text);
   for(const {rule,re} of compiled){if(!re)continue;re.lastIndex=0;for(const m of low.matchAll(re)){if(rule.start&&!list.some(s=>s.start<=m.index&&low.slice(s.start,m.index).trim()===''))continue;add(i,m.index,m.index+m[0].length,rule.id,rule);}}
+  // Blocks map every character to the source; gaps are spaces that stand for code, an image or a line break, not typos.
+  const gap=(s,e)=>(b.gaps||[]).some(j=>j>=s&&j<e),plain=(s,e)=>(!b.map||b.map[e-1]-b.map[s]===e-1-s)&&!gap(s,e);
+  for(const [id,re] of TYPO)for(const m of text.matchAll(re))if(plain(m.index,m.index+m[0].length)&&!technical(text,m.index))add(i,m.index,m.index+m[0].length,id,BUILTIN[id]);
+  for(const m of text.matchAll(/"[^"\n]*"/g))if(/[А-Яа-яЁё]/.test(m[0]))add(i,m.index,m.index+m[0].length,'typo-quotes',BUILTIN['typo-quotes']);
+  for(const k of unpaired(text))add(i,k,k+1,'typo-unpaired',BUILTIN['typo-unpaired']);
+  for(const m of low.matchAll(new RegExp('(?<!['+L+'])(['+L+']+)\\s+\\1(?![-'+L+'])','g')))if(!DOUBLE_OK.has(m[1])&&plain(m.index,m.index+m[0].length))add(i,m.index,m.index+m[0].length,'word-double',BUILTIN['word-double']);
   if(b.kind==='h')return;
   for(let n=1;n<list.length;n++)if(/\?\s*$/.test(list[n].text)&&/\?\s*$/.test(list[n-1].text)){const r=trimmed(list[n]);add(i,r.start,r.end,'question-run',BUILTIN['question-run']);}
   for(const s of list){

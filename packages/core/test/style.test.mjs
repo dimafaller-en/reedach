@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {checkStyle} from '../src/style.js';
+import {checkStyle,BUILTIN} from '../src/style.js';
+import {sourceBlocks,textBlocks,mergeIssues} from '../src/markdown.js';
 import {RULES,CATEGORIES} from '../src/rules.js';
 
 // One sentence per rule where that rule must fire.
@@ -80,6 +81,13 @@ const SAMPLES={
  'euphemism-soft':'Сроки сорвались из-за форс-мажорных обстоятельств.',
  'preachy-refusal':'Я не работаю с теми, кто торгуется.',
  'self-praise':'Мы не новички в этом деле.',
+ 'mistake-spelling':'Вообщем, мы опоздали из за дождя.',
+ 'mistake-po-case':'Позвоните по приезду на объект.',
+ 'mistake-soglasno':'Работы идут согласно графика.',
+ 'mistake-oplata':'Заказчик оплатил за монтаж вперёд.',
+ 'mistake-oboih':'Договор подписали представители обоих сторон.',
+ 'mistake-context':'Монтаж займёт два дня в течении недели.',
+ 'colloquial-forms':'Мастер ложит плитку в ихней ванной.',
 };
 const NEUTRAL='Мы поставили перегородки в офисе на третьем этаже. Заказчик принял работу в пятницу.';
 const ids=new Set(RULES.map(r=>r.id));
@@ -122,4 +130,40 @@ test('neutral paragraph gets no hints from RULES',()=>{
 test('wide stems do not hit unrelated words',()=>{
  const text='Можжевельник растёт у стены. Мастерская на втором этаже. Данные таблицы проверены. Он поставил стекло в раму.';
  assert.deepEqual(run(text).filter(i=>ids.has(i.id)).map(i=>i.id),[]);
+});
+// Typography and doubled words: [id, text with a hit, text without one].
+const TYPO={
+ 'typo-double-space':['Стекло  в раме.','Стекло в раме.'],
+ 'typo-space-before':['Двери , окна (стекло ) и « рамы ».','Двери, окна (стекло) и «рамы». Счёт 3 : 1. Ну и :) ;-) ;P Читать далее »'],
+ 'typo-space-after':['Двери,окна;стены.','Цена 3,5 тысячи; двери, окна. Ну ладно ;D а потом. Адрес https://x.ru/a,b и &nbsp;слово.'],
+ 'typo-quotes':['Модель "Стандарт" готова.','Модель «Стандарт» и "OK".'],
+ 'typo-unpaired':['Двери (окна и «стены.','Пункты: а) двери, 1) окна, п. 2) рамы, 1.2) стекло (кромка) и «рамы» :) Ура :)) Грустно :( и :-( « Назад'],
+ 'typo-dash':['Москва - столица.','Москва — столица, слово-слово, 5–10 дней.'],
+ 'typo-repeat-punct':['Звоните!!! Что?? Да,, нет..','Что?! Ну?.. Ох!.. И так далее...'],
+ 'typo-initials':['И.И. Иванов, Петров П.П. и А.Пушкин пришли.','И. И. Иванов, США, т.е., Ф.И.О., до Н.Э.'],
+ 'typo-mixed-script':['Стеклo и cтекло.','Стекло, iPhone-ом, Wi-Fi.'],
+ 'word-double':['Мы в в офисе.','Да да, нет нет, вот вот, еле-еле. Я думаю, что что-то не так, и как как-то.'],
+};
+for(const [id,[bad,good]] of Object.entries(TYPO)){
+ test(id+' fires and stays quiet on correct text',()=>{
+  assert.ok(BUILTIN[id],'no BUILTIN '+id);
+  assert.ok(run(bad).some(i=>i.id===id),'did not fire on: '+bad);
+  assert.deepEqual(run(good).filter(i=>i.id===id).map(i=>good.slice(i.start,i.end)),[]);
+ });
+}
+test('typography ignores spaces left by Markdown markup and joined lines',()=>{
+ const md='Строка с переносом  \nи код `x` здесь,\n   и отступ.\n\nА тут  два пробела.';
+ const blocks=sourceBlocks(md),hits=mergeIssues(blocks,{local:checkStyle(blocks)}).filter(i=>i.id.startsWith('typo-'));
+ assert.deepEqual(hits.map(i=>md.slice(i.start,i.end)),['  ']);
+ assert.equal(hits[0].start,md.indexOf('тут')+3);
+ assert.deepEqual(checkStyle(textBlocks('первая строка\n- вторая строка')).filter(i=>i.id.startsWith('typo-')),[]);
+});
+test('links with brackets in the address leave no stray bracket',()=>{
+ const md='Смотрите [статью](https://ru.wikipedia.org/wiki/A_(b)) и ![схему](a_(1).png) ниже.';
+ const blocks=sourceBlocks(md);
+ assert.deepEqual(checkStyle(blocks).filter(i=>i.id==='typo-unpaired'),[]);
+});
+test('a word left between removed HTML tags is not a doubled word',()=>{
+ const blocks=sourceBlocks('Слово <br> слово.');
+ assert.deepEqual(checkStyle(blocks).filter(i=>i.id==='word-double'),[]);
 });

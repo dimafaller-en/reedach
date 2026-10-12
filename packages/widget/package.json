@@ -1,6 +1,6 @@
 {
   "name": "reedach-widget",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Виджет Reedach: подсказки по русскому тексту прямо в поле ввода на любом сайте — без сервера или с сервером Reedach",
   "license": "MIT",
   "author": "Dima Faller <dima@dimafaller.ru>",
@@ -40,7 +40,7 @@
     "spelling"
   ],
   "dependencies": {
-    "reedach": "0.1.1"
+    "reedach": "0.1.2"
   },
   "devDependencies": {
     "esbuild": "0.28.2"

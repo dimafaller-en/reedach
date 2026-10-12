@@ -4,18 +4,18 @@ const L='A-Za-zА-Яа-яЁё';
 
 // One line of Markdown → text the checkers see, with every character mapped back to its offset in the source.
 function inline(line,base,from,kind){
- let text='';const map=[],put=(c,at)=>{text+=c;map.push(at);};
+ let text='';const map=[],gaps=[],put=(c,at)=>{text+=c;map.push(at);};
  for(let i=from;i<line.length;i++){
   const c=line[i],rest=line.slice(i);let m;
   if(c==='\\'&&i+1<line.length){i++;put(line[i],base+i);continue;}
-  if(c==='`'&&line.indexOf('`',i+1)>i){put(' ',base+i);i=line.indexOf('`',i+1);continue;}
-  if(c==='!'&&(m=/^!\[[^\]]*\]\([^)]*\)/.exec(rest))){put(' ',base+i);i+=m[0].length-1;continue;}
-  if(c===']'&&(m=/^\]\([^)]*\)/.exec(rest))){i+=m[0].length-1;continue;}
+  if(c==='`'&&line.indexOf('`',i+1)>i){gaps.push(text.length);put(' ',base+i);i=line.indexOf('`',i+1);continue;}
+  if(c==='!'&&(m=/^!\[[^\]]*\]\((?:[^()]|\([^()]*\))*\)/.exec(rest))){gaps.push(text.length);put(' ',base+i);i+=m[0].length-1;continue;}
+  if(c===']'&&(m=/^\]\((?:[^()]|\([^()]*\))*\)/.exec(rest))){i+=m[0].length-1;continue;}
   if(c==='<'&&(m=/^<\/?[a-z][^>]*>/i.exec(rest))){i+=m[0].length-1;continue;}
   if(c==='['||c==='*'||c==='_'&&!(/[\p{L}\d]/u.test(line[i-1]||'')&&/[\p{L}\d]/u.test(line[i+1]||'')))continue;
   put(c,base+i);
  }
- return {text,map,kind};
+ return {text,map,kind,gaps};
 }
 // Markdown source → paragraphs, list items and headings; code, images, galleries and tables are left alone.
 export function sourceBlocks(src){
@@ -30,7 +30,7 @@ export function sourceBlocks(src){
   if((m=/^\s{0,3}#{1,6}\s+/.exec(line))){flush();const b=inline(line,start,m[0].length,'h');if(b.text.trim())blocks.push(b);continue;}
   if((m=/^\s*(?:[-*+]|\d+[.)])\s+/.exec(line.slice(quote)))){flush();cur=inline(line,start,quote+m[0].length,'li');continue;}
   const part=inline(line,start,quote,'p');
-  if(cur){cur.text+=' '+part.text;cur.map.push(start-1,...part.map);}else cur=part;
+  if(cur){cur.gaps.push(cur.text.length,...part.gaps.map(g=>g+cur.text.length+1));cur.text+=' '+part.text;cur.map.push(start-1,...part.map);}else cur=part;
  }
  flush();return blocks;
 }
@@ -53,6 +53,6 @@ export function mergeIssues(blocks,{spelling=[],style=[],local=[]}){
 // Plain text → paragraphs split by blank lines; every UTF-16 unit keeps its own offset (emoji take two).
 export function textBlocks(text){
  const blocks=[];
- for(const m of String(text).matchAll(/[^\n]+(?:\n(?!\s*\n)[^\n]*)*/g)){const t=m[0].replace(/\n/g," ");if(t.trim())blocks.push({text:t,kind:"p",map:Array.from({length:t.length},(_,i)=>m.index+i)});}
+ for(const m of String(text).matchAll(/[^\n]+(?:\n(?!\s*\n)[^\n]*)*/g)){const t=m[0].replace(/\n/g," ");if(t.trim())blocks.push({text:t,kind:"p",gaps:[...m[0].matchAll(/\n/g)].map(x=>x.index),map:Array.from({length:t.length},(_,i)=>m.index+i)});}
  return blocks;
 }

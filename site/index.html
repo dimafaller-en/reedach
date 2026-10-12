@@ -81,7 +81,7 @@
 
  <h3 id="widget">Виджет на любую страницу</h3>
  <p>Подсветка ложится поверх текста в <code>textarea</code>, список замечаний обновляется, пока автор пишет. Нажатие на вариант заменяет слово в поле, Ctrl+Z отменяет замену. «Добавить в словарь» запоминает слово в браузере автора, а сайт может подключить своё хранилище. Интерфейс на русском и английском.</p>
-<pre><code class="language-xml hljs"><span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">&quot;https://cdn.jsdelivr.net/npm/reedach-widget@0.1.1/dist/reedach.min.js&quot;</span> <span class="hljs-attr">defer</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
+<pre><code class="language-xml hljs"><span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">&quot;https://cdn.jsdelivr.net/npm/reedach-widget@0.1.2/dist/reedach.min.js&quot;</span> <span class="hljs-attr">defer</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
 
 <span class="hljs-tag">&lt;<span class="hljs-name">textarea</span> <span class="hljs-attr">data-reedach</span>
   <span class="hljs-attr">data-reedach-endpoint</span>=<span class="hljs-string">&quot;https://checker.example.ru/v1&quot;</span>
@@ -220,7 +220,7 @@ checker.<span class="hljs-title function_">stop</span>();    <span class="hljs-c
 </section>
 
 <section id="rules" class="wrap">
- <h2>75 правил в 24 категориях</h2>
+ <h2>82 правила в 27 категориях</h2>
  <p class="lead">Правила лежат в <a href="https://github.com/dimafaller-en/reedach/blob/main/packages/core/src/rules.js">packages/core/src/rules.js</a>. У каждого есть категория, объяснение, совет и список слов:</p>
 <pre><code class="language-javascript hljs">{<span class="hljs-attr">id</span>: <span class="hljs-string">&#x27;bureaucratese-verbs&#x27;</span>, <span class="hljs-attr">category</span>: <span class="hljs-string">&#x27;bureaucratese&#x27;</span>,
  <span class="hljs-attr">message</span>: <span class="hljs-string">&#x27;Канцелярский оборот звучит как отписка и скрывает суть.&#x27;</span>,
@@ -252,7 +252,7 @@ npm <span class="hljs-built_in">test</span></code></pre>
 
 <section id="en" class="wrap" lang="en">
  <h2>A style checker for Russian text</h2>
- <p class="lead">Reedach checks Russian text for bureaucratese, clichés, filler and vague words, heavy syntax and typos, and shows hints right in a textarea as you type. It runs in the browser or on your own server, and the text never leaves it.</p>
+ <p class="lead">Reedach checks Russian text for bureaucratese, clichés, filler and vague words, heavy syntax, common mistakes, typography and typos, and shows hints right in a textarea as you type. It runs in the browser or on your own server, and the text never leaves it.</p>
  <ul>
   <li><code>reedach</code> — the rule dictionary and style checker, no dependencies, browser and Node.</li>
   <li><code>reedach-widget</code> — a drop-in widget for any textarea: one <code>&lt;script&gt;</code> tag, no styles of its own.</li>

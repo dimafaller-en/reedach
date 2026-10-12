@@ -16,7 +16,7 @@
 ## Подключение одной строкой
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/reedach-widget@0.1.1/dist/reedach.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/reedach-widget@0.1.2/dist/reedach.min.js" defer></script>
 
 <textarea data-reedach
   data-reedach-endpoint="https://checker.example.ru/v1"
