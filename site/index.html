@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reedach — проверка русского текста для сайтов</title>
+<meta name="description" content="Открытая проверка русского текста: канцелярит, штампы, вода, оценочные слова и опечатки. Подсказки прямо в поле ввода, работает в браузере или на вашем сервере.">
+<meta property="og:title" content="Reedach — проверка русского текста для сайтов">
+<meta property="og:description" content="Канцелярит, штампы, вода и опечатки — подсказки прямо в поле ввода. Открытый код, MIT.">
+<meta property="og:image" content="https://dimafaller.ru/reedach/img/og.png">
+<meta property="og:url" content="https://dimafaller.ru/reedach/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="img/reedach-icon.svg" type="image/svg+xml">
+<link rel="preload" href="fonts/literata.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="site.css">
+<script src="js/reedach.min.js" defer></script>
+<script src="js/try.js" defer></script>
+</head>
+<body>
+
+<header class="wrap top">
+ <a class="top-logo" href="./" aria-label="Reedach">
+  <picture><source media="(prefers-color-scheme: dark)" srcset="img/reedach-logo-dark.svg"><img src="img/reedach-logo.svg" alt="Reedach" width="178" height="80"></picture>
+ </a>
+ <nav aria-label="Разделы">
+  <a href="#finds">Что находит</a>
+  <a href="#connect">Подключение</a>
+  <a href="#spelling">Орфография</a>
+  <a href="#rules">Словарь</a>
+  <a href="https://github.com/dimafaller-en/reedach">GitHub</a>
+ </nav>
+</header>
+
+<main>
+<div class="wrap hero">
+ <h1><span class="line">Пишите <span class="gone">в&nbsp;настоящее время</span> <span class="fix">сейчас</span>.</span> <span class="line">Reedach подскажет, где лишнее.</span></h1>
+ <p class="hero-lead">Проверка русского текста для сайтов и редакторов. Находит <b>канцелярит, штампы, воду, оценочные слова, тяжёлый синтаксис и опечатки</b>, объясняет, что не так, и предлагает, как сказать проще. Работает у вас: в браузере или на вашем сервере.</p>
+ <div class="actions">
+  <a class="btn" href="#connect">Подключить</a>
+  <a class="btn btn-ghost" href="https://github.com/dimafaller-en/reedach">GitHub</a>
+  <span class="cmd"><b>npm i reedach</b> · MIT</span>
+ </div>
+ <div class="try" id="try">
+  <div class="try-editor">
+   <label class="try-label" for="try-text">Попробуйте: поправьте текст, и подсказки обновятся</label>
+   <textarea id="try-text" data-reedach data-reedach-panel="#try-hints" spellcheck="false">В настоящее время наша пекарня осуществляет доставку свежего хлеба по всему городу. Мы являемся надёжным партнёром для кафе и предлагаем уникальные рецепты высочайшего качества.
+
+Получив заказ, курьер, который приезжает в удобное время, который знает каждый район, привезёт хлеб ещё тёплым. Решение о расширении ассортимента принято руководством.
+
+Мы очень стараемся и действительно делаем всё возможное, чтобы каждый гость остался доволен.</textarea>
+  </div>
+  <aside class="try-panel" id="try-hints" aria-label="Замечания"></aside>
+ </div>
+ <p class="shot-cap">Здесь стиль проверяется прямо в вашем браузере, текст никуда не отправляется. Опечатки и морфологию находит <a href="#server">сервер Reedach</a>, его ставят у себя.</p>
+</div>
+
+<section id="finds" class="wrap">
+ <h2>Всё, что мешает читать</h2>
+ <div class="finds">
+  <div class="find"><h3>Канцелярит</h3><p class="ex"><s>осуществляет доставку</s> <span class="fix">доставляет</span></p><p>Пустой глагол и отглагольное существительное заменяются одним глаголом.</p></div>
+  <div class="find"><h3>Штампы</h3><p class="ex"><s>высочайшего качества</s></p><p>Фраза из рекламы звучит одинаково у всех. Заменить фактом: сколько, за какой срок, с какой гарантией.</p></div>
+  <div class="find"><h3>Оценки и усилители</h3><p class="ex"><s>очень надёжный</s>, <s>уникальный</s></p><p>Оценка не даёт проверить утверждение. Назвать признак или цифру.</p></div>
+  <div class="find"><h3>Паразиты времени</h3><p class="ex"><s>в настоящее время</s> <span class="fix">сейчас</span></p><p>Вступление о нынешнем времени ничего не добавляет. Убрать или назвать дату.</p></div>
+  <div class="find"><h3>Тяжёлый синтаксис</h3><p class="ex"><s>который…, который…</s></p><p>Два «который» подряд, страдательный залог, длинные предложения и абзацы. Разбить, начать с того, кто действует.</p></div>
+  <div class="find"><h3>Опечатки</h3><p class="ex"><s>даволен</s> <span class="fix">доволен</span></p><p>Варианты исправления одним нажатием и свой словарь для слов автора.</p></div>
+ </div>
+ <p class="note">Для опечаток и морфологии нужен сервер Reedach, остальное работает и в браузере.</p>
+ <div class="pair">
+  <figure><picture><source media="(prefers-color-scheme: dark)" srcset="img/tooltip-dark.png"><img src="img/tooltip-light.png" loading="lazy" alt="Подсказка при наведении на подсвеченный оборот"></picture><figcaption>Объяснение — при наведении на слово</figcaption></figure>
+  <figure><picture><source media="(prefers-color-scheme: dark)" srcset="img/spelling-dark.png"><img src="img/spelling-light.png" loading="lazy" alt="Опечатка с вариантами исправления и кнопкой «Добавить в словарь»"></picture><figcaption>Варианты для опечатки и свой словарь</figcaption></figure>
+ </div>
+</section>
+
+<section id="connect" class="wrap">
+ <h2>Три способа подключить</h2>
+ <div class="ways">
+  <a class="way" href="#widget"><b>Виджет на странице</b><span>Стиль сразу, с сервером — ещё орфография и морфология.</span><code>&lt;script src="…/reedach.min.js"&gt;</code></a>
+  <a class="way" href="#server"><b>Сервер в Docker</b><span>Всё вместе по HTTP API: орфография, морфология и стиль.</span><code>docker run ghcr.io/dimafaller-en/reedach</code></a>
+  <a class="way" href="#library"><b>Библиотека в коде</b><span>Стиль в браузере и Node, всё — в Node с hunspell.</span><code>npm i reedach</code></a>
+ </div>
+
+ <h3 id="widget">Виджет на любую страницу</h3>
+ <p>Подсветка ложится поверх текста в <code>textarea</code>, список замечаний обновляется, пока автор пишет. Нажатие на вариант заменяет слово в поле, Ctrl+Z отменяет замену. «Добавить в словарь» запоминает слово в браузере автора, а сайт может подключить своё хранилище. Интерфейс на русском и английском.</p>
+<pre><code class="language-xml hljs"><span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">&quot;https://cdn.jsdelivr.net/npm/reedach-widget@0.1.1/dist/reedach.min.js&quot;</span> <span class="hljs-attr">defer</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
+
+<span class="hljs-tag">&lt;<span class="hljs-name">textarea</span> <span class="hljs-attr">data-reedach</span>
+  <span class="hljs-attr">data-reedach-endpoint</span>=<span class="hljs-string">&quot;https://checker.example.ru/v1&quot;</span>
+  <span class="hljs-attr">data-reedach-key</span>=<span class="hljs-string">&quot;ключ-сайта&quot;</span>
+  <span class="hljs-attr">data-reedach-format</span>=<span class="hljs-string">&quot;markdown&quot;</span>
+  <span class="hljs-attr">data-reedach-panel</span>=<span class="hljs-string">&quot;#hints&quot;</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">textarea</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">&quot;hints&quot;</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+ <p>Все атрибуты, кроме <code>data-reedach</code>, необязательны. Без <code>data-reedach-endpoint</code> проверка идёт только в браузере. Без <code>data-reedach-panel</code> список появится сразу под полем.</p>
+ <p>Ключ в коде страницы виден любому посетителю. Привяжите его на сервере к адресу своего сайта или отправляйте запросы через сервер сайта: тогда укажите в <code>data-reedach-endpoint</code> адрес своего посредника, а ключ не указывайте.</p>
+ <h4>Из кода</h4>
+<pre><code class="language-javascript hljs"><span class="hljs-keyword">import</span> {attach} <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;reedach-widget&#x27;</span>;
+
+<span class="hljs-keyword">const</span> checker = <span class="hljs-title function_">attach</span>(<span class="hljs-variable language_">document</span>.<span class="hljs-title function_">querySelector</span>(<span class="hljs-string">&#x27;textarea&#x27;</span>), {
+  <span class="hljs-attr">endpoint</span>: <span class="hljs-string">&#x27;/api/reedach&#x27;</span>,      <span class="hljs-comment">// сервер Reedach или посредник; без него — только стиль</span>
+  <span class="hljs-attr">format</span>: <span class="hljs-string">&#x27;markdown&#x27;</span>,            <span class="hljs-comment">// &#x27;text&#x27; (по умолчанию) или &#x27;markdown&#x27;</span>
+  <span class="hljs-attr">panel</span>: <span class="hljs-variable language_">document</span>.<span class="hljs-title function_">querySelector</span>(<span class="hljs-string">&#x27;#hints&#x27;</span>),
+  <span class="hljs-attr">disable</span>: [<span class="hljs-string">&#x27;intensifiers&#x27;</span>],     <span class="hljs-comment">// выключить правила по id или целые категории</span>
+  <span class="hljs-attr">dictionary</span>: {                  <span class="hljs-comment">// своё хранилище слов автора; по умолчанию — localStorage</span>
+    <span class="hljs-attr">list</span>: <span class="hljs-title function_">async</span> () =&gt; [<span class="hljs-string">&#x27;Reedach&#x27;</span>],
+    <span class="hljs-attr">add</span>: <span class="hljs-keyword">async</span> word =&gt; { <span class="hljs-comment">/* сохранить у себя */</span> },
+  },
+  <span class="hljs-attr">request</span>: <span class="hljs-literal">null</span>,                 <span class="hljs-comment">// своя функция запросов: вход по cookie, CSRF-токен и т. п.</span>
+});
+
+checker.<span class="hljs-title function_">check</span>();   <span class="hljs-comment">// проверить сейчас</span>
+checker.<span class="hljs-title function_">stop</span>();    <span class="hljs-comment">// убрать подсветку и список</span></code></pre>
+ <h4>Оформление</h4>
+ <p>Виджет не приносит своих цветов и шрифтов, оформление задаёт сайт:</p>
+<pre><code class="language-css hljs">::<span class="hljs-built_in">highlight</span>(reedach-word)  { <span class="hljs-attribute">background-color</span>: <span class="hljs-built_in">rgba</span>(<span class="hljs-number">255</span>, <span class="hljs-number">61</span>, <span class="hljs-number">31</span>, .<span class="hljs-number">15</span>); }  <span class="hljs-comment">/* слова и обороты */</span>
+::<span class="hljs-built_in">highlight</span>(reedach-long)  { <span class="hljs-attribute">background-color</span>: <span class="hljs-built_in">rgba</span>(<span class="hljs-number">20</span>, <span class="hljs-number">20</span>, <span class="hljs-number">20</span>, .<span class="hljs-number">06</span>); }   <span class="hljs-comment">/* длинные предложения и абзацы */</span>
+::<span class="hljs-built_in">highlight</span>(reedach-spell) { <span class="hljs-attribute">text-decoration</span>: underline wavy <span class="hljs-number">#ff3d1f</span>; }   <span class="hljs-comment">/* опечатки */</span>
+::<span class="hljs-built_in">highlight</span>(reedach-active){ <span class="hljs-attribute">background-color</span>: <span class="hljs-number">#ffc4b5</span>; }                 <span class="hljs-comment">/* место, куда перешли из списка */</span></code></pre>
+ <p>Список и подсказка собраны из элементов с классами <code>reedach-*</code>. Готовый пример стилей для светлой и тёмной темы — в <a href="https://github.com/dimafaller-en/reedach/blob/main/packages/widget/demo/demo.css">demo.css</a>. Подсветка работает в Chrome и Edge 105+, Safari 17.2+, Firefox 140+, в старых браузерах будет только список замечаний. Все настройки — в <a href="https://github.com/dimafaller-en/reedach/blob/main/packages/widget/README.md">README виджета</a>.</p>
+
+ <h3 id="server">Сервер с орфографией</h3>
+<pre><code class="language-bash hljs">docker run -d -p 3000:3000 \
+  -e REEDACH_KEYS=<span class="hljs-string">&quot;длинный-ключ-сайта=https://ваш-сайт.ru; ключ-для-сервера-сайта&quot;</span> \
+  ghcr.io/dimafaller-en/reedach</code></pre>
+ <p>Образ собран для amd64 и arm64, весит 139 МБ, hunspell и словари уже внутри. Тексты не сохраняются и не пишутся в журнал. Страница-пример, как на скриншотах, открывается по адресу <code>/demo/</code>, если запустить сервер с <code>-e REEDACH_DEMO=1</code>.</p>
+ <h4 id="keys">Ключи: что это и откуда они берутся</h4>
+ <p>Ключ — это пароль от вашего сервера Reedach. Его никто не выдаёт, регистрироваться нигде не нужно: вы придумываете ключ сами, передаёте его серверу при запуске и сообщаете своему сайту. Без правильного ключа сервер текст не проверяет, поэтому чужие сайты и скрипты вашим сервером не воспользуются.</p>
+ <ol class="steps">
+  <li><p>Сделайте два случайных ключа длиной от 16 символов. Подойдёт любой длинный набор букв и цифр, например:</p>
+<pre><code class="language-bash hljs">openssl rand -hex 24</code></pre></li>
+  <li><p>Передайте оба ключа серверу в <code>REEDACH_KEYS</code> через <code>;</code>. К первому через <code>=</code> допишите адрес своего сайта, он будет для браузера. Второй оставьте без адреса, он для сервера сайта:</p>
+<pre><code class="language-bash hljs">REEDACH_KEYS=<span class="hljs-string">&quot;9f2c51d0e8a4b7c3f61e71a2=https://ваш-сайт.ru; 4b8de0a93c17f6b25d0c3f88&quot;</span></code></pre></li>
+  <li><p>Ключ с адресом укажите виджету: <code>data-reedach-key="9f2c51d0e8a4b7c3f61e71a2"</code>. Он будет виден в коде страницы, и это нормально: из браузера сервер примет его только со страниц <code>ваш-сайт.ru</code>.</p></li>
+  <li><p>Ключ без адреса держите в секрете на сервере сайта и передавайте в заголовке <code>Authorization: Bearer 4b8de0a93c17f6b25d0c3f88</code>. С ним сервер не пустит запрос из браузера.</p></li>
+ </ol>
+ <p>Для нескольких сайтов заведите по ключу на каждый. У одного ключа может быть несколько адресов через запятую. Чтобы сменить ключ, перезапустите сервер с новым списком.</p>
+ <p>Ключ из кода страницы чужой сайт со своих страниц использовать не сможет, но скрипт вне браузера сможет, и сдержат его только лимиты. Надёжнее вообще не давать ключ браузеру: отправлять запросы через сервер своего сайта, а Reedach не открывать в интернет. Тогда в виджете вместо адреса Reedach укажите адрес своего посредника, а ключ не указывайте.</p>
+ <h4>Запрос и ответ</h4>
+<pre><code class="language-bash hljs">curl https://checker.example.ru/v1/check \
+  -H <span class="hljs-string">&#x27;Authorization: Bearer ключ-для-сервера-сайта&#x27;</span> -H <span class="hljs-string">&#x27;Content-Type: application/json&#x27;</span> \
+  -d <span class="hljs-string">&#x27;{&quot;text&quot;: &quot;В настоящее время мы осуществляем доставку.&quot;, &quot;ignore&quot;: [&quot;Reedach&quot;]}&#x27;</span></code></pre>
+<pre><code class="language-json hljs"><span class="hljs-punctuation">{</span><span class="hljs-attr">&quot;issues&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>
+  <span class="hljs-punctuation">{</span><span class="hljs-attr">&quot;start&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;end&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">17</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;time-parasite-start&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;category&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;time&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;label&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Паразит времени&quot;</span><span class="hljs-punctuation">,</span>
+   <span class="hljs-attr">&quot;message&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Вступление о нынешнем времени ничего не добавляет к предложению.&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;fix&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;…&quot;</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-punctuation">{</span><span class="hljs-attr">&quot;start&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">21</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;end&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">42</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;weak-verb-noun&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;category&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;bureaucratese&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;label&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Канцелярит&quot;</span><span class="hljs-punctuation">,</span>
+   <span class="hljs-attr">&quot;message&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Пустой глагол плюс отглагольное существительное звучат казённо.&quot;</span><span class="hljs-punctuation">,</span>
+   <span class="hljs-attr">&quot;fix&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Замените одним глаголом: не «осуществляем доставку», а «доставляем».&quot;</span><span class="hljs-punctuation">}</span>
+<span class="hljs-punctuation">]</span><span class="hljs-punctuation">}</span></code></pre>
+ <div class="table"><table>
+  <thead><tr><th>Запрос</th><th>Что делает</th></tr></thead>
+  <tbody>
+   <tr><td><code>POST /v1/check</code></td><td>проверить <code>markdown</code>, <code>text</code> или <code>blocks</code>; <code>ignore</code> — слова автора, <code>disable</code> — выключенные правила, <code>checks</code> — какие проверки запускать: <code>spelling</code>, <code>morph</code>, <code>style</code></td></tr>
+   <tr><td><code>POST /v1/suggest</code></td><td>варианты исправления: <code>{"words": ["превет"]}</code>, до 20 слов за раз</td></tr>
+   <tr><td><code>GET /v1/rules</code></td><td>все правила с категориями и объяснениями — для страницы настроек</td></tr>
+   <tr><td><code>GET /health</code></td><td>сервер работает; ключ не нужен</td></tr>
+  </tbody>
+ </table></div>
+ <p>Ошибки: 401 — нет ключа, 403 — ключ не для этого сайта, 413 — слишком большой текст, 422 — неверные поля, 503 — сервер занят, повторить через <code>Retry-After</code> секунд.</p>
+ <h4>Настройки</h4>
+ <div class="table"><table>
+  <thead><tr><th>Переменная</th><th>По умолчанию</th><th>Что задаёт</th></tr></thead>
+  <tbody>
+   <tr><td><code>REEDACH_KEYS</code></td><td>обязательно</td><td>ключи доступа</td></tr>
+   <tr><td><code>PORT</code></td><td><code>3000</code></td><td>порт</td></tr>
+   <tr><td><code>HOST</code></td><td><code>0.0.0.0</code></td><td>адрес</td></tr>
+   <tr><td><code>REEDACH_MAX_BYTES</code></td><td><code>1000000</code></td><td>максимальный размер запроса</td></tr>
+   <tr><td><code>REEDACH_CONCURRENCY</code></td><td><code>2</code></td><td>сколько проверок идёт одновременно</td></tr>
+   <tr><td><code>REEDACH_QUEUE</code></td><td><code>20</code></td><td>сколько запросов может ждать; остальные получат 503</td></tr>
+   <tr><td><code>REEDACH_DEMO</code></td><td>—</td><td><code>1</code> — страница-пример по адресу <code>/demo/</code></td></tr>
+  </tbody>
+ </table></div>
+ <p>Полное описание полей и ответов — в <a href="https://github.com/dimafaller-en/reedach/blob/main/packages/server/README.md">README сервера</a>.</p>
+
+ <h3 id="library">Библиотекой в коде</h3>
+ <p>Только стиль, без зависимостей, в браузере и Node:</p>
+<pre><code class="language-bash hljs">npm i reedach</code></pre>
+<pre><code class="language-javascript hljs"><span class="hljs-keyword">import</span> {checkStyle, sourceBlocks, mergeIssues} <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;reedach&#x27;</span>;
+
+<span class="hljs-keyword">const</span> markdown = <span class="hljs-string">&#x27;В настоящее время мы осуществляем доставку хлеба.&#x27;</span>;
+<span class="hljs-keyword">const</span> blocks = <span class="hljs-title function_">sourceBlocks</span>(markdown);              <span class="hljs-comment">// абзацы, пункты списков, заголовки</span>
+<span class="hljs-keyword">const</span> issues = <span class="hljs-title function_">mergeIssues</span>(blocks, {<span class="hljs-attr">local</span>: <span class="hljs-title function_">checkStyle</span>(blocks)});
+
+<span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> it <span class="hljs-keyword">of</span> issues)
+  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(markdown.<span class="hljs-title function_">slice</span>(it.<span class="hljs-property">start</span>, it.<span class="hljs-property">end</span>), <span class="hljs-string">&#x27;—&#x27;</span>, it.<span class="hljs-property">label</span>, <span class="hljs-string">&#x27;—&#x27;</span>, it.<span class="hljs-property">message</span>, it.<span class="hljs-property">fix</span>);</code></pre>
+ <p><code>start</code> и <code>end</code> указывают на место в исходном тексте, поэтому замечание можно подсветить прямо в поле ввода. Блоки можно передать и без Markdown: <code>checkStyle([{text: '…', kind: 'p'}])</code>, где <code>kind</code> — <code>p</code> (абзац), <code>li</code> (пункт списка) или <code>h</code> (заголовок). Длину предложения и абзаца можно настроить: <code>checkStyle(blocks, {maxSentenceWords: 25, maxParagraphWords: 120})</code>.</p>
+ <p>Всё вместе — орфография, морфология и стиль — в Node, без отдельного сервиса. Нужен установленный hunspell:</p>
+<pre><code class="language-bash hljs">npm i reedach-server</code></pre>
+<pre><code class="language-javascript hljs"><span class="hljs-keyword">import</span> {check} <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;reedach-server&#x27;</span>;
+
+<span class="hljs-keyword">const</span> {issues} = <span class="hljs-keyword">await</span> <span class="hljs-title function_">check</span>({
+  <span class="hljs-attr">markdown</span>: <span class="hljs-string">&#x27;В настоящее время мы осуществляем доставку.&#x27;</span>,
+  <span class="hljs-attr">ignore</span>: [<span class="hljs-string">&#x27;Reedach&#x27;</span>],            <span class="hljs-comment">// слова автора: формы тоже принимаются</span>
+  <span class="hljs-attr">disable</span>: [<span class="hljs-string">&#x27;intensifiers&#x27;</span>],      <span class="hljs-comment">// выключить правило по id или целую категорию</span>
+});</code></pre>
+</section>
+
+<section id="spelling" class="wrap">
+ <h2>Опечатки ищет hunspell</h2>
+ <p class="lead"><a href="https://github.com/hunspell/hunspell">Hunspell</a> — открытая программа проверки орфографии, на которой работает проверка в LibreOffice и Firefox. Reedach не встраивает её в свой код, а запускает отдельной программой на вашем сервере, поэтому текст не уходит в чужие сервисы.</p>
+ <div class="cols">
+  <div>
+   <h4>Словари</h4>
+   <p>Русский — <a href="https://github.com/wooorm/dictionaries">dictionary-ru</a> на основе словаря Александра Лебедева, английский — dictionary-en на основе SCOWL. Оба подключены сразу, поэтому английские слова в русском тексте не считаются ошибками. Русскому словарю много лет: новых слов и заимствований в нём может не быть. Для них есть слова автора.</p>
+   <h4>Что проверяется</h4>
+   <p>Слова из букв, в том числе через дефис. Пропускаются ссылки, адреса почты, аббревиатуры заглавными буквами, слова с цифрами, однобуквенные слова и английские сокращения вроде isn't.</p>
+   <h4>Слова автора</h4>
+   <p>Список <code>ignore</code> в запросе или «Добавить в словарь» в виджете. Формы тоже принимаются: если у слова та же основа и после неё не больше пяти букв. У глаголов основа считается без -ть и -ться. Правило работает для слов от пяти букв. В hunspell эти слова не добавляются, поэтому сервер ничего не запоминает между запросами.</p>
+  </div>
+  <div>
+   <h4>Как устроено</h4>
+   <p>Поиск ошибок и подбор вариантов — два разных шага, потому что второй медленнее в сотни раз.</p>
+   <ul>
+    <li><b>Ошибки</b> находит короткий запуск <code>hunspell -l</code> на каждый запрос: тысячи слов за доли секунды.</li>
+    <li><b>Варианты</b> подбирает один постоянно запущенный <code>hunspell -a</code>: примерно 0,3 секунды на слово, до пяти вариантов. Сразу они приходят только для первых десяти ошибок, на всё отводится не больше трёх секунд. Остальные можно запросить через <code>/v1/suggest</code>, когда автор нажмёт на слово. Готовые ответы запоминаются для 5000 слов.</li>
+   </ul>
+   <h4>Безопасность</h4>
+   <p>В постоянный hunspell уходят только слова из букв, каждое отдельной строкой со служебным знаком в начале, поэтому никакой текст не станет командой. Слова идут по одному, и ответы разных запросов не перепутаются. Зависший процесс убивается и запускается заново, а после 2000 слов перезапускается в любом случае.</p>
+   <h4>Установка</h4>
+   <p>В Docker-образе hunspell уже есть. Для пакета <code>reedach-server</code> поставьте его сами: <code>apk add hunspell</code> в Alpine, <code>apt install hunspell</code> в Debian и Ubuntu, <code>brew install hunspell</code> на macOS. Словари ставятся вместе с пакетом из npm.</p>
+  </div>
+ </div>
+</section>
+
+<section id="rules" class="wrap">
+ <h2>75 правил в 24 категориях</h2>
+ <p class="lead">Правила лежат в <a href="https://github.com/dimafaller-en/reedach/blob/main/packages/core/src/rules.js">packages/core/src/rules.js</a>. У каждого есть категория, объяснение, совет и список слов:</p>
+<pre><code class="language-javascript hljs">{<span class="hljs-attr">id</span>: <span class="hljs-string">&#x27;bureaucratese-verbs&#x27;</span>, <span class="hljs-attr">category</span>: <span class="hljs-string">&#x27;bureaucratese&#x27;</span>,
+ <span class="hljs-attr">message</span>: <span class="hljs-string">&#x27;Канцелярский оборот звучит как отписка и скрывает суть.&#x27;</span>,
+ <span class="hljs-attr">fix</span>: <span class="hljs-string">&#x27;Заменить простым глаголом или словом: делать, для, чтобы, это.&#x27;</span>,
+ <span class="hljs-attr">words</span>: [<span class="hljs-string">&#x27;осуществл*&#x27;</span>, <span class="hljs-string">&#x27;имеет место&#x27;</span>, <span class="hljs-string">&#x27;в рамках&#x27;</span>, <span class="hljs-string">&#x27;в целях&#x27;</span>, <span class="hljs-string">&#x27;с целью&#x27;</span>, <span class="hljs-comment">/* … */</span>]},</code></pre>
+ <p>Звёздочка в конце слова означает «любое окончание»: <code>осуществл*</code> найдёт «осуществляет», «осуществление» и «осуществлять». Правило с <code>start: true</code> срабатывает только в начале предложения, как «В настоящее время». Любое правило или целую категорию можно выключить через <code>disable</code>.</p>
+ <p>Это подсказки, а не приговор. Проверка ищет по словарю и простым правилам, поэтому иногда ошибается и не заменяет редактора.</p>
+
+ <h3 id="sources">Источники и лицензии</h3>
+ <p>Правила и формулировки подсказок написаны для проекта. Идеи взяты из открытых статей об информационном стиле: <a href="https://maximilyahov.ru">Максим Ильяхов</a>, <a href="https://bureau.ru">Бюро Горбунова</a> и другие авторы. Тексты статей в проект не копировались.</p>
+ <p>Ядро <code>reedach</code> не содержит сторонних данных и зависимостей. Сервер использует их как зависимости:</p>
+ <div class="table"><table>
+  <thead><tr><th>Компонент</th><th>Лицензия</th></tr></thead>
+  <tbody>
+   <tr><td><a href="https://github.com/deNULL/Az.js">Az.js</a> — морфологический анализ</td><td>MIT</td></tr>
+   <tr><td>Словари Az.js — данные <a href="https://opencorpora.org">OpenCorpora</a>, сборка pymorphy2</td><td>CC BY-SA</td></tr>
+   <tr><td><a href="https://github.com/wooorm/dictionaries">dictionary-ru</a> — словарь hunspell, © 1997–2008 Alexander I. Lebedev</td><td>BSD-3-Clause</td></tr>
+   <tr><td><a href="https://github.com/wooorm/dictionaries">dictionary-en</a> — словарь hunspell на основе SCOWL</td><td>MIT AND BSD</td></tr>
+   <tr><td><a href="https://github.com/hunspell/hunspell">hunspell</a> — запускается как отдельная программа</td><td>GPL-2.0 / LGPL-2.1 / MPL-1.1 на выбор</td></tr>
+  </tbody>
+ </table></div>
+ <p>Шрифты этой страницы — Literata и Golos Text, логотип набран Instrument Serif; все три под лицензией SIL OFL.</p>
+
+ <h3 id="dev">Разработка</h3>
+<pre><code class="language-bash hljs">npm ci
+npm <span class="hljs-built_in">test</span></code></pre>
+ <p>Для тестов орфографии нужна программа hunspell. Если её нет, эти тесты пропускаются. Новая версия выходит по тегу <code>vX.Y.Z</code>: GitHub прогоняет тесты, публикует пакеты в npm и собирает образ. Плагин для WordPress — следующий этап.</p>
+</section>
+
+<section id="en" class="wrap" lang="en">
+ <h2>A style checker for Russian text</h2>
+ <p class="lead">Reedach checks Russian text for bureaucratese, clichés, filler and vague words, heavy syntax and typos, and shows hints right in a textarea as you type. It runs in the browser or on your own server, and the text never leaves it.</p>
+ <ul>
+  <li><code>reedach</code> — the rule dictionary and style checker, no dependencies, browser and Node.</li>
+  <li><code>reedach-widget</code> — a drop-in widget for any textarea: one <code>&lt;script&gt;</code> tag, no styles of its own.</li>
+  <li><code>reedach-server</code> — spelling (hunspell) and morphology (Az.js + OpenCorpora), as a library or an HTTP API: <code>docker run ghcr.io/dimafaller-en/reedach</code>.</li>
+ </ul>
+ <p>A WordPress plugin is next. MIT license. Source code on <a href="https://github.com/dimafaller-en/reedach">GitHub</a>.</p>
+</section>
+</main>
+
+<footer>
+ <div class="wrap">
+  <span>Reedach — MIT, © 2026 <a href="https://dimafaller.ru">Дима Фаллер</a></span>
+  <nav aria-label="Ссылки">
+   <a href="https://github.com/dimafaller-en/reedach">GitHub</a>
+   <a href="https://www.npmjs.com/package/reedach">npm</a>
+   <a href="https://github.com/dimafaller-en/reedach/pkgs/container/reedach">Docker-образ</a>
+  </nav>
+ </div>
+</footer>
+</body>
+</html>

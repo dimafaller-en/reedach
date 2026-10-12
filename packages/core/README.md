@@ -14,7 +14,7 @@ npm i reedach
 ```js
 import {checkStyle, sourceBlocks, mergeIssues} from 'reedach';
 
-const markdown = 'В настоящее время мы осуществляем монтаж перегородок.';
+const markdown = 'В настоящее время мы осуществляем доставку хлеба.';
 const blocks = sourceBlocks(markdown);
 const issues = mergeIssues(blocks, {local: checkStyle(blocks)});
 // [{start, end, id, category, label, message, fix}, …] — start и end указывают в исходный текст

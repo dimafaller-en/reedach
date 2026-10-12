@@ -16,7 +16,7 @@
 ## Подключение одной строкой
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/reedach-widget@0.1.0/dist/reedach.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/reedach-widget@0.1.1/dist/reedach.min.js" defer></script>
 
 <textarea data-reedach
   data-reedach-endpoint="https://checker.example.ru/v1"
@@ -49,7 +49,7 @@ const checker = attach(document.querySelector('textarea'), {
   delay: 1000,                   // пауза перед повторной проверкой, мс
   disable: ['intensifiers'],     // выключить правила по id или целые категории
   dictionary: {                  // своё хранилище слов автора; по умолчанию — localStorage
-    list: async () => ['Glaskraft'],
+    list: async () => ['Reedach'],
     add: async word => { /* сохранить у себя */ },
   },
   onChange: issues => {},        // после каждой проверки
@@ -72,10 +72,10 @@ checker.stop();    // убрать подсветку и список
 точно над текстом. Остальное задаёт сайт:
 
 ```css
-::highlight(reedach-word)  { background-color: rgba(215, 242, 91, .6); }   /* слова и обороты */
-::highlight(reedach-long)  { background-color: rgba(96, 112, 214, .14); }  /* длинные предложения и абзацы */
-::highlight(reedach-spell) { text-decoration: underline wavy #c0392b; }    /* опечатки */
-::highlight(reedach-active){ background-color: #ffd54a; }                  /* место, куда перешли из списка */
+::highlight(reedach-word)  { background-color: rgba(255, 61, 31, .15); }  /* слова и обороты */
+::highlight(reedach-long)  { background-color: rgba(20, 20, 20, .06); }   /* длинные предложения и абзацы */
+::highlight(reedach-spell) { text-decoration: underline wavy #ff3d1f; }   /* опечатки */
+::highlight(reedach-active){ background-color: #ffc4b5; }                 /* место, куда перешли из списка */
 .reedach-mirror { mix-blend-mode: multiply; }  /* на тёмном фоне — screen */
 ```
 
@@ -86,6 +86,19 @@ checker.stop();    // убрать подсветку и список
 `reedach-message`, `reedach-actions`, `reedach-variant`, `reedach-action`, `reedach-note`,
 `reedach-credit`, `reedach-tooltip`. Готовый пример стилей для светлой и тёмной темы лежит
 в [`demo/demo.css`](demo/demo.css), начиная со строки `/* Widget */`.
+
+## Орфография
+
+Опечатки виджет показывает только вместе с сервером Reedach: проверяет их программа
+[hunspell](https://github.com/hunspell/hunspell) на сервере, со словарями русского и
+английского языков. Английские слова в русском тексте ошибками не считаются. Ссылки, адреса
+почты, аббревиатуры и слова с цифрами пропускаются.
+
+Варианты исправления приходят сразу для первых десяти ошибок, для остальных виджет
+запрашивает их, когда автор нажимает «Показать варианты». «Добавить в словарь» передаёт слово
+серверу в поле `ignore`: формы этого слова тоже перестают считаться ошибкой, а на сервере
+ничего не сохраняется. Как устроена проверка — в
+[README сервера](https://github.com/dimafaller-en/reedach/blob/main/packages/server/README.md#как-устроена-орфография).
 
 ## Страница-пример
 
