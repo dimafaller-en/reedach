@@ -21,6 +21,15 @@ Reedach работает у вас: в браузере или на вашем �
 | `packages/widget` | Подсветка замечаний прямо в поле ввода на любом сайте | готово |
 | WordPress | Плагин для редактора Gutenberg | позже |
 
+## Установка
+
+```bash
+npm i reedach            # ядро: проверка стиля в браузере и в Node
+npm i reedach-widget     # виджет для поля ввода
+npm i reedach-server     # орфография и морфология библиотекой
+docker pull ghcr.io/dimafaller-en/reedach   # сервер с HTTP API
+```
+
 ## Как пользоваться ядром
 
 ```js

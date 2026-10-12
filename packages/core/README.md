@@ -7,6 +7,10 @@
 Это подсказки по словарю и простым правилам, а не приговор: проверка иногда ошибается
 и не заменяет редактора.
 
+```bash
+npm i reedach
+```
+
 ```js
 import {checkStyle, sourceBlocks, mergeIssues} from 'reedach';
 
@@ -20,6 +24,6 @@ const issues = mergeIssues(blocks, {local: checkStyle(blocks)});
 списка) или `h` (заголовок). Настройки длины: `checkStyle(blocks, {maxSentenceWords: 25,
 maxParagraphWords: 120})`.
 
-Словарь правил, источники и лицензии — в README и NOTICE.md репозитория проекта.
+Словарь правил, источники и лицензии — в README и NOTICE.md [репозитория проекта](https://github.com/dimafaller-en/reedach).
 
 MIT, © 2026 Дима Фаллер.

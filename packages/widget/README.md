@@ -92,7 +92,7 @@ checker.stop();    // убрать подсветку и список
 Сервер Reedach показывает её по адресу `/demo/`, если запустить его с `REEDACH_DEMO=1`:
 
 ```bash
-docker run -p 3000:3000 -e REEDACH_DEMO=1 -e REEDACH_KEYS="демо-ключ-не-короче-16=http://localhost:3000" reedach
+docker run -p 3000:3000 -e REEDACH_DEMO=1 -e REEDACH_KEYS="демо-ключ-не-короче-16=http://localhost:3000" ghcr.io/dimafaller-en/reedach
 ```
 
 Откройте `http://localhost:3000/demo/` и введите ключ.

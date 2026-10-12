@@ -10,6 +10,6 @@ jobs:
     container: alpine:3.23
     steps:
       - run: apk add --no-cache nodejs npm hunspell git
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm test

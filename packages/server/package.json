@@ -4,6 +4,13 @@
   "description": "Сервер Reedach: орфография (hunspell), морфология (Az.js + OpenCorpora) и подсказки по стилю для русского текста — библиотекой или по HTTP",
   "license": "MIT",
   "author": "Dima Faller <dima@dimafaller.ru>",
+  "homepage": "https://github.com/dimafaller-en/reedach#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dimafaller-en/reedach.git",
+    "directory": "packages/server"
+  },
+  "bugs": "https://github.com/dimafaller-en/reedach/issues",
   "type": "module",
   "exports": {
     ".": "./src/index.mjs"

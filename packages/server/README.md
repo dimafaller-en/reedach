@@ -14,6 +14,10 @@ Ubuntu: `apt install hunspell`). В Docker-образе она уже есть.
 
 ## Библиотекой
 
+```bash
+npm i reedach-server
+```
+
 ```js
 import {check} from 'reedach-server';
 
@@ -27,9 +31,11 @@ const {issues} = await check({
 ## По HTTP
 
 ```bash
-docker build -t reedach .
-docker run -d -p 3000:3000 -e REEDACH_KEYS="длинный-ключ-сайта=https://ваш-сайт.ru; ключ-для-сервера-сайта" reedach
+docker run -d -p 3000:3000 -e REEDACH_KEYS="длинный-ключ-сайта=https://ваш-сайт.ru; ключ-для-сервера-сайта" ghcr.io/dimafaller-en/reedach
 ```
+
+Образ собран для amd64 и arm64. Собрать его самому из исходников: `docker build -t reedach .`
+в корне [репозитория](https://github.com/dimafaller-en/reedach).
 
 Без ключа сервер не запускается.
 

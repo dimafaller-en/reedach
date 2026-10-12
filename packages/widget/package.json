@@ -4,6 +4,13 @@
   "description": "Виджет Reedach: подсказки по русскому тексту прямо в поле ввода на любом сайте — без сервера или с сервером Reedach",
   "license": "MIT",
   "author": "Dima Faller <dima@dimafaller.ru>",
+  "homepage": "https://github.com/dimafaller-en/reedach#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dimafaller-en/reedach.git",
+    "directory": "packages/widget"
+  },
+  "bugs": "https://github.com/dimafaller-en/reedach/issues",
   "type": "module",
   "sideEffects": [
     "./src/auto.js"
