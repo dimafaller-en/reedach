@@ -16,7 +16,9 @@
 ## Подключение одной строкой
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/reedach-widget@0.2.0/dist/reedach.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/reedach-widget@0.2.0/dist/reedach.min.js"
+        integrity="sha384-WkLSRGvjoxfrginR5euzDIdu9SgY0Y6zzQh0+1mQJ+anwpw72Dq1+PtANcaqo/tC"
+        crossorigin="anonymous" defer></script>
 
 <textarea data-reedach
   data-reedach-endpoint="https://checker.example.ru/v1"
@@ -25,6 +27,9 @@
   data-reedach-panel="#hints"></textarea>
 <div id="hints"></div>
 ```
+
+`integrity` проверяет, что CDN отдал именно этот файл: если его подменят, браузер скрипт не запустит.
+Хеш свой у каждой версии, берите его из README той версии, которую подключаете.
 
 Все атрибуты, кроме `data-reedach`, необязательны. Без `data-reedach-endpoint` проверка идёт
 только в браузере. Без `data-reedach-panel` список появится сразу под полем.

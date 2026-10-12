@@ -86,7 +86,9 @@
 
  <h3 id="widget">Виджет на любую страницу</h3>
  <p>Подсветка ложится поверх текста в <code>textarea</code>, список замечаний обновляется, пока автор пишет. Нажатие на вариант заменяет слово в поле, Ctrl+Z отменяет замену. «Добавить в словарь» запоминает слово в браузере автора, а сайт может подключить своё хранилище. Интерфейс на русском и английском.</p>
-<pre><code class="language-xml hljs"><span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">&quot;https://cdn.jsdelivr.net/npm/reedach-widget@0.2.0/dist/reedach.min.js&quot;</span> <span class="hljs-attr">defer</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
+<pre><code class="language-xml hljs"><span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">&quot;https://cdn.jsdelivr.net/npm/reedach-widget@0.2.0/dist/reedach.min.js&quot;</span>
+        <span class="hljs-attr">integrity</span>=<span class="hljs-string">&quot;sha384-WkLSRGvjoxfrginR5euzDIdu9SgY0Y6zzQh0+1mQJ+anwpw72Dq1+PtANcaqo/tC&quot;</span>
+        <span class="hljs-attr">crossorigin</span>=<span class="hljs-string">&quot;anonymous&quot;</span> <span class="hljs-attr">defer</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
 
 <span class="hljs-tag">&lt;<span class="hljs-name">textarea</span> <span class="hljs-attr">data-reedach</span>
   <span class="hljs-attr">data-reedach-endpoint</span>=<span class="hljs-string">&quot;https://checker.example.ru/v1&quot;</span>
@@ -94,6 +96,7 @@
   <span class="hljs-attr">data-reedach-format</span>=<span class="hljs-string">&quot;markdown&quot;</span>
   <span class="hljs-attr">data-reedach-panel</span>=<span class="hljs-string">&quot;#hints&quot;</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">textarea</span>&gt;</span>
 <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">&quot;hints&quot;</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+ <p><code>integrity</code> проверяет, что CDN отдал именно этот файл: если его подменят, браузер скрипт не запустит. Хеш свой у каждой версии, берите его из README той версии, которую подключаете.</p>
  <p>Все атрибуты, кроме <code>data-reedach</code>, необязательны. Без <code>data-reedach-endpoint</code> проверка идёт только в браузере. Без <code>data-reedach-panel</code> список появится сразу под полем.</p>
  <p>Ключ в коде страницы виден любому посетителю. Привяжите его на сервере к адресу своего сайта или отправляйте запросы через сервер сайта: тогда укажите в <code>data-reedach-endpoint</code> адрес своего посредника, а ключ не указывайте.</p>
  <h4>Из кода</h4>
