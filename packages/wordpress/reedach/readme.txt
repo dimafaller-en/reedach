@@ -16,6 +16,7 @@ Reedach checks Russian text while you write in the block editor. It finds bureau
 
 * The Reedach panel in the editor lists the hints; marks appear right in the text.
 * Click a hint to jump to the fragment and select it.
+* Many hints offer a ready replacement: click the suggested word to put it in the text. Undo takes it back.
 * The check runs in the author's browser. The text is not sent anywhere, there is no external service and no account.
 * Settings → Reedach: switch off the kinds of hints your authors do not need.
 

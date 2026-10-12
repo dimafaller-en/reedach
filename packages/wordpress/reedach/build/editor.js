@@ -131,8 +131,8 @@
     if (h && (!k || h.length > k.length)) return { ...rule, fix: rule.hints[h] };
     if (!k) return rule;
     const parts = found.split(/\s+/), all = rule.swap[k].split(/,\s*/).filter(Boolean).map((w) => w.replace(/\$(\d)/g, (_, n) => parts[n - 1] || ""));
-    const replace = [...new Set(rule.exact ? all : all.filter((w) => !/\s/.test(w)))];
-    return { ...rule, fix: (rule.exact ? "Заменить: " : "Заменить обычным словом: ") + all.join(", ") + ".", ...replace.length && { replace, exact: !!rule.exact } };
+    const replace2 = [...new Set(rule.exact ? all : all.filter((w) => !/\s/.test(w)))];
+    return { ...rule, fix: (rule.exact ? "Заменить: " : "Заменить обычным словом: ") + all.join(", ") + ".", ...replace2.length && { replace: replace2, exact: !!rule.exact } };
   };
   var sentences = (text) => [...text.matchAll(/[^.!?…]+(?:[.!?…]+|$)/g)].map((m) => ({ start: m.index, end: m.index + m[0].length, text: m[0] })).filter((s) => s.text.trim());
   var wordCount = (s) => (s.match(new RegExp("[" + L + "0-9]+(?:-[" + L + "]+)*", "g")) || []).length;
@@ -501,6 +501,24 @@
     (node?.nodeType === Node.TEXT_NODE ? node.parentElement : node || richElement(doc, it))?.scrollIntoView({ block: "center", behavior: "smooth" });
   }
   var short = (s) => s.length > 70 ? s.slice(0, 67).trimEnd() + "…" : s;
+  var capital = (it, word) => /^\p{Lu}/u.test(it.fragment) ? word[0].toUpperCase() + word.slice(1) : word;
+  function replace(it, word) {
+    const text = capital(it, word);
+    const swap = (html2) => {
+      const value = wp.richText.create({ html: String(html2 ?? "") });
+      if (value.text.slice(it.start, it.end).replace(/￼/g, " ") !== it.fragment) return null;
+      const piece = wp.richText.create({ text });
+      piece.formats = Array.from({ length: text.length }, () => value.formats[it.start]);
+      return wp.richText.toHTMLString({ value: wp.richText.insert(value, piece, it.start, it.end) });
+    };
+    if (!it.clientId) {
+      const html2 = swap(select("core/editor").getEditedPostAttribute("title"));
+      if (html2 !== null) dispatch("core/editor").editPost({ title: html2 });
+      return;
+    }
+    const block = select("core/block-editor").getBlock(it.clientId), html = block && swap(block.attributes[it.key]);
+    if (html) dispatch("core/block-editor").updateBlockAttributes(it.clientId, { [it.key]: html });
+  }
   var icon = el(
     "svg",
     { viewBox: "0 0 256 256", width: 24, height: 24, "aria-hidden": true },
@@ -538,7 +556,14 @@
               el("span", { className: "reedach-label" }, it.label),
               el("span", { className: "reedach-fragment" }, short(it.fragment)),
               el("span", { className: "reedach-message" }, [it.message, it.fix].filter(Boolean).join(" "))
-            )
+            ),
+            it.replace?.length ? el("div", { className: "reedach-variants" }, it.replace.map((word) => el("button", {
+              type: "button",
+              key: word,
+              className: "reedach-variant",
+              onClick: () => replace(it, word),
+              "aria-label": t("replace").replace("%s", capital(it, word))
+            }, capital(it, word)))) : null
           ))),
           el("p", { className: "reedach-credit" }, t("credit"))
         )

@@ -72,7 +72,9 @@ add_action(
 				'count'     => __( 'Suggestions: %d', 'reedach' ),
 				'none'      => __( 'No suggestions.', 'reedach' ),
 				'highlight' => __( 'Highlight in the text', 'reedach' ),
-				'credit'    => __( 'Hints are a guide, not a rule: the choice is yours. The list updates as you type. Click a hint to find it in the text.', 'reedach' ),
+				/* translators: %s: the suggested word. */
+				'replace'   => __( 'Replace with %s', 'reedach' ),
+				'credit'    => __( 'Hints are a guide, not a rule: the choice is yours. The list updates as you type. Click a hint to find it in the text, or a suggested word to put it in.', 'reedach' ),
 			),
 		);
 		wp_add_inline_script( 'reedach-editor', 'window.reedachSettings = ' . wp_json_encode( $settings ) . ';', 'before' );
