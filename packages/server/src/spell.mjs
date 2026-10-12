@@ -44,6 +44,8 @@ export class Suggester{
  constructor({dicts=DEFAULT_DICTS,wordTimeout=3000,recycle=2000,cacheSize=5000,maxPending=50}={}){Object.assign(this,{dicts,wordTimeout,recycle,cacheSize,maxPending});this.cache=new Map();this.queue=Promise.resolve();this.child=null;this.used=0;this.pending=0;}
  #start(){
   const child=spawn('hunspell',['-a','-i','utf-8','-d',this.dicts],{stdio:['pipe','pipe','ignore']});
+  // An idle hunspell must not keep the program alive: a pending answer has its own timer.
+  child.unref();child.stdin.unref?.();child.stdout.unref?.();
   const state={child,buf:'',waiting:null,banner:true};
   child.stdout.setEncoding('utf8').on('data',chunk=>{state.buf+=chunk;this.#drain(state);});
   child.on('error',()=>this.#fail(state));child.on('close',()=>this.#fail(state));child.stdin.on('error',()=>this.#fail(state));
