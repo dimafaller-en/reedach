@@ -3,7 +3,7 @@
  * Plugin Name:       Reedach
  * Plugin URI:        https://dimafaller.ru/reedach/
  * Description:       Style hints for Russian text in the block editor: bureaucratese, clichés, filler words, heavy syntax, typography. The check runs in the browser, the text is not sent anywhere.
- * Version:           0.3.1
+ * Version:           0.3.2
  * Requires at least: 6.5
  * Requires PHP:      7.4
  * Author:            Dima Faller
@@ -11,27 +11,13 @@
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       reedach
- * Domain Path:       /languages
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'REEDACH_VERSION', '0.3.1' );
-
-// The Russian interface ships with the plugin, so installs from the GitHub archive get it too. A translation from
-// translate.wordpress.org comes first; the one in languages/ is the fallback. WordPress 6.5+ finds the .l10n.php file
-// next to the .mo path given here.
-add_action(
-	'init',
-	function () {
-		$locale = determine_locale();
-		if ( ! load_textdomain( 'reedach', WP_LANG_DIR . '/plugins/reedach-' . $locale . '.mo', $locale ) ) {
-			load_textdomain( 'reedach', __DIR__ . '/languages/reedach-' . $locale . '.mo', $locale );
-		}
-	}
-);
+define( 'REEDACH_VERSION', '0.3.2' );
 
 /**
  * Rule categories: key => name. Generated from the Reedach rules by build.mjs.

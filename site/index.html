@@ -89,7 +89,7 @@
 
  <h3 id="widget">Виджет на любую страницу</h3>
  <p>Подсветка ложится поверх текста в <code>textarea</code>, список замечаний обновляется, пока автор пишет. Нажатие на вариант заменяет слово в поле, Ctrl+Z отменяет замену. «Добавить в словарь» запоминает слово в браузере автора, а сайт может подключить своё хранилище. Интерфейс на русском и английском.</p>
-<pre><code class="language-xml hljs"><span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">&quot;https://cdn.jsdelivr.net/npm/reedach-widget@0.3.1/dist/reedach.min.js&quot;</span>
+<pre><code class="language-xml hljs"><span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">&quot;https://cdn.jsdelivr.net/npm/reedach-widget@0.3.2/dist/reedach.min.js&quot;</span>
         <span class="hljs-attr">integrity</span>=<span class="hljs-string">&quot;sha384-+b0TQ8Vfz4ZeaWhABr7Pv49jCYTZoajS8qaSb4Ty/3PEoOCLY7QiECW5epXAnrxA&quot;</span>
         <span class="hljs-attr">crossorigin</span>=<span class="hljs-string">&quot;anonymous&quot;</span> <span class="hljs-attr">defer</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
 
@@ -273,6 +273,10 @@ npm <span class="hljs-built_in">test</span></code></pre>
  <h2>История версий</h2>
  <!-- changelog -->
  <p>Все пакеты Reedach выходят с одним номером версии: <code>reedach</code>, <code>reedach-widget</code>, <code>reedach-server</code>, Docker-образ и плагин для WordPress.</p>
+ <h3>0.3.2 — 13 октября 2026</h3>
+ <ul>
+  <li><b>Плагин для WordPress.</b> Русский перевод интерфейса больше не лежит внутри плагина: так просит каталог WordPress.org, переводы там приходят с translate.wordpress.org. Пока русский перевод не загружен туда, интерфейс плагина на английском, подсказки по тексту по-прежнему на русском.</li>
+ </ul>
  <h3>0.3.1 — 12 октября 2026</h3>
  <ul>
   <li><b>Плагин для WordPress.</b> Русский перевод интерфейса подключается без устаревшей функции <code>load_plugin_textdomain</code>, на которую ругалась проверка WordPress.org. Если для плагина есть перевод с translate.wordpress.org, используется он, иначе — встроенный.</li>

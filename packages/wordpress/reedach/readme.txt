@@ -4,7 +4,7 @@ Tags: russian, proofreading, writing, style, gutenberg
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.3.1
+Stable tag: 0.3.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -20,7 +20,7 @@ Reedach checks Russian text while you write in the block editor. It finds bureau
 * The check runs in the author's browser. The text is not sent anywhere, there is no external service and no account.
 * Settings → Reedach: switch off the kinds of hints your authors do not need.
 
-The hints themselves are in Russian: they explain Russian text. The interface is in English and Russian.
+The hints themselves are in Russian: they explain Russian text. The interface is in English; translations, Russian included, come from translate.wordpress.org.
 
 This plugin checks style only. Spelling and morphology need a Reedach server, see the [project site](https://dimafaller.ru/reedach/).
 
@@ -57,6 +57,9 @@ Chrome and Edge 105+, Safari 17.2+, Firefox 140+. In older browsers the list of 
 No, only with the block editor.
 
 == Changelog ==
+
+= 0.3.2 =
+* The Russian translation is no longer bundled with the plugin: translations come from translate.wordpress.org.
 
 = 0.3.1 =
 * The bundled Russian translation loads with load_textdomain; a translation from translate.wordpress.org comes first.
