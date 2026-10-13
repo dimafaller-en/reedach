@@ -1,4 +1,4 @@
-/* Reedach 0.3.1 for WordPress — https://github.com/dimafaller-en/reedach. Source: packages/wordpress/src. Includes the Reedach core (MIT). */
+/* Reedach 0.3.2 for WordPress — https://github.com/dimafaller-en/reedach. Source: packages/wordpress/src. Includes the Reedach core (MIT). */
 (() => {
   // ../core/src/rules.js
   var CATEGORIES = { paronym: "Пароним", borrowing: "Заимствование", generalization: "Обобщение", euphemism: "Эвфемизм", preachy: "Назидание", filler: "Вода", slang: "Жаргон", stamp: "Штамп", bureaucratese: "Канцелярит", vague: "Неконкретно", evaluation: "Оценка", modality: "Модальность", intro: "Вводное", time: "Паразит времени", pleonasm: "Плеоназм", pronoun: "Местоимение", adjective: "Прилагательное", kotory: "«Который»", syntax: "Синтаксис", passive: "Страдательный залог", nominalization: "Отглагольное", repetition: "Повтор", length: "Длина", numbers: "Числа", structure: "Структура", mistake: "Частая ошибка", colloquial: "Просторечие", typography: "Типографика" };
