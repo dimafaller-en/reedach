@@ -17,7 +17,7 @@
 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/reedach-widget@0.3.3/dist/reedach.min.js"
-        integrity="sha384-+b0TQ8Vfz4ZeaWhABr7Pv49jCYTZoajS8qaSb4Ty/3PEoOCLY7QiECW5epXAnrxA"
+        integrity="sha384-oP8tIpmCTkAglwLMMV6FbJmZU9Wll2d/JFKqeroxasQyV02oBQg0Ul/5g5a7YFK7"
         crossorigin="anonymous" defer></script>
 
 <textarea data-reedach
