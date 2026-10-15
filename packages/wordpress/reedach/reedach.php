@@ -3,7 +3,7 @@
  * Plugin Name:       Reedach
  * Plugin URI:        https://dimafaller.ru/reedach/
  * Description:       Style hints for Russian text in the block editor: bureaucratese, clichés, filler words, heavy syntax, typography. The check runs in the browser, the text is not sent anywhere.
- * Version:           0.3.2
+ * Version:           0.3.3
  * Requires at least: 6.5
  * Requires PHP:      7.4
  * Author:            Dima Faller
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'REEDACH_VERSION', '0.3.2' );
+define( 'REEDACH_VERSION', '0.3.3' );
 
 /**
  * Rule categories: key => name. Generated from the Reedach rules by build.mjs.

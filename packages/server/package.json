@@ -1,6 +1,6 @@
 {
   "name": "reedach-server",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Сервер Reedach: орфография (hunspell), морфология (Az.js + OpenCorpora) и подсказки по стилю для русского текста — библиотекой или по HTTP",
   "license": "MIT",
   "author": "Dima Faller <dima@dimafaller.ru>",
@@ -41,10 +41,10 @@
     "az": "0.2.3",
     "dictionary-en": "4.0.0",
     "dictionary-ru": "3.0.0",
-    "reedach": "0.3.2"
+    "reedach": "0.3.3"
   },
   "peerDependencies": {
-    "reedach-widget": "^0.3.2"
+    "reedach-widget": "^0.3.3"
   },
   "peerDependenciesMeta": {
     "reedach-widget": {
