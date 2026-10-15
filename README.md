@@ -5,9 +5,9 @@
   </picture>
 </h1>
 
-[![npm](https://img.shields.io/npm/v/reedach?label=npm&color=ff3d1f&labelColor=141414)](https://www.npmjs.com/package/reedach)
+[![npm](https://img.shields.io/npm/v/reedach?label=npm)](https://www.npmjs.com/package/reedach)
 [![tests](https://github.com/dimafaller-en/reedach/actions/workflows/test.yml/badge.svg)](https://github.com/dimafaller-en/reedach/actions/workflows/test.yml)
-[![license: MIT](https://img.shields.io/badge/license-MIT-ff3d1f?labelColor=141414)](LICENSE)
+[![license: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 Проверка русского текста для сайтов и редакторов. Находит канцелярит, штампы, воду,
 оценочные слова, тяжёлый синтаксис и опечатки, объясняет, что не так, и предлагает, как
