@@ -5,7 +5,7 @@ const norm=s=>s.toLowerCase().replace(/ё/g,'е');
 const esc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 // "осуществл*" matches any ending; spaces between words may be any whitespace.
 const tokenSource=t=>t.endsWith('*')?esc(norm(t.slice(0,-1)))+'['+L+']*':esc(norm(t));
-function compile(rule){const alts=(rule.words||[]).map(w=>w.trim().split(/\s+/).map(tokenSource).join('\\s+'));return alts.length?new RegExp('(?<!['+L+'])(?:'+alts.join('|')+')(?!['+L+'])','g'):null;}
+function compile(rule){if(rule.pattern)return new RegExp(rule.pattern,'g');const alts=(rule.words||[]).map(w=>w.trim().split(/\s+/).map(tokenSource).join('\\s+'));return alts.length?new RegExp('(?<!['+L+'])(?:'+alts.join('|')+')(?!['+L+'])','g'):null;}
 // Paronyms: [forms, neighbours, where the neighbour stands (после, до, любой), right word, note]. Only the wrong
 // word is marked, and only next to a neighbour that makes the mistake certain: «одеть пальто», not «одеть ребёнка».
 const alt=list=>'(?:'+list.split('|').map(w=>w.trim().split(/\s+/).map(tokenSource).join('\\s+')).join('|')+')';

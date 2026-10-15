@@ -23,11 +23,53 @@ const RULES={
  'adjective-pile':{category:'adjective',label:'Прилагательное',message:'Несколько прилагательных подряд перегружают фразу.',fix:'Оставьте одно, самое точное, или замените фактом.'},
  'start-repeat':{category:'repetition',label:'Повтор',message:'Третье предложение подряд начинается с того же слова: текст звучит монотонно.',fix:'Начните одно из предложений иначе или объедините их.'},
  'lemma-repeat':{category:'repetition',label:'Повтор',message:'Одно и то же слово дважды в предложении.',fix:'Замените повтор местоимением или перестройте фразу.'},
+ 'ne-adjective':{category:'mistake',label:'Частая ошибка',message:'Не с прилагательным пишется слитно, если нет противопоставления.',fix:'Пишите слитно: несложные сайты. Раздельно — с противопоставлением: не сложные, а простые.'},
+ 'instrumental-case':{category:'mistake',label:'Частая ошибка',message:'После этого глагола нужен творительный падеж: заниматься чем?',fix:'Поставьте слово в творительный падеж: занимался настройкой сетей.'},
+ 'typo-real-word':{category:'mistake',label:'Частая ошибка',message:'Похоже на опечатку: слово есть в словаре, но здесь не к месту.',fix:'Проверьте слово: возможно, имелось в виду мой.'},
 };
 const WEAK=new Set(['осуществлять','осуществить','производить','произвести','проводить','провести','совершать','совершить','оказывать','оказать','выполнять','выполнить','обеспечивать','обеспечить','предоставлять','предоставить','принимать','принять','давать','дать']);
 const CHAIN_HEAD=new Set(['хотеть','мочь','начать','начинать','стать','пытаться','попытаться','собираться','решить','планировать']);
 const SKIP_REPEAT=new Set(['быть','мочь','это','этот','который','свой','весь','такой','тот','один','год','раз','так','как','что','когда','если','также','тоже','только','очень','уже','еще','ещё','друг','другой','какой','какой-то','каждый','самый','себя','чуть']);
 const NOMINAL=/(?:ние|тие|ство|ция|ка)$/;
+// Verbs that take the instrumental: «занимался настройкой», not «занимался настройка».
+const INSTRUMENTAL=new Set(['заниматься','увлекаться','интересоваться','пользоваться','руководить','управлять','владеть','гордиться','торговать','обладать','командовать','восхищаться','любоваться','дорожить']);
+// Before these «не» negates the whole phrase or the predicate: «вовсе не сложные», «я не большой любитель».
+const NE_KEEP=new Set(['еще','ещё','уже','пока','вовсе','отнюдь','далеко','совсем','ничуть','нисколько','ни','это','был','была','было','были','будет','будут','быть','является','являются','стал','стала','стали','оказался','оказалась','оказались']);
+// Every parse of a word, for agreement checks; the best one alone often hides the right case.
+const allCache=new Map();
+function all(word){const key=word.toLowerCase();let hit=allCache.get(key);if(!hit){try{hit=key.length<=MAX_WORD?Az.Morph(key):[];}catch{hit=[];}if(allCache.size>50000)allCache.clear();allCache.set(key,hit);}return hit;}
+// «не сложные сайты»: «не», a qualitative adjective and a noun it agrees with, no contrast around («а не сложные»).
+function neAdjective(words,k,gap){
+ const [ne,adj,noun]=words.slice(k,k+3);
+ if(!noun||ne.w.toLowerCase()!=='не'||!/^\s+$/.test(gap(ne,adj))||!/^\s+$/.test(gap(adj,noun)))return false;
+ const prev=words[k-1];if(prev&&(NE_KEEP.has(prev.w.toLowerCase())||/^(?:а|но)$/i.test(prev.w)||prev.pos==='NPRO'))return false;
+ if(words.slice(k+3).some(w=>/^(?:а|но|зато|не|ни)$/i.test(w.w))||words.slice(Math.max(0,k-4),k).some(w=>/^(?:не|ни)$/i.test(w.w)))return false;
+ // Dictionary words only: a guess for «исключаетвозможного» or a typo is not an adjective.
+ const as=all(adj.w).filter(p=>p.parser==='Dictionary'&&p.tag.POS==='ADJF'&&p.tag.Qual&&!p.tag.Apro&&!p.tag.Anum&&!p.tag.Supr),ns=noun.w.length>1&&noun.pos==='NOUN'?all(noun.w).filter(p=>p.parser==='Dictionary'&&p.tag.POS==='NOUN'):[];
+ const cases=as.flatMap(a=>ns.filter(n=>a.tag.CAse===n.tag.CAse&&a.tag.NMbr===n.tag.NMbr&&(a.tag.NMbr==='plur'||a.tag.GNdr===n.tag.GNdr||n.tag['Ms-f'])).map(n=>n.tag.CAse));
+ if(!cases.length)return false;
+ // In the nominative or accusative with no verb before it in the clause the phrase may be a predicate: «заявления — не пустые слова».
+ let c=k;while(c>0&&!/[,;:—–-]/.test(gap(words[c-1],words[c])))c--;
+ return cases.some(x=>x!=='nomn'&&x!=='accs')||words.slice(c,k).some(w=>['VERB','INFN','GRND'].includes(w.pos));
+}
+// «занимался настройка»: a noun in the nominative right after a verb that takes the instrumental, when the noun
+// cannot be its subject («в зале занимаются дети» is right). Gives the noun in the instrumental, or null.
+function instrumental(words,k,gap){
+ const verb=words[k],noun=words[k+1];
+ if(!noun||!(verb.pos==='VERB'&&INSTRUMENTAL.has(verb.lemma))||!/^\s+$/.test(gap(verb,noun)))return null;
+ if(words.slice(0,k).some(w=>w.cas==='ablt'))return null;
+ const ps=all(noun.w),n=ps.find(p=>p.tag.POS==='NOUN'&&p.tag.CAse==='nomn');
+ if(!n||ps.some(p=>p.tag.POS!=='NOUN'||p.parser!=='Dictionary')||ps.some(p=>p.tag.CAse==='ablt'||p.tag['Ms-f']))return null;
+ const v=all(verb.w).find(p=>p.tag.POS==='VERB')?.tag;if(!v)return null;
+ // A personal pronoun before the verb in the same clause is its subject already: «она занималась музыка».
+ let c=k;while(c>0&&!/[,;:—–-]/.test(gap(words[c-1],words[c])))c--;
+ const before=words.slice(c,k).some(w=>w.pos==='NPRO'&&w.cas==='nomn'&&/^(?:я|ты|он|она|оно|мы|вы|они)$/i.test(w.w));
+ const subject=!before&&v.MOod!=='impr'&&!['1per','2per'].includes(v.PErs)&&(v.NMbr==='plur'?n.tag.NMbr==='plur':n.tag.NMbr==='sing'&&(!v.GNdr||v.GNdr===n.tag.GNdr));
+ if(subject)return null;
+ try{return n.inflect(['ablt',n.tag.NMbr])?.word||null;}catch{return null;}
+}
+// «изменило пой подход»: the imperative of «петь» cannot follow a preposition or a verb (but «давай пой») and stand before a noun.
+const poiTypo=(words,k,gap)=>{const [prev,w,next]=[words[k-1],words[k],words[k+1]];return !!(prev&&next&&w.w.toLowerCase()==='пой'&&/^\s+$/.test(gap(prev,w))&&/^\s+$/.test(gap(w,next))&&next.pos==='NOUN'&&(prev.pos==='PREP'||prev.pos==='INFN'||prev.pos==='VERB'&&!all(prev.w).some(p=>p.tag.MOod==='impr')));};
 const sentences=text=>[...text.matchAll(/[^.!?…]+(?:[.!?…]+|$)/g)].map(m=>({start:m.index,text:m[0]})).filter(s=>s.text.trim());
 // blocks: [{text, kind}] → issues [{block,start,end,id,category,label,message,fix}]
 export async function morphCheck(blocks){
@@ -44,6 +86,9 @@ export async function morphCheck(blocks){
    if(words[0].pos==='GRND'){const comma=s.text.indexOf(',',words[0].end-s.start);add(i,words[0].start,comma>0?s.start+comma:words[0].end,'gerund-start');}
    const prtf=words.filter(w=>w.pos==='PRTF');if(prtf.length>=2)add(i,prtf[1].start,prtf[1].end,'participle-stack');
    words.forEach((w,k)=>{
+    if(neAdjective(words,k,gap))issues.push({block:i,start:w.start,end:words[k+1].end,id:'ne-adjective',...RULES['ne-adjective'],replace:['не'+words[k+1].w.toLowerCase()]});
+    const ablt=instrumental(words,k,gap);if(ablt)issues.push({block:i,start:words[k+1].start,end:words[k+1].end,id:'instrumental-case',...RULES['instrumental-case'],replace:[ablt]});
+    if(poiTypo(words,k,gap))issues.push({block:i,start:w.start,end:w.end,id:'typo-real-word',...RULES['typo-real-word'],replace:['мой']});
     if(w.pos==='PRTS'&&w.score>=0.5&&!/^(?:был|была|было|были|будет|будут)$/i.test(words[k-1]?.w||''))add(i,w.start,w.end,'short-passive');
     if(w.pos==='VERB'&&WEAK.has(w.lemma)){const n=words.slice(k+1,k+3).find(x=>x.pos==='NOUN');if(n&&NOMINAL.test(n.lemma)&&n.lemma!=='участие'||n&&w.lemma.startsWith('при')&&n.lemma==='участие')add(i,w.start,n.end,'weak-verb-noun');}
    });

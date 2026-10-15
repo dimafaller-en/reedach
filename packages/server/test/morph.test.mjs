@@ -36,3 +36,12 @@ test('a replacement takes the form of the word it replaces',async()=>{
  assert.deepEqual(await variants('Мы минимизировали расходы.'),[['сократили','уменьшили']]);
  assert.deepEqual(await variants('Получили фидбек.'),[['отзыв','отклик']]);
 });
+
+test('common mistakes that need parts of speech',async()=>{
+ const hits=async text=>(await morphCheck([{text,kind:'p'}])).filter(it=>it.category==='mistake').map(it=>[it.id,text.slice(it.start,it.end),...it.replace]);
+ assert.deepEqual(await hits('Были блоги и не сложные сайты для себя и друзей.'),[['ne-adjective','не сложные','несложные']]);
+ assert.deepEqual(await hits('Еще занимался настройка сетей.'),[['instrumental-case','настройка','настройкой']]);
+ assert.deepEqual(await hits('Она занималась музыка.'),[['instrumental-case','музыка','музыкой']]);
+ assert.deepEqual(await hits('Это всерьез изменило пой подход к работе и организации процессов.'),[['typo-real-word','пой','мой']]);
+ for(const ok of ['Сайты не сложные, а простые.','Это не сложные сайты.','Я не большой любитель кофе.','Вовсе не сложные задачи.','Окна не большие и не маленькие.','Это постыдное, а не возвышенное дело.','Не такие сайты.','Оказались не готовыми к бою.','В зале занимаются дети.','Этим занималась жена.','Он занимался спортом.','Обладала перед битвой силой.','Пой песню громче.','Давай пой песню.','Я знаю, где занимается мама.','Иди и пой песни.','Продали билеты в еще не открытого парка зону.','Он считает, что заявления боевиков не пустые слова.','Это не исключаетвозможного участия.'])assert.deepEqual(await hits(ok),[],ok);
+});

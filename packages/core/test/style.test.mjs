@@ -89,6 +89,9 @@ const SAMPLES={
  'mistake-oplata':'Заказчик оплатил за монтаж вперёд.',
  'mistake-oboih':'Договор подписали представители обоих сторон.',
  'mistake-context':'Монтаж займёт два дня в течении недели.',
+ 'mistake-chtoby':'Но что бы рассказать о себе, нужен сайт.',
+ 'mistake-takzhe':'Безопасность, а так же стабильность.',
+ 'mistake-po-hyphen':'Появились по настоящему ценные инструменты.',
  'colloquial-forms':'Мастер ложит плитку в ихней ванной.',
 };
 const NEUTRAL='Мы поставили перегородки в офисе на третьем этаже. Заказчик принял работу в пятницу.';
@@ -104,7 +107,7 @@ test('rules have known category, short message and fix, no guillemets',()=>{
  for(const r of RULES){
   assert.ok(CATEGORIES[r.category],r.id+' category');
   for(const k of ['message','fix']){assert.equal(typeof r[k],'string',r.id+' '+k);assert.ok(r[k].length>5&&r[k].length<200,r.id+' '+k+' length');assert.ok(!/[«»"]/.test(r[k]),r.id+' '+k+' quotes');}
-  assert.ok(Array.isArray(r.words)&&r.words.length>0||Array.isArray(r.pairs)&&r.pairs.length>0,r.id+' words');
+  assert.ok(Array.isArray(r.words)&&r.words.length>0||Array.isArray(r.pairs)&&r.pairs.length>0||typeof r.pattern==='string',r.id+' words');
   for(const v of Object.values({...r.swap,...r.hints}))assert.ok(!/[«»"]/.test(v),r.id+' quotes in '+v);
   for(const w of r.words||[]){assert.equal(w,w.trim(),r.id+' '+w);assert.ok(!/\*./.test(w.replace(/\*(?=\s|$)/g,'')),r.id+' star not at word end: '+w);}
  }
@@ -211,4 +214,13 @@ test('typography hints offer the corrected characters',()=>{
  assert.deepEqual(fixes('Пн-пт 10:00-18:00, 8-12 мм.'),['Пн-пт→Пн–пт','10:00-18:00→10:00–18:00','8-12 мм→8–12 мм']);
  assert.deepEqual(fixes('Дом №5, 25-ый, м2, г.Москва, т.е.'),['№5→№ 5','-ый→-й','м2→м²','г.Москва→г. Москва','т.е.→т. е.']);
  assert.deepEqual(fixes('Дата 2020-10-12, тел. 8-800-555-35-35, версия 1.2.3, x86-64.'),[]);
+});
+
+test('mistakes found by context: что бы, а так же, по настоящему',()=>{
+ const hits=text=>checkStyle(textBlocks(text)).filter(it=>it.category==='mistake').map(it=>[text.slice(it.start,it.end),...it.replace]);
+ assert.deepEqual(hits('Но что бы рассказать о себе, нужен сайт.'),[['что бы','чтобы']]);
+ assert.deepEqual(hits('Нам всем дали инструменты для того, что бы мы творили.'),[['что бы','чтобы']]);
+ assert.deepEqual(hits('Вопросы безопасности самих сервисов и данных, а так же стабильности решают специально обученные этому люди.'),[['а так же','а также']]);
+ assert.deepEqual(hits('Появились по настоящему ценные инструменты. По моему, это ошибка.'),[['по настоящему','по-настоящему'],['По моему','По-моему']]);
+ for(const ok of ['Не знаю, что бы почитать.','Посоветуйте, что бы посмотреть.','Что бы почитать?','Что бы ни случилось, звони.','Что бы мать сказала?','Что бы дети сказали?','Что бы было, если бы.','Работает быстро, а так же надёжно, как раньше.','А так же, как и в прошлом году, мы приедем.','По моему мнению, это ошибка.','Мы переехали по новому адресу.','Клетки схожи по своему химическому составу.','По старому стилю.','Мы шли по новому шоссе.','Это по другому пути.','А так же можно сделать?','Он сделал это по своему же желанию.'])assert.deepEqual(hits(ok),[],ok);
 });
