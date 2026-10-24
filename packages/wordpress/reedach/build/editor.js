@@ -826,8 +826,8 @@
       if (html2 !== null) dispatch("core/editor").editPost({ title: html2 });
       return;
     }
-    const block = select("core/block-editor").getBlock(it.clientId), html = block && swap(block.attributes[it.key]);
-    if (html) dispatch("core/block-editor").updateBlockAttributes(it.clientId, { [it.key]: html });
+    const block = select("core/block-editor").getBlock(it.clientId), html = block ? swap(block.attributes[it.key]) : null;
+    if (html !== null) dispatch("core/block-editor").updateBlockAttributes(it.clientId, { [it.key]: html });
   }
   var icon = el(
     "svg",
