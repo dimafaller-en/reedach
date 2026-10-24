@@ -198,8 +198,9 @@ function put(it, start, end, expected, text, at) {
   if (html !== null) dispatch('core/editor').editPost({title: html});
   return;
  }
- const block = select('core/block-editor').getBlock(it.clientId), html = block && swap(block.attributes[it.key]);
- if (html) dispatch('core/block-editor').updateBlockAttributes(it.clientId, {[it.key]: html});
+ // An empty html is a result too: «Убрать» can take the whole paragraph («Спасибо за внимание!»).
+ const block = select('core/block-editor').getBlock(it.clientId), html = block ? swap(block.attributes[it.key]) : null;
+ if (html !== null) dispatch('core/block-editor').updateBlockAttributes(it.clientId, {[it.key]: html});
 }
 
 const icon = el('svg', {viewBox: '0 0 256 256', width: 24, height: 24, 'aria-hidden': true},
