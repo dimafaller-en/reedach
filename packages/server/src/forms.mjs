@@ -112,10 +112,12 @@ const guessed=w=>/[ая]$/.test(w)?'femn':/[оеи]$/.test(w)?'neut':'masc';
 const headGender=(Az,v)=>{for(const w of v.split(' ')){const t=best(Az,w).find(x=>x.tag.POS==='NOUN');if(t)return t.tag.GNdr;}return null;};
 
 // issues (block offsets) and their blocks; Az: Az.js initialized (morph.mjs) or the keyboard's AOT shim.
+// as the core's ready edits: the fragment maps onto the source one to one, no Markdown or gap (a line break, code) inside
+const plain=(b,s,e)=>(!b.map||b.map[e-1]-b.map[s]===e-1-s)&&!(b.gaps||[]).some(j=>j>=s&&j<e);
 export const formWanted=it=>!it.replace&&!it.edit&&(it.id==='weak-verb-noun'||FORMS.some(f=>f.rule===it.id));
 export function formReplacements(issues,blocks,Az){
  for(const it of issues.filter(formWanted)){
-  const text=blocks[it.block]?.text;if(typeof text!=='string')continue;
+  const b=blocks[it.block],text=b?.text;if(typeof text!=='string'||!plain(b,it.start,it.end))continue;
   const found=text.slice(it.start,it.end),words=found.split(/\s+/),low=norm(found).split(/\s+/).join(' ');
   const f=FORMS.find(x=>(x.rule===it.id||it.id==='weak-verb-noun'&&x.rule==='bureaucratese-turns')&&x.re.test(low));if(!f)continue;
   if(f.flag==='gent'&&genitiveAfter(Az,text,it.end))continue;
