@@ -61,12 +61,18 @@ add_action(
 			'disabled' => reedach_disabled(),
 			'strings'  => array(
 				/* translators: %d: number of suggestions. */
-				'count'     => __( 'Suggestions: %d', 'reedach' ),
-				'none'      => __( 'No suggestions.', 'reedach' ),
-				'highlight' => __( 'Highlight in the text', 'reedach' ),
+				'count'       => __( 'Suggestions: %d', 'reedach' ),
+				'none'        => __( 'No suggestions.', 'reedach' ),
+				'highlight'   => __( 'Highlight in the text', 'reedach' ),
 				/* translators: %s: the suggested word. */
-				'replace'   => __( 'Replace with %s', 'reedach' ),
-				'credit'    => __( 'Hints are a guide, not a rule: the choice is yours. The list updates as you type. Click a hint to find it in the text, or a suggested word to put it in.', 'reedach' ),
+				'replace'     => __( 'Replace with %s', 'reedach' ),
+				'remove'      => __( 'Remove', 'reedach' ),
+				/* translators: %s: the text to remove. */
+				'removeLabel' => __( 'Remove %s', 'reedach' ),
+				'apply'       => __( 'Fix', 'reedach' ),
+				/* translators: 1: the text in the post, 2: the text that replaces it. */
+				'applyLabel'  => __( 'Replace %1$s with %2$s', 'reedach' ),
+				'credit'      => __( 'Hints are a guide, not a rule: the choice is yours. The list updates as you type. Click a hint to find it in the text, or a suggested word to put it in.', 'reedach' ),
 			),
 		);
 		wp_add_inline_script( 'reedach-editor', 'window.reedachSettings = ' . wp_json_encode( $settings ) . ';', 'before' );

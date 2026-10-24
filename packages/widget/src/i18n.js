@@ -6,6 +6,7 @@ export const STRINGS={
   credit:'Подсказки — ориентир, а не правило: решать вам. Список обновляется, пока вы пишете.',
   add:'Добавить «{word}» в словарь',addFailed:'Не получилось добавить слово',
   variants:'Показать варианты',loading:'Подбираем варианты…',noVariants:'Вариантов нет',replace:'Заменить на «{word}»',
+  remove:'Убрать',removeLabel:'Убрать «{text}»',apply:'Исправить',applyLabel:'Заменить «{from}» на «{to}»',
  },
  en:{
   title:'Suggestions',close:'Close',checking:'Checking the text…',none:'No suggestions.',
@@ -13,6 +14,7 @@ export const STRINGS={
   credit:'Hints are a guide, not a rule: the choice is yours. The list updates as you type.',
   add:'Add “{word}” to the dictionary',addFailed:'Could not add the word',
   variants:'Show variants',loading:'Looking for variants…',noVariants:'No variants',replace:'Replace with “{word}”',
+  remove:'Remove',removeLabel:'Remove “{text}”',apply:'Fix',applyLabel:'Replace “{from}” with “{to}”',
  },
 };
 export function strings(lang){

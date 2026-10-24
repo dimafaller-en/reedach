@@ -27,6 +27,20 @@ msgstr "Подсвечивать в тексте"
 msgid "Replace with %s"
 msgstr "Заменить на %s"
 
+msgid "Remove"
+msgstr "Убрать"
+
+#. translators: %s: the text to remove.
+msgid "Remove %s"
+msgstr "Убрать %s"
+
+msgid "Fix"
+msgstr "Исправить"
+
+#. translators: 1: the text in the post, 2: the text that replaces it.
+msgid "Replace %1$s with %2$s"
+msgstr "Заменить %1$s на %2$s"
+
 msgid "Hints are a guide, not a rule: the choice is yours. The list updates as you type. Click a hint to find it in the text, or a suggested word to put it in."
 msgstr "Подсказки — ориентир, а не правило: решать вам. Список обновляется, пока вы пишете. Нажмите на подсказку, чтобы найти её в тексте, или на предложенное слово, чтобы вставить его."
 
