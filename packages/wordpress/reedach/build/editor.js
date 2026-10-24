@@ -673,7 +673,7 @@
     for (const item of items) texts.set(item.clientId + ":" + item.key, item.text);
     const issues = checkStyle(items).filter((it) => !disabled.has(it.category)).map((it) => {
       const item = items[it.block];
-      return { ...it, clientId: item.clientId, key: item.key, fragment: item.text.slice(it.start, it.end), uid: [item.clientId, item.key, it.start, it.end, it.id].join(":") };
+      return { ...it, clientId: item.clientId, key: item.key, fragment: item.text.slice(it.start, it.end), ...it.edit && { editFrom: item.text.slice(it.edit.start, it.edit.end) }, uid: [item.clientId, item.key, it.start, it.end, it.id].join(":") };
     });
     setState({ issues, active: issues.some((it) => it.uid === state.active) ? state.active : null });
   }
@@ -811,14 +811,15 @@
   }
   var short = (s) => s.length > 70 ? s.slice(0, 67).trimEnd() + "…" : s;
   var capital = (it, word) => /^\p{Lu}/u.test(it.fragment) ? word[0].toUpperCase() + word.slice(1) : word;
-  function replace(it, word) {
-    const text = capital(it, word);
+  var replace = (it, word) => put(it, it.start, it.end, it.fragment, capital(it, word), it.start);
+  var applyEdit = (it) => put(it, it.edit.start, it.edit.end, it.editFrom, it.edit.text, it.edit.remove ? it.edit.end - 1 : it.edit.start);
+  function put(it, start, end, expected, text, at) {
     const swap = (html2) => {
       const value = wp.richText.create({ html: String(html2 ?? "") });
-      if (value.text.slice(it.start, it.end).replace(/￼/g, " ") !== it.fragment) return null;
+      if (value.text.slice(start, end).replace(/￼/g, " ") !== expected) return null;
       const piece = wp.richText.create({ text });
-      piece.formats = Array.from({ length: text.length }, () => value.formats[it.start]);
-      return wp.richText.toHTMLString({ value: wp.richText.insert(value, piece, it.start, it.end) });
+      piece.formats = Array.from({ length: text.length }, () => value.formats[at]);
+      return wp.richText.toHTMLString({ value: wp.richText.insert(value, piece, start, end) });
     };
     if (!it.clientId) {
       const html2 = swap(select("core/editor").getEditedPostAttribute("title"));
@@ -872,7 +873,12 @@
               className: "reedach-variant",
               onClick: () => replace(it, word),
               "aria-label": t("replace").replace("%s", capital(it, word))
-            }, capital(it, word)))) : null
+            }, capital(it, word)))) : it.edit ? el("div", { className: "reedach-variants" }, el("button", {
+              type: "button",
+              className: "reedach-variant",
+              onClick: () => applyEdit(it),
+              "aria-label": it.edit.remove ? t("removeLabel").replace("%s", short(it.fragment)) : t("applyLabel").replace("%1$s", it.editFrom.trim()).replace("%2$s", it.edit.text.trim())
+            }, it.edit.remove ? t("remove") : t("apply").replace("%s", it.edit.text.trim()))) : null
           ))),
           el("p", { className: "reedach-credit" }, t("credit"))
         )
