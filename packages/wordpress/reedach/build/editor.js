@@ -230,6 +230,7 @@
     const before = text.slice(0, start), after = text.slice(end), rest = before.replace(/[  ]+$/, "");
     const starts = !rest || OPENING.includes(rest[rest.length - 1]);
     const extended = (m) => m && { start, end: end + m[0].length }, plain = { start, end };
+    if (WORD_BEFORE.exec(before)?.[1].toLowerCase() === "не") return null;
     for (const c of conditions) {
       if (c === "any") return plain;
       if (c === "that" && starts) {
