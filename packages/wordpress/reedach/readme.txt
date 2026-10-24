@@ -4,7 +4,7 @@ Tags: russian, proofreading, writing, style, gutenberg
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.3.3
+Stable tag: 0.4.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -57,6 +57,11 @@ Chrome and Edge 105+, Safari 17.2+, Firefox 140+. In older browsers the list of 
 No, only with the block editor.
 
 == Changelog ==
+
+= 0.4.0 =
+* A "Remove" button where the hinted words can go without breaking the sentence (an aside between commas, «Не секрет, что», a formula sentence): extra commas and spaces go with them, Undo takes it back.
+* Fixes wider than the hint, such as joining «. Который» to the previous sentence: the button shows the text that goes in.
+* More ready replacements: pleonasms, the case after «согласно», repeated words, typography (double spaces, a space before punctuation, quotes, dashes).
 
 = 0.3.3 =
 * New common-mistake hints with a one-click fix: «что бы» used as the conjunction «чтобы», «а так же» instead of «а также», «по настоящему» and similar adverbs without the hyphen.

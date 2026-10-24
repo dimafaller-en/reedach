@@ -82,8 +82,8 @@ Reedach работает у вас: в браузере или на вашем �
 русском и английском.
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/reedach-widget@0.3.3/dist/reedach.min.js"
-        integrity="sha384-oP8tIpmCTkAglwLMMV6FbJmZU9Wll2d/JFKqeroxasQyV02oBQg0Ul/5g5a7YFK7"
+<script src="https://cdn.jsdelivr.net/npm/reedach-widget@0.4.0/dist/reedach.min.js"
+        integrity="sha384-E50ssZN/VEyJg6a5wUPc3rnzwyj9B6ycWv2+jDUf+6obtHFf7URab5Sa1G3PuUhI"
         crossorigin="anonymous" defer></script>
 
 <textarea data-reedach
