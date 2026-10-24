@@ -66,7 +66,9 @@ export function mergeIssues(blocks,{spelling=[],style=[],local=[]}){
  const overlaps=(x,it)=>x.block===it.block&&x.start<it.end&&it.start<x.end;
  const kept=local.filter(it=>!(it.id==='nominal-chain'&&style.some(x=>x.id==='genitive-chain'&&overlaps(x,it)))&&!style.some(x=>(x.id==='weak-verb-noun'||x.category===it.category&&it.category==='repetition')&&overlaps(x,it)&&x.start<=it.start&&it.end<=x.end));
  const found=[...spellingIssues(blocks,spelling),...kept,...style.filter(it=>blocks[it.block]&&it.start<it.end&&it.end<=blocks[it.block].text.length)];
- return found.map(it=>{const b=blocks[it.block];return {...it,start:b.map[it.start],end:b.map[it.end-1]+1};}).sort((a,b)=>a.start-b.start||b.end-a.end);
+ // edit (a ready edit of the core, see fixes.js) is mapped as the hint itself.
+ const at=(b,it)=>({...it,start:b.map[it.start],end:b.map[it.end-1]+1});
+ return found.map(it=>{const b=blocks[it.block],out=at(b,it);if(it.edit)out.edit=at(b,it.edit);return out;}).sort((a,b)=>a.start-b.start||b.end-a.end);
 }
 // Plain text → paragraphs split by blank lines; every UTF-16 unit keeps its own offset (emoji take two).
 export function textBlocks(text){
