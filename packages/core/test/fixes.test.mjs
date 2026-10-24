@@ -111,6 +111,15 @@ test('«Убрать» where the sentence stays whole',()=>{
  assert.equal(action('date-range-period','в течение периода действия','в течение периода'),null);
  assert.equal(action('date-range-period','в период с'),'с');
  assert.equal(acceptAll('Ответим в ближайшее время.',['vague-soon','в ближайшее время']),'Ответим.');
+ // the fragment is the whole sentence: its end mark goes too
+ assert.equal(acceptAll('Мир. В настоящее время.',['time-parasite-start','В настоящее время']),'Мир.');
+ assert.equal(acceptAll('Ну. Дальше.',['intro-oral','Ну']),'Дальше.');
+});
+
+test('no edit for the space after a smiley',()=>{
+ const text='Грустно :( и всё.',at=text.indexOf('( ')+1;
+ assert.equal(readyEdit('typo-space-before',text,at,at+1),null);
+ assert.deepEqual(readyEdit('typo-space-before','Окна ( двери).',6,7),{start:5,end:7,text:'('});
 });
 
 test('every rule with an edit',()=>{
@@ -171,6 +180,9 @@ test('the edit points into the Markdown source and skips markup',()=>{
  // markup inside the edit: no edit, the hint stays an advice
  const bold='**Не секрет**, что цены растут.',b=answer(bold,sourceBlocks(bold)).find(x=>x.id==='intro-obviousness');
  assert.equal(b.edit,undefined);
+ // next to code: the code is a gap, the edit would glue the words to it
+ const code='Ключ — шаблон вроде `памятн*`, а дальше текст.',c=answer(code,sourceBlocks(code)).find(x=>x.id==='intro-oral');
+ assert.equal(c.edit,undefined);
  // a line break inside a paragraph is not a space to cut
  const lines='Мы купили дом.\nКоторый стоит у реки.',l=answer(lines,textBlocks(lines)).find(x=>x.id==='syntax-fragment-start');
  assert.equal(l.edit,undefined);

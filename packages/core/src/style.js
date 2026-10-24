@@ -130,19 +130,22 @@ const NOMINAL=new RegExp('(?:(?<!['+L+'])['+L+']+(?:ние|ния|нию|ние�
 const REPEAT_SKIP=new Set(['который','которая','которое','которые','которых','которым','потому','только','сейчас','больше','меньше','просто','сделать','делать','чтобы','когда','после','через','between','about']);
 // Blocks map every character to the source; gaps are spaces that stand for code, an image or a line break, not typos.
 // before[k] = gaps before offset k, so "a gap inside s..e" costs the same however many gaps the block has.
-// plain(s, e): s..e maps onto the source one to one, with no removed markup or gap inside.
-function plainOf(b){
+// plain(s, e): s..e maps onto the source one to one, with no removed markup or gap inside; edge(s, e): a gap is right
+// before or after it.
+function spansOf(b){
  const text=b.text,before=new Uint32Array(text.length+1);for(const j of b.gaps||[])if(j>=0&&j<text.length)before[j+1]++;for(let k=1;k<=text.length;k++)before[k]+=before[k-1];
- return (s,e)=>(!b.map||b.map[e-1]-b.map[s]===e-1-s)&&before[e]-before[s]===0;
+ const gapAt=j=>j>=0&&j<text.length&&before[j+1]>before[j];
+ return {plain:(s,e)=>(!b.map||b.map[e-1]-b.map[s]===e-1-s)&&before[e]-before[s]===0,edge:(s,e)=>gapAt(s-1)||gapAt(e)};
 }
 // Hints without the rule's replacement get the ready edit of fixes.js, if any: on the hint's own fragment it goes to
 // replace, «Убрать» and a fragment wider than the hint's go to edit. Only where the edit maps onto the source one to
-// one; the rule sees gaps as line breaks. The fields the hint had stay as they were.
+// one and does not touch a gap: the rule sees gaps as line breaks, but a gap can be code or an image («вроде `x`»).
+// The fields the hint had stay as they were.
 function addEdits(issues,blocks){
- const seen=new Map(),of=i=>{let v=seen.get(i);if(!v){const b=blocks[i],chars=b.text.split('');for(const j of b.gaps||[])if(j>=0&&j<chars.length)chars[j]='\n';seen.set(i,v={text:chars.join(''),plain:plainOf(b)});}return v;};
+ const seen=new Map(),of=i=>{let v=seen.get(i);if(!v){const b=blocks[i],chars=b.text.split('');for(const j of b.gaps||[])if(j>=0&&j<chars.length)chars[j]='\n';seen.set(i,v={text:chars.join(''),...spansOf(b)});}return v;};
  for(const it of issues){
   if(it.replace||it.variants)continue;
-  const v=of(it.block),e=readyEdit(it.id,v.text,it.start,it.end);if(!e||!v.plain(e.start,e.end))continue;
+  const v=of(it.block),e=readyEdit(it.id,v.text,it.start,it.end);if(!e||!v.plain(e.start,e.end)||v.edge(e.start,e.end))continue;
   if(!e.remove&&e.start===it.start&&e.end===it.end){it.replace=[e.text];it.exact=true;}else it.edit=e;
  }
  return issues;
@@ -154,7 +157,7 @@ export function checkStyle(blocks,{maxSentenceWords=25,maxParagraphWords=120}={}
   const text=b.text,low=norm(text),list=sentences(text);
   // A start-only rule needs nothing but spaces between the sentence start and the match.
   for(const {rule,re} of compiled){if(!re)continue;re.lastIndex=0;for(const m of low.matchAll(re)){if(rule.start){const s=sentenceAt(list,m.index);if(!s||low.slice(s.start,m.index).trim()!=='')continue;}{const found=text.slice(m.index,m.index+m[0].length);add(i,m.index,m.index+m[0].length,rule.id,offered(swapped(rule,m[0],found),found));}}}
-  const plain=plainOf(b),tech=technical(text);
+  const {plain}=spansOf(b),tech=technical(text);
   for(const [id,re,fix] of TYPO)for(const m of text.matchAll(re))if(plain(m.index,m.index+m[0].length)&&!tech(m.index))add(i,m.index,m.index+m[0].length,id,fix?{...BUILTIN[id],replace:[fix(m[0])],exact:true}:BUILTIN[id]);
   for(const m of text.matchAll(/\p{L}+/gu))if(MIXED.test(m[0])&&plain(m.index,m.index+m[0].length)&&!tech(m.index))add(i,m.index,m.index+m[0].length,'typo-mixed-script',BUILTIN['typo-mixed-script']);
   for(const m of text.matchAll(/"[^"\n]*"/g))if(/[А-Яа-яЁё]/.test(m[0]))add(i,m.index,m.index+m[0].length,'typo-quotes',BUILTIN['typo-quotes']);

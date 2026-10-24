@@ -148,9 +148,12 @@ function cut(text,start,end){
  let spacesAfter=0;while(spacesAfter<after.length&&space(after[spacesAfter]))spacesAfter++;
  let keep=before.length;while(keep>0&&space(before[keep-1]))keep--;
  const spacesBefore=before.length-keep,commaBefore=keep>0&&before[keep-1]===',',next=after[spacesAfter];
+ const whole=(keep===0||OPENING.includes(before[keep-1]))&&next!==undefined&&'.!?…'.includes(next);
  let left,right;
+ // «Мир. В настоящее время.»: the fragment is the whole sentence, its end mark goes too
+ if(whole){let marks=spacesAfter;while(marks<after.length&&'.!?…'.includes(after[marks]))marks++;if(spacesBefore&&keep){left=spacesBefore;right=marks;}else{left=0;right=marks;while(right<after.length&&space(after[right]))right++;}}
  // «Это, безусловно, важно»: both commas go, the space after the second stays
- if(next===','&&commaBefore){left=spacesBefore+1;right=spacesAfter+1;}
+ else if(next===','&&commaBefore){left=spacesBefore+1;right=spacesAfter+1;}
  // «Кстати, это», «Мы кстати, пришли»: the comma and the spaces after it go
  else if(next===','){left=0;right=spacesAfter+1;while(right<after.length&&space(after[right]))right++;}
  // «Это важно, кстати.»: the end of a sentence - the spaces and the comma before go
@@ -181,8 +184,10 @@ function mixed(word){
 function typography(id,text,start,end,f){
  switch(id){
   case 'typo-double-space':return {start,end,text:' '};
-  // the spaces go: with the mark after them, or with the bracket before them («( окна» → «(окна»)
-  case 'typo-space-before':return start>0&&'(«'.includes(text[start-1])?{start:start-1,end,text:text[start-1]}:end<text.length?{start,end:end+1,text:text[end]}:null;
+  // the spaces go: with the mark after them, or with the bracket before them («( окна» → «(окна»); not after a
+  // smiley («:( и»)
+  case 'typo-space-before':if(start>0&&'(«'.includes(text[start-1]))return /[:;=]-?\($/.test(text.slice(Math.max(0,start-3),start))?null:{start:start-1,end,text:text[start-1]};
+   return end<text.length?{start,end:end+1,text:text[end]}:null;
   case 'typo-space-after':return {start,end,text:f+' '};
   case 'typo-quotes':return f.length>=2?{start,end,text:'«'+f.slice(1,-1)+'»'}:null;
   case 'typo-dash':return {start,end,text:' — '};
