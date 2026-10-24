@@ -1,5 +1,5 @@
 import {checkStyle,sourceBlocks,textBlocks,mergeIssues,RULES,BUILTIN,CATEGORIES} from 'reedach';
-import {morphCheck,MORPH_RULES,inflectReplacements} from './morph.mjs';
+import {morphCheck,MORPH_RULES,inflectReplacements,formReplacements} from './morph.mjs';
 import {words,known,misspelled,Suggester} from './spell.mjs';
 // One check = spelling (hunspell) + morphology (Az.js) + dictionary style hints (reedach core), merged into one list.
 export const CHECKS=['spelling','morph','style'];
@@ -28,6 +28,7 @@ export async function check(input,{suggester:sg=suggester(),misspelled:ms=misspe
   checks.has('morph')?morphCheck(blocks).catch(()=>[]):[],
  ]);
  const local=checks.has('style')?await inflectReplacements(checkStyle(blocks),blocks).catch(()=>checkStyle(blocks)):[];
+ await formReplacements([...local,...morph],blocks).catch(()=>{});
  const issues=mergeIssues(blocks,{spelling,style:morph,local}).filter(it=>!disable.has(it.id)&&!disable.has(it.category));
  return {issues:blocksInput?issues.sort((a,b)=>a.block-b.block||a.start-b.start):issues.map(({block,...it})=>it)};
 }

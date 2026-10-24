@@ -1,5 +1,6 @@
 import {createRequire} from 'node:module';
 import path from 'node:path';
+import {formReplacements as forms,formWanted} from './forms.mjs';
 // Style hints that need parts of speech: Az.js with the OpenCorpora dictionaries, loaded once on first use.
 const require=createRequire(import.meta.url),Az=require('az'),DICTS=path.join(path.dirname(require.resolve('az/package.json')),'dicts');
 let ready=null;
@@ -132,4 +133,11 @@ export async function inflectReplacements(issues,blocks){
  // In a phrase («личного бренда», «веб-сайта») the form comes from its last word.
  for(const it of todo){const found=(blocks[it.block]?.text.slice(it.start,it.end)||'').split(/[\s-]+/).pop();if(/^[А-Яа-яЁё]+$/.test(found))it.replace=it.variants.map(w=>inflect(found,w));}
  return issues;
+}
+// Hints from checkStyle and morphCheck on the same blocks that have no replacement: the variant of the hint in the
+// found word's form (forms.mjs) becomes the replacement.
+export async function formReplacements(issues,blocks){
+ if(!issues.some(formWanted))return issues;
+ await init();
+ return forms(issues,blocks,Az);
 }
