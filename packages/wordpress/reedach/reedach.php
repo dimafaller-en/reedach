@@ -69,7 +69,8 @@ add_action(
 				'remove'      => __( 'Remove', 'reedach' ),
 				/* translators: %s: the text to remove. */
 				'removeLabel' => __( 'Remove %s', 'reedach' ),
-				'apply'       => __( 'Fix', 'reedach' ),
+				/* translators: %s: the text that goes in. */
+				'apply'       => __( 'Accept “%s”', 'reedach' ),
 				/* translators: 1: the text in the post, 2: the text that replaces it. */
 				'applyLabel'  => __( 'Replace %1$s with %2$s', 'reedach' ),
 				'credit'      => __( 'Hints are a guide, not a rule: the choice is yours. The list updates as you type. Click a hint to find it in the text, or a suggested word to put it in.', 'reedach' ),

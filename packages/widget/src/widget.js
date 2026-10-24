@@ -109,7 +109,7 @@ class Checker{
   if(Array.isArray(it.replace)&&it.replace.length){const cap=/^\p{Lu}/u.test(this.value.slice(it.start,it.end)),up=w=>cap?w[0].toUpperCase()+w.slice(1):w;return '<div class="reedach-actions">'+it.replace.map(w=>this.#variant(i,up(w))).join('')+'</div>';}
   // A ready edit of the core: «Убрать» or a piece wider than the hint, already cased and with its commas and spaces.
   if(it.edit){const e=it.edit,from=this.value.slice(e.start,e.end).trim(),to=e.text.trim(),label=e.remove?this.t('removeLabel',{text:this.#fragment(it)}):this.t('applyLabel',{from,to});
-   return '<div class="reedach-actions"><button type="button" class="reedach-variant" data-reedach-edit="'+i+'" aria-label="'+esc(label)+'">'+esc(this.t(e.remove?'remove':'apply'))+'</button></div>';}
+   return '<div class="reedach-actions"><button type="button" class="reedach-variant" data-reedach-edit="'+i+'" aria-label="'+esc(label)+'">'+esc(e.remove?this.t('remove'):this.t('apply',{text:to}))+'</button></div>';}
   if(!it.word)return '';
   const t=this.t,v=this.variants.get(it.word);let out='';
   if(Array.isArray(v))out=v.length?v.map(w=>this.#variant(i,w)).join(''):'<span class="reedach-note">'+esc(t('noVariants'))+'</span>';

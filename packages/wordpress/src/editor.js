@@ -228,7 +228,7 @@ function Sidebar() {
      }, capital(it, word)))) : it.edit ? el('div', {className: 'reedach-variants'}, el('button', {
       type: 'button', className: 'reedach-variant', onClick: () => applyEdit(it),
       'aria-label': it.edit.remove ? t('removeLabel').replace('%s', short(it.fragment)) : t('applyLabel').replace('%1$s', it.editFrom.trim()).replace('%2$s', it.edit.text.trim()),
-     }, t(it.edit.remove ? 'remove' : 'apply'))) : null))),
+     }, it.edit.remove ? t('remove') : t('apply').replace('%s', it.edit.text.trim()))) : null))),
     el('p', {className: 'reedach-credit'}, t('credit')))));
 }
 

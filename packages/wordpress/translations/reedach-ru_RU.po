@@ -34,8 +34,9 @@ msgstr "Убрать"
 msgid "Remove %s"
 msgstr "Убрать %s"
 
-msgid "Fix"
-msgstr "Исправить"
+#. translators: %s: the text that goes in.
+msgid "Accept “%s”"
+msgstr "Принять «%s»"
 
 #. translators: 1: the text in the post, 2: the text that replaces it.
 msgid "Replace %1$s with %2$s"
