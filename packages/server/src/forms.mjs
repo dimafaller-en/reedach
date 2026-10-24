@@ -71,21 +71,21 @@ function inflected(Az,p,v){
   // «покупать» is a perfective too («покупать детей»): the parse of the found word's aspect first
   const ts=best(Az,words[h]).filter(x=>FAMILY[x.tag.POS]===fam),t=ts.find(x=>x.tag.ASpc===p.tag.ASpc)||ts[0];if(!t)continue;
   if(fam==='verb'&&p.tag.ASpc&&t.tag.ASpc&&p.tag.ASpc!==t.tag.ASpc)return null;
-  let head;
+  let head,num;
   if(p.tag.POS==='INFN')head=t.normalize()?.word;
   else if(fam==='verb')head=t.inflect([...want(p.tag,['NMbr','TEns','PErs','GNdr','MOod','INvl']),'VERB'])?.word;
   else if(fam==='adj')head=t.inflect(want(p.tag,['NMbr','CAse','GNdr','ANim']))?.word;
-  else head=(t.inflect(want(p.tag,['NMbr','CAse']))||t.inflect(want(p.tag,['CAse'])))?.word;
+  // num: the number the head got (the found word's, or its own when it has no such form)
+  else{const r=t.inflect(want(p.tag,['NMbr','CAse']));head=(r||t.inflect(want(p.tag,['CAse'])))?.word;num=r?p.tag.NMbr:t.tag.NMbr;}
   if(fam==='noun'&&p.tag.NMbr!=='plur'&&p.tag.GNdr&&t.tag.GNdr&&p.tag.GNdr!==t.tag.GNdr)return null;
   // the accusative of another animacy is another form («увидели стейкхолдеров» is not «заинтересованных сторон»)
   if(fam==='noun'&&(p.tag.CAse==='accs'||p.tag.CAse==='gent')&&p.tag.ANim&&t.tag.ANim&&p.tag.ANim!==t.tag.ANim)return null;
   if(!head)return null;
   const out=words.slice();out[h]=head;
   if(fam==='noun'){
-   const ht=best(Az,head).find(x=>x.tag.POS==='NOUN')?.tag||t.tag;
    for(let a=0;a<h;a++){
     const at=best(Az,words[a]).find(x=>x.tag.POS==='ADJF');if(!at)return null;
-    const g=[ht.NMbr||p.tag.NMbr,p.tag.CAse];if(ht.NMbr!=='plur'&&t.tag.GNdr)g.push(t.tag.GNdr);if(p.tag.CAse==='accs'&&t.tag.ANim)g.push(t.tag.ANim);
+    const g=[num,p.tag.CAse];if(num!=='plur'&&t.tag.GNdr)g.push(t.tag.GNdr);if(p.tag.CAse==='accs'&&t.tag.ANim)g.push(t.tag.ANim);
     const f=at.inflect(g.filter(Boolean))?.word;if(!f)return null;out[a]=f;
    }
   }
