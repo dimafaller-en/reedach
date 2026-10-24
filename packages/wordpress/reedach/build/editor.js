@@ -113,11 +113,261 @@
     { id: "colloquial-forms", category: "colloquial", message: "Просторечная форма: в письменном тексте выглядит как ошибка.", fix: "Литературно: их, класть или положить, поезжай, ездят, хотят, ляг, сейчас, его.", exact: true, swap: { "ихн": "их", "ложить": "класть", "ложит": "кладёт", "ложишь": "кладёшь", "ложат": "кладут", "ложим": "кладём", "ложите": "кладите, кладёте", "ложил": "клал", "ложила": "клала", "ложили": "клали", "ехай": "поезжай, езжай", "ехайте": "поезжайте", "едь": "поезжай", "едьте": "поезжайте", "ездию": "езжу", "ездиют": "ездят", "хочут": "хотят", "ляжь": "ляг", "ляжьте": "лягте", "победю": "выиграю, одержу победу", "щас": "сейчас", "евонн": "его", "евоный": "его", "евоная": "его" }, words: ["ихн*", "ложить", "ложит", "ложишь", "ложат", "ложим", "ложите", "ложил", "ложила", "ложили", "ехай", "ехайте", "едь", "едьте", "ездию", "ездиют", "хочут", "ляжь", "ляжьте", "победю", "щас", "евонн*", "евоный", "евоная"] }
   ];
 
+  // ../core/src/fixes.js
+  var norm = (s) => s.toLowerCase().replace(/ё/g, "е");
+  var SP = "[ \\u00A0]";
+  var SPACES = "  ";
+  var space = (c) => c !== void 0 && SPACES.includes(c);
+  var OPENING = '.!?…\n«"(';
+  var CLOSING = '.!?…;:)»"\n';
+  var THAT_AFTER = new RegExp("^" + SP + "*(?:," + SP + "*что(?![а-яёА-ЯЁ])|:)");
+  var BUT_AFTER = new RegExp("^" + SP + "*," + SP + "*(?:но|что)(?![а-яёА-ЯЁ])");
+  var END_MARKS = /^[.!?…]+/;
+  var WORD_AFTER = new RegExp("^" + SP + "*([\\p{L}\\d][\\p{L}\\d\\-]*)", "u");
+  var WORD_BEFORE = new RegExp("([\\p{L}—\\-]+)" + SP + "*$", "u");
+  var DATE_FROM = new RegExp("^" + SP + "+[сС]о?" + SP);
+  var INFINITIVE = new RegExp("^" + SP + "*(?:[а-яё]+" + SP + "+)?[а-яё]+(?:ть|ти|чь)(?:ся|сь)?(?![а-яё])");
+  var AGREEING = /(?:ое|ее|ой|ую|ая|ий|ый|ие|ые|ого|ему|ому|ом|ем|им|ым)$/;
+  var CONJUNCTIONS = /* @__PURE__ */ new Set(["и", "а", "но", "или", "либо", "да"]);
+  var PREPOSITIONS = /* @__PURE__ */ new Set(["в", "во", "на", "за", "про", "через", "под", "подо", "о", "об", "обо", "с", "со", "к", "ко", "по", "для", "из", "изо", "от", "ото", "до", "у", "без", "при", "над", "перед", "между", "среди"]);
+  var LINKING = /* @__PURE__ */ new Set(["был", "была", "было", "были", "будет", "будут", "быть", "стал", "стала", "стало", "стали", "становится", "является", "являются", "это", "—", "-"]);
+  var upper = (c) => /\p{Lu}/u.test(c || "");
+  var lower = (c) => /\p{Ll}/u.test(c || "");
+  var matchCase = (original, r) => upper(original[0]) && lower(r[0]) ? r[0].toUpperCase() + r.slice(1) : r;
+  function fits(key, fragment) {
+    if (key === "*") return true;
+    const k = key.split(" "), w = norm(fragment).split(/\s+/);
+    return k.length === w.length && k.every((t2, i) => t2.endsWith("*") ? w[i].startsWith(t2.slice(0, -1)) : w[i] === t2);
+  }
+  var longest = (table, fragment) => {
+    let best = null;
+    for (const k of Object.keys(table)) if (fits(k, fragment) && (best === null || k.length > best.length)) best = k;
+    return best === null ? void 0 : table[best];
+  };
+  var fill = (template, fragment) => {
+    const words = fragment.trim().split(/\s+/);
+    return template.replace(/\$(\d)/g, (_, n) => words[n - 1] ?? "");
+  };
+  var each = (value, ...keys) => Object.fromEntries(keys.map((k) => [k, value]));
+  var REPLACE = {
+    // «что что»: the word once
+    "word-double": { "*": "$1" },
+    // the main noun is the first word in every phrase of the rule («счет на оплату», «январь месяц»)
+    "pleonasm-dependent": each("$1", "ареал* обитания", "коллег* по работе", "счет* на оплату", "прейскурант цен", "прейскуранта цен", "период* времени", "промежутк* времени", "январь месяц", "февраль месяц", "март месяц", "апрель месяц", "май месяц", "июнь месяц", "июль месяц", "август месяц", "сентябрь месяц", "октябрь месяц", "ноябрь месяц", "декабрь месяц"),
+    // the pairs that have no replacement in the rule: the word that carries the meaning stays
+    "pleonasm-pairs": {
+      ...each("$1", "повтор* снова", "подн* вверх", "спуск* вниз", "спуст* вниз", "вернуть* назад", "вернул* назад", "возвраща* назад", "сво* собственн*", "вдруг внезапно", "ежедневно каждый день", "повтор* еще раз"),
+      "каждый день ежедневно": "$1 $2",
+      ...each("$2", "предварительн* предоплат*", "главн* приоритет*", "свободн* ваканси*", "совместн* сотрудничеств*", "взаимн* сотрудничеств*", "внезапно вдруг", "краткое резюме", "основной лейтмотив", "первый дебют", "стеклянн* остеклени*")
+    },
+    "pleonasm-more": { ...each("$2", "наглядн* пример*", "наиболее оптимальн*", "самый оптимальн*"), "в удобное для вас время": "в удобное время", "в любое удобное время": "в удобное время", "провайдер услуг": "$1" },
+    "date-range-period": { "в период с": "с" },
+    "modality-softener": { "очень вероятно": "$2" },
+    "modality-subjunctive": { "я бы хотел": "я хочу", "я бы хотела": "я хочу", "мы бы хотели": "мы хотим", "вы бы хотели": "вы хотите", "мне бы хотелось": "мне хочется", "нам бы хотелось": "нам хочется", "хотелось бы": "хочется", "я бы предпочел": "я предпочитаю", "я бы предпочла": "я предпочитаю", "мы бы предпочли": "мы предпочитаем" },
+    "pronoun-dannyy": { "данный": "этот", "данная": "эта", "данное": "это", "данную": "эту", "данной": "этой", "данного": "этого", "данном": "этом", "данному": "этому" },
+    "vague-quantity": { "большое количество": "много", "значительное количество": "много", "незначительное количество": "немного", "небольшое количество": "немного", "уйма": "много", "подавляющее большинство": "$2" },
+    "bureaucratese-verbs": { "в целях": "для", "посредством": "с помощью" },
+    "stamp-newspaper-idioms": { "в лучших традициях": "по традиции" },
+    "preachy-refusal": { "в обязательном порядке": "обязательно" },
+    "stamp-cliche": { "сочета* в себе": "$1", "легко и просто": "просто", "без промедления": "сразу", "прямиком": "прямо", "на каждом шагу": "повсюду", "в сухом остатке": "в итоге", "на высоком уровне": "хорошо", "на должном уровне": "хорошо" },
+    "stamp-idioms-more": { "бытует мнение": "считается", "в эпоху цифровых технологий": "сейчас", "братья наши меньшие": "животные", "в сети интернет": "в интернете", "от а до я": "полностью" },
+    "stamp-business-claims": { "в кратчайшие сроки": "быстро", "кратчайшие сроки": "короткие сроки", "точно в срок": "в срок", "на самом высоком уровне": "хорошо", "на высоком профессиональном уровне": "хорошо" },
+    "stamp-formal-letter": { "приносим свои глубочайшие извинения": "приносим извинения", "приносим глубочайшие извинения": "приносим извинения", "глубочайшие извинения": "извинения", "доброго времени суток": "здравствуйте", "с радостью предложим": "$3", "именно поэтому мы": "$2 $3" },
+    "adjective-metaphor": { "железная воля": "сильная воля", "железной воли": "сильной воли", "железной волей": "сильной волей", "железную волю": "сильную волю", "стальные нервы": "крепкие нервы", "стальных нервах": "крепких нервах", "стальная хватка": "крепкая хватка", "стальной хватки": "крепкой хватки", "золотые руки": "умелые руки", "золотой стандарт": "эталон", "золотого стандарта": "эталона" },
+    "mistake-po-case": { "по приезду": "по приезде", "по прибытию": "по прибытии", "по окончанию": "по окончании", "по завершению": "по завершении", "по истечению": "по истечении", "по возвращению": "по возвращении" },
+    "mistake-soglasno": { "согласно договора": "согласно договору", "согласно приказа": "согласно приказу", "согласно графика": "согласно графику", "согласно плана": "согласно плану", "согласно закона": "согласно закону", "согласно решения": "согласно решению", "согласно распоряжения": "согласно распоряжению", "согласно требований": "согласно требованиям", "согласно условий": "согласно условиям", "согласно правил": "согласно правилам" },
+    // «заплатить за» is right both for «за работу» and «за меня» (the rule's note)
+    "mistake-oplata": { "оплатить за": "заплатить за", "оплатил за": "заплатил за", "оплатила за": "заплатила за", "оплатили за": "заплатили за", "оплачу за": "заплачу за", "оплатите за": "заплатите за", "оплачивать за": "платить за", "оплачиваем за": "платим за", "оплачивают за": "платят за" },
+    "mistake-oboih": { "обоих сторон": "обеих сторон", "обоим сторонам": "обеим сторонам", "обоими сторонами": "обеими сторонами", "обоих рук": "обеих рук", "обоими руками": "обеими руками" },
+    // the rule's own fix; «в течении реки» is rare next to «в течении дня»
+    "mistake-context": { "в течении": "в течение", "в продолжении": "в продолжение", "в следствии": "вследствие", "не смотря на": "несмотря на" },
+    // the pairs whose right word is a phrase: the wrong word alone is marked («играет значение», «имеет роль»)
+    "paronyms": { "играет": "имеет", "играют": "имеют", "играть": "иметь", "играл": "имел", "играла": "имела", "играло": "имело", "играли": "имели", "играя": "имея", "имеет": "играет", "имеют": "играют", "иметь": "играть", "имел": "играл", "имела": "играла", "имело": "играло", "имели": "играли", "имея": "играя", "оказывает": "играет", "оказывают": "играют", "оказать": "сыграть", "оказывал": "играл", "оказывала": "играла", "оказывали": "играли", "оказал": "сыграл", "оказала": "сыграла", "оказали": "сыграли", "оказало": "сыграло", "оплатить": "заплатить", "оплатил": "заплатил", "оплатила": "заплатила", "оплатили": "заплатили", "оплатит": "заплатит", "оплатите": "заплатите", "оплатим": "заплатим", "оплатят": "заплатят", "оплачу": "заплачу", "оплачивать": "платить", "оплачивает": "платит", "оплачиваем": "платим", "оплачивают": "платят", "оплачивай": "плати", "оплачивайте": "платите" }
+  };
+  var anywhere = ["any"];
+  var never = [];
+  var mod = ["mod", "paren"];
+  var paren = ["paren"];
+  var that = ["that"];
+  var sent = ["sent"];
+  var REMOVE = {
+    "time-parasite-start": { "*": anywhere },
+    "time-parasite-anywhere": { "*": anywhere },
+    "intro-oral": { "*": anywhere, "плевать": never, "супер": mod, "короче": paren },
+    "intro-obviousness": { "*": anywhere, "не секрет": that, "ни для кого не секрет": that, "общеизвестно": that, "всем известно": that, "очевидно": [...paren, ...that], "естественно": [...paren, ...that] },
+    "filler-simply": { "*": anywhere, "просто": mod },
+    "filler-start": { "*": anywhere },
+    "filler-phrases": { "*": anywhere },
+    "intensifiers": { "*": anywhere },
+    "sincerity": { "*": anywhere, "реальн*": mod },
+    "vague-hedge": { "*": anywhere },
+    "success-word": { "успешн*": mod, "успешност*": never },
+    "vague-soon": { "*": anywhere },
+    "intro-transition": { ...each(anywhere, "во-первых", "во-вторых", "в-третьих", "для начала", "далее", "прежде всего"), "отметим также": that },
+    "intro-structure": { "в завершение": anywhere, "в заключение": anywhere, "подведем итог": [...sent, ...that], "подведем итоги": [...sent, ...that] },
+    "intro-example": { "к примеру": paren, "скажем": paren },
+    "intro-attention": { "*": paren },
+    "bureaucratese-phrases": { "обращаем ваше внимание": paren, "обращаю ваше внимание": paren, "хочу обратить ваше внимание": paren, "сообщаем вам": that },
+    "self-announce": { "*": that, "имеем честь": never },
+    "ui-reference": each(paren, "как сказано выше", "как было сказано выше", "как говорилось выше"),
+    "back-reference": each(paren, "как я уже говорил", "как я говорил", "как я писал", "как я уже писал", "как мы уже говорили", "как мы писали"),
+    "banal-intro": { "все мы знаем": that, "давно известно": that, ...each(anywhere, "с давних пор", "с незапамятных времен", "с древних времен") },
+    "greeting-start": each(sent, "здравствуйте", "привет", "всем привет", "добро пожаловать", "дорогие друзья", "дорогие читатели", "спасибо что читаете"),
+    "sign-off": { "*": sent },
+    "stamp-sales-phrases": { "*": sent },
+    "stamp-call-to-action": { "*": sent },
+    "stamp-clickbait": { "вы удивитесь": ["but", "sent"], "вы не поверите": ["but", "sent"], ...each(sent, "не переключайтесь", "доверьтесь мне", "доверьтесь профессионалам") },
+    "stamp-formal-letter": { "*": sent, "вынуждены сообщить": that },
+    "stamp-cliche": { "как показывает практика": paren },
+    "stamp-sales": each(mod, "высококвалифицированн*", "клиентоориентированн*", "динамично развивающ*"),
+    "slang-register": each([...paren, ...sent], "вау", "ура-ура"),
+    "proof-claims": { "*": mod, "гарантированно": anywhere, "без обмана": anywhere, "доказано": that, "гарантируем": never, "гарантирую": never },
+    "vague-indefinite": { ...each(anywhere, "как-то", "где-то", "зачем-то", "почему-то", "как-нибудь"), ...each(mod, "какой-то", "какая-то", "какое-то", "какие-то", "каких-то", "каким-то", "какую-то", "какого-то", "какой-нибудь") },
+    "preachy-tone": { "обязательно": mod, "ни в коем случае": mod, "не забывайте": that, "не забудьте": that, "запомните": that, "важно помнить": that },
+    "date-range-period": { "на протяжении периода": ["withS"], "в течение периода": ["withS"] }
+  };
+  function removal(conditions, text, start, end) {
+    const before = text.slice(0, start), after = text.slice(end), rest = before.replace(/[  ]+$/, "");
+    const starts = !rest || OPENING.includes(rest[rest.length - 1]);
+    const extended = (m) => m && { start, end: end + m[0].length }, plain = { start, end };
+    for (const c of conditions) {
+      if (c === "any") return plain;
+      if (c === "that" && starts) {
+        const e = extended(THAT_AFTER.exec(after));
+        if (e) return e;
+      }
+      if (c === "but" && starts) {
+        const e = extended(BUT_AFTER.exec(after));
+        if (e) return e;
+      }
+      if (c === "paren" && (starts || rest.endsWith(","))) {
+        const e = extended(THAT_AFTER.exec(after));
+        if (e) return e;
+        if (after.replace(/^[  ]+/, "").startsWith(",")) return plain;
+      }
+      if (c === "sent" && starts) {
+        const e = extended(END_MARKS.exec(after));
+        if (e) return e;
+        const next = after.replace(/^[  ]+/, "");
+        if (!next || next[0] === "," || next[0] === "\n") return plain;
+      }
+      if (c === "mod") {
+        const words = WORD_AFTER.exec(after), next = words?.[1].toLowerCase();
+        const then = words && WORD_AFTER.exec(after.slice(words[0].length))?.[1].toLowerCase(), prev = WORD_BEFORE.exec(before)?.[1].toLowerCase();
+        if (next && !CONJUNCTIONS.has(next) && !PREPOSITIONS.has(next) && !LINKING.has(prev) && !LINKING.has(then)) return plain;
+      }
+      if (c === "withS" && DATE_FROM.test(after)) return plain;
+    }
+    return null;
+  }
+  var CONTEXT = 12;
+  function cut(text, start, end) {
+    const before = text.slice(Math.max(0, start - CONTEXT), start), after = text.slice(end, end + CONTEXT), fragment = text.slice(start, end);
+    let spacesAfter = 0;
+    while (spacesAfter < after.length && space(after[spacesAfter])) spacesAfter++;
+    let keep = before.length;
+    while (keep > 0 && space(before[keep - 1])) keep--;
+    const spacesBefore = before.length - keep, commaBefore = keep > 0 && before[keep - 1] === ",", next = after[spacesAfter];
+    const whole = (keep === 0 || OPENING.includes(before[keep - 1])) && next !== void 0 && ".!?…".includes(next);
+    let left, right;
+    if (whole) {
+      let marks = spacesAfter;
+      while (marks < after.length && ".!?…".includes(after[marks])) marks++;
+      if (spacesBefore && keep) {
+        left = spacesBefore;
+        right = marks;
+      } else {
+        left = 0;
+        right = marks;
+        while (right < after.length && space(after[right])) right++;
+      }
+    } else if (next === "," && commaBefore) {
+      left = spacesBefore + 1;
+      right = spacesAfter + 1;
+    } else if (next === ",") {
+      left = 0;
+      right = spacesAfter + 1;
+      while (right < after.length && space(after[right])) right++;
+    } else if (next === void 0 || CLOSING.includes(next)) {
+      left = spacesBefore + (commaBefore ? 1 : 0);
+      right = spacesAfter;
+    } else {
+      left = 0;
+      right = spacesAfter;
+    }
+    const rest = before.slice(0, before.length - left).replace(/[  ]+$/, ""), starts = !rest || OPENING.includes(rest[rest.length - 1]);
+    const letter = after[right], capital2 = starts && upper(fragment[0]) && lower(letter);
+    return capital2 ? { start: start - left, end: end + right + 1, text: letter.toUpperCase() } : { start: start - left, end: end + right, text: "" };
+  }
+  function join(text, start, end, fragment) {
+    let dot = start;
+    while (dot > 0 && space(text[dot - 1])) dot--;
+    if (dot === start || dot < 2 || text[dot - 1] !== "." || !/[\p{L}\p{Nd}]/u.test(text[dot - 2])) return null;
+    return { start: dot - 1, end, text: ", " + fragment[0].toLowerCase() + fragment.slice(1) };
+  }
+  var LATIN_LOOK = "aceopxyACEHKMOPTXB";
+  var CYRILLIC_LOOK = "асеорхуАСЕНКМОРТХВ";
+  function mixed(word) {
+    const latin = (c) => /[a-zA-Z]/.test(c), cyrillic = (c) => /[а-яА-ЯёЁ]/.test(c), chars = [...word];
+    const toCyrillic = chars.filter(cyrillic).length >= chars.filter(latin).length, from = toCyrillic ? LATIN_LOOK : CYRILLIC_LOOK, to = toCyrillic ? CYRILLIC_LOOK : LATIN_LOOK;
+    if (chars.some((c) => (toCyrillic ? latin(c) : cyrillic(c)) && !from.includes(c))) return null;
+    return chars.map((c) => {
+      const k = from.indexOf(c);
+      return k >= 0 ? to[k] : c;
+    }).join("");
+  }
+  function typography(id, text, start, end, f) {
+    switch (id) {
+      case "typo-double-space":
+        return { start, end, text: " " };
+      // the spaces go: with the mark after them, or with the bracket before them («( окна» → «(окна»); not after a
+      // smiley («:( и»)
+      case "typo-space-before":
+        if (start > 0 && "(«".includes(text[start - 1])) return /[:;=]-?\($/.test(text.slice(Math.max(0, start - 3), start)) ? null : { start: start - 1, end, text: text[start - 1] };
+        return end < text.length ? { start, end: end + 1, text: text[end] } : null;
+      case "typo-space-after":
+        return { start, end, text: f + " " };
+      case "typo-quotes":
+        return f.length >= 2 ? { start, end, text: "«" + f.slice(1, -1) + "»" } : null;
+      case "typo-dash":
+        return { start, end, text: " — " };
+      case "typo-repeat-punct":
+        return { start, end, text: /^\.+$/.test(f) ? f.length >= 4 ? "…" : "." : /^[!?]+$/.test(f) ? f.includes("!") && f.includes("?") ? "?!" : f[0] : f[0] };
+      // «И.И. Иванов» → «И. И. Иванов», «А.Пушкин» → «А. Пушкин»
+      case "typo-initials": {
+        const spaced = f.replace(/\.(?=\p{L})/gu, ". ");
+        return { start, end, text: end < text.length && /\p{L}/u.test(text[end]) ? spaced + " " : spaced };
+      }
+      case "typo-mixed-script": {
+        const w = mixed(f);
+        return w === null ? null : { start, end, text: w };
+      }
+    }
+    return null;
+  }
+  function readyEdit(id, text, start, end) {
+    if (start < 0 || end > text.length || start >= end) return null;
+    const f = text.slice(start, end), t2 = typography(id, text, start, end, f);
+    if (t2) return t2;
+    if (id === "syntax-fragment-start") return join(text, start, end, f);
+    if (id === "bureaucratese-verbs" && norm(f) === "с целью") return { start, end, text: INFINITIVE.test(text.slice(end)) ? "чтобы" : "для" };
+    const v = REPLACE[id] && longest(REPLACE[id], f);
+    if (v !== void 0 && v !== null) {
+      const prev = WORD_BEFORE.exec(text.slice(0, start))?.[1].toLowerCase();
+      if (id === "vague-quantity" && v.endsWith("много") && prev !== void 0 && (PREPOSITIONS.has(prev) || ["это", "то", "все", "всё"].includes(prev) || AGREEING.test(prev))) return null;
+      return { start, end, text: matchCase(f, fill(v, f)) };
+    }
+    const conditions = REMOVE[id] && longest(REMOVE[id], f);
+    if (!conditions) return null;
+    const at = removal(conditions, text, start, end);
+    return at && { ...cut(text, at.start, at.end), remove: true };
+  }
+
   // ../core/src/style.js
   var L = "A-Za-zА-Яа-яЁё";
-  var norm = (s) => s.toLowerCase().replace(/ё/g, "е");
+  var norm2 = (s) => s.toLowerCase().replace(/ё/g, "е");
   var esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  var tokenSource = (t2) => t2.endsWith("*") ? esc(norm(t2.slice(0, -1))) + "[" + L + "]*" : esc(norm(t2));
+  var tokenSource = (t2) => t2.endsWith("*") ? esc(norm2(t2.slice(0, -1))) + "[" + L + "]*" : esc(norm2(t2));
   function compile(rule) {
     if (rule.pattern) return new RegExp(rule.pattern, "g");
     const alts = (rule.words || []).map((w) => w.trim().split(/\s+/).map(tokenSource).join("\\s+"));
@@ -131,15 +381,15 @@
   }
   var compiled = RULES.flatMap((rule) => rule.pairs ? rule.pairs.map((p) => pairRule(rule, p)) : [{ rule, re: compile(rule) }]);
   var keyRe = /* @__PURE__ */ new Map();
-  var fits = (k, word) => {
+  var fits2 = (k, word) => {
     if (!/[*\s]/.test(k)) return word.startsWith(k);
     let re = keyRe.get(k);
     if (!re) keyRe.set(k, re = new RegExp("^" + k.split(/\s+/).map(tokenSource).join("\\s+") + "(?![" + L + "])"));
     return re.test(word);
   };
-  var longest = (map, word) => map && Object.keys(map).filter((k) => fits(k, word)).sort((a, b) => b.length - a.length)[0];
+  var longest2 = (map, word) => map && Object.keys(map).filter((k) => fits2(k, word)).sort((a, b) => b.length - a.length)[0];
   var swapped = (rule, word, found = word) => {
-    const k = longest(rule.swap, word), h = longest(rule.hints, word);
+    const k = longest2(rule.swap, word), h = longest2(rule.hints, word);
     if (h && (!k || h.length > k.length)) return { ...rule, fix: rule.hints[h] };
     if (!k) return rule;
     const parts = found.split(/\s+/), all = rule.swap[k].split(/,\s*/).filter(Boolean).map((w) => w.replace(/\$(\d)/g, (_, n) => parts[n - 1] || ""));
@@ -152,7 +402,7 @@
   var ADJ = /(?:ый|ий|ой)$/;
   var NOUN = /(?:ия|ие|ость)$/;
   var asIs = (found, key, v) => {
-    const w = norm(found).split(/[\s-]+/).pop();
+    const w = norm2(found).split(/[\s-]+/).pop();
     if (key && w === key) return true;
     if (INF2.test(w)) return INF2.test(v);
     if (ADJ.test(w)) return ADJ.test(v);
@@ -268,10 +518,38 @@
   var PASSIVE = new RegExp("(?<![" + L + "])(?:был|была|было|были|будет|будут)\\s+[" + L + "]+(?:ан|ян|ен|ён|т)(?:а|о|ы)?(?![" + L + "])", "gi");
   var NOMINAL = new RegExp("(?:(?<![" + L + "])[" + L + "]+(?:ние|ния|нию|нием|нии|ость|ости|остью|ция|ции|цию|цией)(?![" + L + "])\\s+){2,}[" + L + "]+(?:ние|ния|нию|нием|нии|ость|ости|остью|ция|ции|цию|цией)(?![" + L + "])", "gi");
   var REPEAT_SKIP = /* @__PURE__ */ new Set(["который", "которая", "которое", "которые", "которых", "которым", "потому", "только", "сейчас", "больше", "меньше", "просто", "сделать", "делать", "чтобы", "когда", "после", "через", "between", "about"]);
+  function spansOf(b) {
+    const text = b.text, before = new Uint32Array(text.length + 1);
+    for (const j of b.gaps || []) if (j >= 0 && j < text.length) before[j + 1]++;
+    for (let k = 1; k <= text.length; k++) before[k] += before[k - 1];
+    const gapAt = (j) => j >= 0 && j < text.length && before[j + 1] > before[j];
+    return { plain: (s, e) => (!b.map || b.map[e - 1] - b.map[s] === e - 1 - s) && before[e] - before[s] === 0, edge: (s, e) => gapAt(s - 1) || gapAt(e) };
+  }
+  function addEdits(issues, blocks) {
+    const seen = /* @__PURE__ */ new Map(), of = (i) => {
+      let v = seen.get(i);
+      if (!v) {
+        const b = blocks[i], chars = b.text.split("");
+        for (const j of b.gaps || []) if (j >= 0 && j < chars.length) chars[j] = "\n";
+        seen.set(i, v = { text: chars.join(""), ...spansOf(b) });
+      }
+      return v;
+    };
+    for (const it of issues) {
+      if (it.replace || it.variants) continue;
+      const v = of(it.block), e = readyEdit(it.id, v.text, it.start, it.end);
+      if (!e || !v.plain(e.start, e.end) || v.edge(e.start, e.end)) continue;
+      if (!e.remove && e.start === it.start && e.end === it.end) {
+        it.replace = [e.text];
+        it.exact = true;
+      } else it.edit = e;
+    }
+    return issues;
+  }
   function checkStyle(blocks, { maxSentenceWords = 25, maxParagraphWords = 120 } = {}) {
     const issues = [], add = (block, start, end, id, rule) => issues.push({ block, start, end, id, category: rule.category, label: CATEGORIES[rule.category] || rule.category, message: rule.message, fix: rule.fix, ...rule.replace && { replace: rule.replace }, ...rule.exact && { exact: true }, ...rule.variants && { variants: rule.variants } });
     blocks.forEach((b, i) => {
-      const text = b.text, low = norm(text), list = sentences(text);
+      const text = b.text, low = norm2(text), list = sentences(text);
       for (const { rule, re } of compiled) {
         if (!re) continue;
         re.lastIndex = 0;
@@ -286,10 +564,7 @@
           }
         }
       }
-      const before = new Uint32Array(text.length + 1);
-      for (const j of b.gaps || []) if (j >= 0 && j < text.length) before[j + 1]++;
-      for (let k = 1; k <= text.length; k++) before[k] += before[k - 1];
-      const gap = (s, e) => before[e] - before[s] > 0, plain = (s, e) => (!b.map || b.map[e - 1] - b.map[s] === e - 1 - s) && !gap(s, e), tech = technical(text);
+      const { plain } = spansOf(b), tech = technical(text);
       for (const [id, re, fix] of TYPO) for (const m of text.matchAll(re)) if (plain(m.index, m.index + m[0].length) && !tech(m.index)) add(i, m.index, m.index + m[0].length, id, fix ? { ...BUILTIN[id], replace: [fix(m[0])], exact: true } : BUILTIN[id]);
       for (const m of text.matchAll(/\p{L}+/gu)) if (MIXED.test(m[0]) && plain(m.index, m.index + m[0].length) && !tech(m.index)) add(i, m.index, m.index + m[0].length, "typo-mixed-script", BUILTIN["typo-mixed-script"]);
       for (const m of text.matchAll(/"[^"\n]*"/g)) if (/[А-Яа-яЁё]/.test(m[0])) add(i, m.index, m.index + m[0].length, "typo-quotes", BUILTIN["typo-quotes"]);
@@ -305,7 +580,7 @@
           const r = trimmed(s);
           add(i, r.start, r.end, "long-sentence", BUILTIN["long-sentence"]);
         }
-        const k = [...norm(s.text).matchAll(new RegExp("(?<![" + L + "])котор[" + L + "]*", "g"))];
+        const k = [...norm2(s.text).matchAll(new RegExp("(?<![" + L + "])котор[" + L + "]*", "g"))];
         if (k.length >= 2) add(i, s.start + k[1].index, s.start + k[1].index + k[1][0].length, "kotory-twice", BUILTIN["kotory-twice"]);
       }
       for (const m of text.matchAll(PASSIVE)) add(i, m.index, m.index + m[0].length, "passive-was", BUILTIN["passive-was"]);
@@ -346,7 +621,7 @@
       }
     });
     if (starts.length >= 10 && starts.filter((s) => s.ya).length / starts.length > 0.15) for (const s of starts.filter((s2) => s2.ya)) add(s.i, s.start, s.start + 1, "ya-start", BUILTIN["ya-start"]);
-    return issues.sort((a, b) => a.block - b.block || a.start - b.start);
+    return addEdits(issues, blocks).sort((a, b) => a.block - b.block || a.start - b.start);
   }
 
   // src/editor.js
