@@ -50,7 +50,7 @@ test('tables',()=>{
  assert.equal(action('vague-quantity','Такое большое количество ошибок.','большое количество'),null);
  // a no-break space between the words
  assert.equal(acceptAll('Выставили счет на оплату.',['pleonasm-dependent','счет на оплату']),'Выставили счет.');
- assert.equal(action('word-double','что что'),'что');
+ assert.equal(action('word-double','что что'),'что');
  assert.equal(action('paronyms','играет'),'имеет');
  assert.equal(action('stamp-business-claims','в кратчайшие сроки'),'быстро');
  assert.equal(action('adjective-metaphor','железной волей'),'сильной волей');
@@ -99,6 +99,9 @@ test('«Убрать» where the sentence stays whole',()=>{
  // a modifier goes, the predicate stays
  assert.equal(acceptAll('Мы просто сделали.',['filler-simply','просто']),'Мы сделали.');
  assert.equal(action('filler-simply','Это просто.','просто'),null);
+ // after «не» the negation would move to the next word
+ assert.equal(action('filler-simply','Мы не просто работаем, а помогаем людям.','просто'),null);
+ assert.equal(action('intensifiers','Это не очень хорошо.','очень'),null);
  assert.equal(action('success-word','Проект был успешным.','успешным'),null);
  assert.equal(action('success-word','Успешным проект стал после запуска.','Успешным'),null);
  assert.equal(acceptAll('Успешный проект завершён.',['success-word','Успешный']),'Проект завершён.');

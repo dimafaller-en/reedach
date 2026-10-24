@@ -31,6 +31,8 @@ const FORMS=[
  ['Нам нужен тимлид.','тимлид','руководитель группы'],
  ['Это мастхэв сезона.','мастхэв',null],
  ['Их коллабом гордятся.','коллабом','совместным проектом'],
+ // the noun's form agrees with the adjective found: «пути» is the plural here
+ ['Мы прошли тернистые пути.','тернистые пути','трудные пути'],
 ];
 
 test('the variant of a hint in the found word\'s form',async()=>{
@@ -43,8 +45,9 @@ test('the variant of a hint in the found word\'s form',async()=>{
 });
 
 test('no variant across Markdown or a line break',async()=>{
- const replaced=async input=>(await check({...input,checks:['morph','style']})).issues.filter(x=>x.replace&&/оказыва/i.test((input.markdown??input.text).slice(x.start,x.end))).length;
+ const replaced=async input=>(await check({...input,checks:['morph','style']})).issues.filter(x=>x.replace&&/оказыва/i.test((input.markdown??input.text??input.blocks[0].text).slice(x.start,x.end))).length;
  assert.equal(await replaced({markdown:'Мы оказываем **содействие** клиентам.'}),0);
  assert.equal(await replaced({text:'Мы оказываем\nсодействие клиентам.'}),0);
+ assert.equal(await replaced({blocks:[{text:'Мы оказываем\nсодействие клиентам.'}]}),0);
  assert.ok(await replaced({markdown:'Мы **оказываем содействие** клиентам.'})>=1);
 });

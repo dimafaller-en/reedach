@@ -113,7 +113,13 @@ const headGender=(Az,v)=>{for(const w of v.split(' ')){const t=best(Az,w).find(x
 
 // issues (block offsets) and their blocks; Az: Az.js initialized (morph.mjs) or the keyboard's AOT shim.
 // as the core's ready edits: the fragment maps onto the source one to one, no Markdown or gap (a line break, code) inside
-const plain=(b,s,e)=>(!b.map||b.map[e-1]-b.map[s]===e-1-s)&&!(b.gaps||[]).some(j=>j>=s&&j<e);
+const plain=(b,s,e)=>(!b.map||b.map[e-1]-b.map[s]===e-1-s)&&!(b.gaps||[]).some(j=>j>=s&&j<e)&&!b.text.slice(s,e).includes('\n');
+// w2: the parses of the noun that agree with the adjective before it («тернистые пути» is the plural, not «пути» of
+// the singular), all of them when none does
+function agreeing(Az,parses,adjective){
+ const adj=best(Az,adjective).filter(x=>x.tag.POS==='ADJF'),fit=parses.filter(p=>adj.some(a=>a.tag.CAse===p.tag.CAse&&a.tag.NMbr===p.tag.NMbr));
+ return fit.length?fit:parses;
+}
 export const formWanted=it=>!it.replace&&!it.edit&&(it.id==='weak-verb-noun'||FORMS.some(f=>f.rule===it.id));
 export function formReplacements(issues,blocks,Az){
  for(const it of issues.filter(formWanted)){
@@ -125,7 +131,8 @@ export function formReplacements(issues,blocks,Az){
   if(f.flag==='fixed'){it.replace=[variants[0]];continue;}
   const carrier=norm(words[f.flag==='w2'?1:0]||'');
   let form=null;
-  for(const p of best(Az,carrier)){
+  const parses=f.flag==='w2'?agreeing(Az,best(Az,carrier),norm(words[0])):best(Az,carrier);
+  for(const p of parses){
    if(!FAMILY[p.tag.POS])continue;
    for(const v of variants)if((form=inflected(Az,p,v)))break;
    if(form)break;

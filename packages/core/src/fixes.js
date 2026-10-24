@@ -122,6 +122,8 @@ function removal(conditions,text,start,end){
  const before=text.slice(0,start),after=text.slice(end),rest=before.replace(/[  ]+$/,'');
  const starts=!rest||OPENING.includes(rest[rest.length-1]);
  const extended=m=>m&&{start,end:end+m[0].length},plain={start,end};
+ // «не просто работаем», «не очень хорошо»: without the word the negation moves to the next one
+ if(WORD_BEFORE.exec(before)?.[1].toLowerCase()==='не')return null;
  for(const c of conditions){
   if(c==='any')return plain;
   if(c==='that'&&starts){const e=extended(THAT_AFTER.exec(after));if(e)return e;}
