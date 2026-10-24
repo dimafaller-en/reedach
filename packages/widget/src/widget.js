@@ -107,6 +107,9 @@ class Checker{
   // A style hint with ready replacements: buttons only, a style word is not a typo for the dictionary.
   // The replacement starts with a capital letter when the found word does.
   if(Array.isArray(it.replace)&&it.replace.length){const cap=/^\p{Lu}/u.test(this.value.slice(it.start,it.end)),up=w=>cap?w[0].toUpperCase()+w.slice(1):w;return '<div class="reedach-actions">'+it.replace.map(w=>this.#variant(i,up(w))).join('')+'</div>';}
+  // A ready edit of the core: «Убрать» or a piece wider than the hint, already cased and with its commas and spaces.
+  if(it.edit){const e=it.edit,from=this.value.slice(e.start,e.end).trim(),to=e.text.trim(),label=e.remove?this.t('removeLabel',{text:this.#fragment(it)}):this.t('applyLabel',{from,to});
+   return '<div class="reedach-actions"><button type="button" class="reedach-variant" data-reedach-edit="'+i+'" aria-label="'+esc(label)+'">'+esc(e.remove?this.t('remove'):this.t('apply',{text:to}))+'</button></div>';}
   if(!it.word)return '';
   const t=this.t,v=this.variants.get(it.word);let out='';
   if(Array.isArray(v))out=v.length?v.map(w=>this.#variant(i,w)).join(''):'<span class="reedach-note">'+esc(t('noVariants'))+'</span>';
@@ -125,10 +128,11 @@ class Checker{
  }
  async #onPanel(e){
   const el=e.target.closest('button');if(!el||!this.panel.contains(el))return;
-  const d=el.dataset,it=this.issues[Number(d.reedachIndex??d.reedachReplace)];
+  const d=el.dataset,it=this.issues[Number(d.reedachIndex??d.reedachReplace??d.reedachEdit)];
   if('reedachClose' in d)return this.stop();
   if(d.reedachIndex&&it)return this.#jump(it);
-  if(d.reedachReplace&&it)return this.#replace(it,d.reedachValue);
+  if(d.reedachReplace&&it)return this.#replace(it.start,it.end,d.reedachValue);
+  if(d.reedachEdit&&it?.edit)return this.#replace(it.edit.start,it.edit.end,it.edit.text);
   if(d.reedachVariants)return this.#loadVariants(d.reedachVariants);
   if(d.reedachAdd){el.disabled=true;try{await this.dictionary.add(d.reedachAdd);this.check();}catch{el.disabled=false;el.textContent=this.t('addFailed');}}
  }
@@ -139,11 +143,12 @@ class Checker{
   if(!this.closed)this.#renderPanel();
  }
  // Replacing through the editing command keeps the browser's undo; the input event then moves the other marks.
- #replace(it,value){
-  const {source}=this;if(source.value.slice(it.start,it.end)!==this.value.slice(it.start,it.end))return;
-  source.focus({preventScroll:true});source.setSelectionRange(it.start,it.end);
-  let done=false;try{done=document.execCommand('insertText',false,value);}catch{}
-  if(!done||source.value.slice(it.start,it.start+value.length)!==value){source.setRangeText(value,it.start,it.end,'end');source.dispatchEvent(new Event('input',{bubbles:true}));}
+ // An empty value («Убрать») is a delete: insertText with nothing does not delete everywhere.
+ #replace(start,end,value){
+  const {source}=this,old=source.value;if(old.slice(start,end)!==this.value.slice(start,end))return;
+  source.focus({preventScroll:true});source.setSelectionRange(start,end);
+  try{document.execCommand(value?'insertText':'delete',false,value);}catch{}
+  if(source.value===old){source.setRangeText(value,start,end,'end');source.dispatchEvent(new Event('input',{bubbles:true}));}
  }
  #jump(it){
   const {source,mirror}=this;this.place();

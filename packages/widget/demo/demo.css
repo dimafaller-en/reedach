@@ -21,7 +21,9 @@ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-app
 .demo-field input{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:14px}
 .demo-button{height:40px;padding:0 20px;border:0;border-radius:8px;background:var(--accent);color:var(--accent-text);font:inherit;font-weight:600;cursor:pointer}
 .demo-button:hover{opacity:.88}
-:is(.demo-field input,.demo-field select,.demo-button,.demo textarea,.reedach-panel button):focus-visible{outline:2px solid var(--accent-ink);outline-offset:2px}
+:is(.demo-button,.reedach-panel button):focus-visible{outline:2px solid var(--accent-ink);outline-offset:2px}
+/* A field in focus gets no ring: the caret shows the focus, the border stays as it is */
+:is(.demo-field input,.demo-field select,.demo textarea):focus{outline:none}
 .demo-work{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:28px;align-items:start}
 .demo-editor{position:relative;min-width:0}
 .demo-label{display:block;margin-bottom:6px;font-size:14px;color:var(--muted)}

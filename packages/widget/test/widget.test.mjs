@@ -10,6 +10,14 @@ test('typing keeps marks before the edit, moves those after it and drops the tou
  assert.deepEqual(shiftIssues(issues,old,'новое один два три').map(i=>i.start),[11,15]);
 });
 
+test('a ready edit moves with its hint, and typing anywhere inside the edit drops the hint',()=>{
+ // «Не секрет, что цены растут.»: the hint is «Не секрет», its edit takes «, что ц» too
+ const old='Да. Не секрет, что цены растут.',issues=[{start:4,end:13,edit:{start:4,end:20,text:'Ц',remove:true}}];
+ assert.deepEqual(shiftIssues(issues,old,'Ну да. Не секрет, что цены растут.'),[{start:7,end:16,edit:{start:7,end:23,text:'Ц',remove:true}}]);
+ assert.deepEqual(shiftIssues(issues,old,'Да. Не секрет, что цены быстро растут.'),issues);
+ assert.deepEqual(shiftIssues(issues,old,'Да. Не секрет, что все цены растут.'),[]);
+});
+
 test('own words live in the browser and survive a blocked storage',()=>{
  const data={},storage={getItem:k=>data[k]??null,setItem:(k,v)=>{data[k]=v;}};
  const dict=localDictionary(storage);

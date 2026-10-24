@@ -1,11 +1,13 @@
 // Pure parts of the widget, testable without a browser.
 
 // Typing keeps the marks in place: those before the edit stay, those after it move, those it touched go away.
+// A hint's ready edit (it.edit) can be wider than the hint: the hint goes when typing touches either.
 export function shiftIssues(issues,old,value){
  let p=0;const max=Math.min(old.length,value.length);while(p<max&&old[p]===value[p])p++;
  let s=0;while(s<max-p&&old[old.length-1-s]===value[value.length-1-s])s++;
  const oldEnd=old.length-s,delta=value.length-old.length;
- return issues.filter(it=>it.end<p||it.start>oldEnd).map(it=>it.start>oldEnd?{...it,start:it.start+delta,end:it.end+delta}:it);
+ const lo=it=>it.edit?Math.min(it.start,it.edit.start):it.start,hi=it=>it.edit?Math.max(it.end,it.edit.end):it.end;
+ return issues.filter(it=>hi(it)<p||lo(it)>oldEnd).map(it=>lo(it)>oldEnd?{...it,start:it.start+delta,end:it.end+delta,...(it.edit&&{edit:{...it.edit,start:it.edit.start+delta,end:it.edit.end+delta}})}:it);
 }
 
 // Own words kept in this browser. Storage may be missing or blocked (private mode): then nothing is kept.

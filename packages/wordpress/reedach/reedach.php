@@ -3,7 +3,7 @@
  * Plugin Name:       Reedach
  * Plugin URI:        https://dimafaller.ru/reedach/
  * Description:       Style hints for Russian text in the block editor: bureaucratese, clichés, filler words, heavy syntax, typography. The check runs in the browser, the text is not sent anywhere.
- * Version:           0.3.3
+ * Version:           0.4.0
  * Requires at least: 6.5
  * Requires PHP:      7.4
  * Author:            Dima Faller
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'REEDACH_VERSION', '0.3.3' );
+define( 'REEDACH_VERSION', '0.4.0' );
 
 /**
  * Rule categories: key => name. Generated from the Reedach rules by build.mjs.
@@ -61,12 +61,19 @@ add_action(
 			'disabled' => reedach_disabled(),
 			'strings'  => array(
 				/* translators: %d: number of suggestions. */
-				'count'     => __( 'Suggestions: %d', 'reedach' ),
-				'none'      => __( 'No suggestions.', 'reedach' ),
-				'highlight' => __( 'Highlight in the text', 'reedach' ),
+				'count'       => __( 'Suggestions: %d', 'reedach' ),
+				'none'        => __( 'No suggestions.', 'reedach' ),
+				'highlight'   => __( 'Highlight in the text', 'reedach' ),
 				/* translators: %s: the suggested word. */
-				'replace'   => __( 'Replace with %s', 'reedach' ),
-				'credit'    => __( 'Hints are a guide, not a rule: the choice is yours. The list updates as you type. Click a hint to find it in the text, or a suggested word to put it in.', 'reedach' ),
+				'replace'     => __( 'Replace with %s', 'reedach' ),
+				'remove'      => __( 'Remove', 'reedach' ),
+				/* translators: %s: the text to remove. */
+				'removeLabel' => __( 'Remove %s', 'reedach' ),
+				/* translators: %s: the text that goes in. */
+				'apply'       => __( 'Accept “%s”', 'reedach' ),
+				/* translators: 1: the text in the post, 2: the text that replaces it. */
+				'applyLabel'  => __( 'Replace %1$s with %2$s', 'reedach' ),
+				'credit'      => __( 'Hints are a guide, not a rule: the choice is yours. The list updates as you type. Click a hint to find it in the text, or a suggested word to put it in.', 'reedach' ),
 			),
 		);
 		wp_add_inline_script( 'reedach-editor', 'window.reedachSettings = ' . wp_json_encode( $settings ) . ';', 'before' );

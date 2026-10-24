@@ -59,7 +59,7 @@ function run() {
  for (const item of items) texts.set(item.clientId + ':' + item.key, item.text);
  const issues = checkStyle(items).filter(it => !disabled.has(it.category)).map(it => {
   const item = items[it.block];
-  return {...it, clientId: item.clientId, key: item.key, fragment: item.text.slice(it.start, it.end), uid: [item.clientId, item.key, it.start, it.end, it.id].join(':')};
+  return {...it, clientId: item.clientId, key: item.key, fragment: item.text.slice(it.start, it.end), ...(it.edit && {editFrom: item.text.slice(it.edit.start, it.edit.end)}), uid: [item.clientId, item.key, it.start, it.end, it.id].join(':')};
  });
  setState({issues, active: issues.some(it => it.uid === state.active) ? state.active : null});
 }
@@ -179,23 +179,28 @@ const short = s => (s.length > 70 ? s.slice(0, 67).trimEnd() + '…' : s);
 // A suggested word replaces the fragment right in the block, keeping its formatting; the editor's Undo takes it back.
 // The text is not touched unless the author clicks. There is no server here, so the core offers a synonym
 // only where the found word is a dictionary form too («осуществлять → делать», not «осуществляет → делать»).
+// A ready edit of the core («Убрать», or a piece wider than the hint) is put the same way on its own range; it is
+// already cased and takes in the commas and spaces that go with it. The new text keeps the formatting of the place:
+// the capital a removal gives the next word keeps that word's.
 const capital = (it, word) => (/^\p{Lu}/u.test(it.fragment) ? word[0].toUpperCase() + word.slice(1) : word);
-function replace(it, word) {
- const text = capital(it, word);
+const replace = (it, word) => put(it, it.start, it.end, it.fragment, capital(it, word), it.start);
+const applyEdit = it => put(it, it.edit.start, it.edit.end, it.editFrom, it.edit.text, it.edit.remove ? it.edit.end - 1 : it.edit.start);
+function put(it, start, end, expected, text, at) {
  const swap = html => {
   const value = wp.richText.create({html: String(html ?? '')});
-  if (value.text.slice(it.start, it.end).replace(/￼/g, ' ') !== it.fragment) return null;   // the text changed since the check
+  if (value.text.slice(start, end).replace(/￼/g, ' ') !== expected) return null;   // the text changed since the check
   const piece = wp.richText.create({text});
-  piece.formats = Array.from({length: text.length}, () => value.formats[it.start]);
-  return wp.richText.toHTMLString({value: wp.richText.insert(value, piece, it.start, it.end)});
+  piece.formats = Array.from({length: text.length}, () => value.formats[at]);
+  return wp.richText.toHTMLString({value: wp.richText.insert(value, piece, start, end)});
  };
  if (!it.clientId) {
   const html = swap(select('core/editor').getEditedPostAttribute('title'));
   if (html !== null) dispatch('core/editor').editPost({title: html});
   return;
  }
- const block = select('core/block-editor').getBlock(it.clientId), html = block && swap(block.attributes[it.key]);
- if (html) dispatch('core/block-editor').updateBlockAttributes(it.clientId, {[it.key]: html});
+ // An empty html is a result too: «Убрать» can take the whole paragraph («Спасибо за внимание!»).
+ const block = select('core/block-editor').getBlock(it.clientId), html = block ? swap(block.attributes[it.key]) : null;
+ if (html !== null) dispatch('core/block-editor').updateBlockAttributes(it.clientId, {[it.key]: html});
 }
 
 const icon = el('svg', {viewBox: '0 0 256 256', width: 24, height: 24, 'aria-hidden': true},
@@ -221,7 +226,10 @@ function Sidebar() {
      it.replace?.length ? el('div', {className: 'reedach-variants'}, it.replace.map(word => el('button', {
       type: 'button', key: word, className: 'reedach-variant', onClick: () => replace(it, word),
       'aria-label': t('replace').replace('%s', capital(it, word)),
-     }, capital(it, word)))) : null))),
+     }, capital(it, word)))) : it.edit ? el('div', {className: 'reedach-variants'}, el('button', {
+      type: 'button', className: 'reedach-variant', onClick: () => applyEdit(it),
+      'aria-label': it.edit.remove ? t('removeLabel').replace('%s', short(it.fragment)) : t('applyLabel').replace('%1$s', it.editFrom.trim()).replace('%2$s', it.edit.text.trim()),
+     }, it.edit.remove ? t('remove') : t('apply').replace('%s', it.edit.text.trim()))) : null))),
     el('p', {className: 'reedach-credit'}, t('credit')))));
 }
 
