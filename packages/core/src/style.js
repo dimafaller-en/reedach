@@ -139,8 +139,7 @@ function plainOf(b){
 // replace, «Убрать» and a fragment wider than the hint's go to edit. Only where the edit maps onto the source one to
 // one; the rule sees gaps as line breaks. The fields the hint had stay as they were.
 function addEdits(issues,blocks){
- const seen=new Map(),of=i=>{let v=seen.get(i);if(!v){const b=blocks[i],chars=b.text.split('');for(const j of b.gaps||[])if(j>=0&&j<chars.length)chars[j]='
-';seen.set(i,v={text:chars.join(''),plain:plainOf(b)});}return v;};
+ const seen=new Map(),of=i=>{let v=seen.get(i);if(!v){const b=blocks[i],chars=b.text.split('');for(const j of b.gaps||[])if(j>=0&&j<chars.length)chars[j]='\n';seen.set(i,v={text:chars.join(''),plain:plainOf(b)});}return v;};
  for(const it of issues){
   if(it.replace||it.variants)continue;
   const v=of(it.block),e=readyEdit(it.id,v.text,it.start,it.end);if(!e||!v.plain(e.start,e.end))continue;
