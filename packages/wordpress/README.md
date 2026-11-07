@@ -15,8 +15,12 @@
 
 ## Установка
 
-Скачайте `reedach-wordpress-X.Y.Z.zip` из [релизов](https://github.com/dimafaller-en/reedach/releases)
+Установите из [каталога WordPress](https://wordpress.org/plugins/reedach/): «Плагины → Добавить новый»,
+поиск «Reedach». Или скачайте `reedach-wordpress-X.Y.Z.zip` из [релизов](https://github.com/dimafaller-en/reedach/releases)
 и загрузите в «Плагины → Добавить новый → Загрузить плагин».
+
+Новая версия попадает в каталог через SVN `https://plugins.svn.wordpress.org/reedach/`: содержимое
+`reedach/` в `trunk` и `tags/X.Y.Z`, картинки каталога из `wporg/` в `assets`.
 
 ## Разработка
 

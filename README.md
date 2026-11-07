@@ -261,7 +261,8 @@ const {issues} = await check({
 - Подсветка в заголовке записи, абзацах, подзаголовках, списках, цитатах и подписях.
 - «Настройки → Reedach»: какие виды подсказок показывать авторам.
 
-Скачайте `reedach-wordpress-X.Y.Z.zip` из [последнего релиза](https://github.com/dimafaller-en/reedach/releases/latest)
+Установите из [каталога WordPress](https://wordpress.org/plugins/reedach/): «Плагины → Добавить новый»,
+поиск «Reedach». Или скачайте `reedach-wordpress-X.Y.Z.zip` из [последнего релиза](https://github.com/dimafaller-en/reedach/releases/latest)
 и загрузите в «Плагины → Добавить новый → Загрузить плагин». Нужны WordPress 6.5+ и PHP 7.4+.
 Плагин под лицензией GPL-2.0-or-later, подробнее — в [packages/wordpress](packages/wordpress/README.md).
 
@@ -380,7 +381,7 @@ It runs in the browser or on your own server, and the text never leaves it.
 - `reedach-widget` — a drop-in widget for any textarea: one `<script>` tag, no styles of its own.
 - `reedach-server` — spelling (hunspell) and morphology (Az.js + OpenCorpora), as a library
   or an HTTP API: `docker run ghcr.io/dimafaller-en/reedach`.
-- WordPress plugin — style hints in the block editor, no server needed: a zip in the
-  [latest release](https://github.com/dimafaller-en/reedach/releases/latest) (GPL-2.0-or-later).
+- WordPress plugin — style hints in the block editor, no server needed: in the
+  [WordPress plugin directory](https://wordpress.org/plugins/reedach/) (GPL-2.0-or-later).
 
 MIT license.
