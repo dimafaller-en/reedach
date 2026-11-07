@@ -49,9 +49,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-app
 .reedach-jump{display:block;width:100%;padding:0;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
 .reedach-jump:hover .reedach-fragment{text-decoration:underline;text-underline-offset:2px}
 .reedach-label{display:inline-block;margin-right:4px;padding:1px 6px;border-radius:4px;background:var(--word);color:var(--ink);font-size:12px;font-weight:600}
-.reedach-spell .reedach-label{background:none;box-shadow:inset 0 0 0 1px var(--spell)}
 .reedach-long .reedach-label{background:var(--long)}
-.reedach-mistake .reedach-label{background:none;box-shadow:inset 0 -2px 0 var(--mistake)}
 .reedach-fragment{font-weight:500}
 .reedach-message{margin:4px 0 0;color:var(--muted)}
 .reedach-actions{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin-top:8px}
