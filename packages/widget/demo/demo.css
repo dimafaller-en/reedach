@@ -50,6 +50,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-app
 .reedach-jump:hover .reedach-fragment{text-decoration:underline;text-underline-offset:2px}
 .reedach-label{display:inline-block;margin-right:4px;padding:1px 6px;border-radius:4px;background:var(--word);color:var(--ink);font-size:12px;font-weight:600}
 .reedach-long .reedach-label{background:var(--long)}
+.reedach-spell .reedach-label,.reedach-mistake .reedach-label{background:color-mix(in srgb,var(--mistake) 16%,transparent)}
 .reedach-fragment{font-weight:500}
 .reedach-message{margin:4px 0 0;color:var(--muted)}
 .reedach-actions{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin-top:8px}
