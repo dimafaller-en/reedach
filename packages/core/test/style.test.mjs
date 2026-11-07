@@ -93,12 +93,18 @@ const SAMPLES={
  'mistake-takzhe':'Безопасность, а так же стабильность.',
  'mistake-po-hyphen':'Появились по настоящему ценные инструменты.',
  'colloquial-forms':'Мастер ложит плитку в ихней ванной.',
+ 'ui-are-you-sure':'Вы уверены, что хотите удалить письмо?',
+ 'ui-ok':'ОК',
+ 'ui-error-vague':'Что-то пошло не так. Попробуйте позже.',
+ 'ui-field-command':'Введите номер телефона',
+ 'ui-link-words':'Чтобы скачать прайс, кликните сюда.',
+ 'ui-more-link':'Подробнее →',
 };
 const NEUTRAL='Мы поставили перегородки в офисе на третьем этаже. Заказчик принял работу в пятницу.';
 const ids=new Set(RULES.map(r=>r.id));
 const run=text=>checkStyle([{text,kind:'p'}]);
 
-test('rule count is within limits',()=>{assert.ok(RULES.length>=30&&RULES.length<=90,String(RULES.length));});
+test('rule count is within limits',()=>{assert.ok(RULES.length>=30&&RULES.length<=100,String(RULES.length));});
 test('rule ids are unique kebab-case',()=>{
  assert.equal(ids.size,RULES.length);
  for(const r of RULES)assert.match(r.id,/^[a-z]+(-[a-z]+)*$/,r.id);
@@ -223,4 +229,12 @@ test('mistakes found by context: что бы, а так же, по настоя�
  assert.deepEqual(hits('Вопросы безопасности самих сервисов и данных, а так же стабильности решают специально обученные этому люди.'),[['а так же','а также']]);
  assert.deepEqual(hits('Появились по настоящему ценные инструменты. По моему, это ошибка.'),[['по настоящему','по-настоящему'],['По моему','По-моему']]);
  for(const ok of ['Не знаю, что бы почитать.','Посоветуйте, что бы посмотреть.','Что бы почитать?','Что бы ни случилось, звони.','Что бы мать сказала?','Что бы дети сказали?','Что бы было, если бы.','Работает быстро, а так же надёжно, как раньше.','А так же, как и в прошлом году, мы приедем.','По моему мнению, это ошибка.','Мы переехали по новому адресу.','Клетки схожи по своему химическому составу.','По старому стилю.','Мы шли по новому шоссе.','Это по другому пути.','А так же можно сделать?','Он сделал это по своему же желанию.'])assert.deepEqual(hits(ok),[],ok);
+});
+test('line rules fire on a line of its own, not inside a sentence',()=>{
+ const ui=text=>checkStyle(textBlocks(text)).filter(i=>i.id==='ui-field-command'||i.id==='ui-more-link').map(i=>[i.id,text.slice(i.start,i.end)]);
+ assert.deepEqual(ui('Имя\nВведите номер телефона:\nПодробнее…'),[['ui-field-command','Введите номер телефона'],['ui-more-link','Подробнее']]);
+ assert.deepEqual(ui('Пожалуйста, укажите город'),[['ui-field-command','Пожалуйста, укажите город']]);
+ assert.deepEqual(ui('Введите пароль и нажмите кнопку входа. Подробнее расскажем на встрече.'),[]);
+ assert.deepEqual(ui('Введите в поле адрес, на который мы пришлём счёт за установку'),[]);
+ assert.deepEqual(ui('Мы расскажем подробнее'),[]);
 });

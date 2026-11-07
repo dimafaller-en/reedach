@@ -150,13 +150,18 @@ function addEdits(issues,blocks){
  }
  return issues;
 }
+// Lines of a block: a gap stands for a line break. A line rule fires only on a line that is nothing but the match
+// and trailing marks: «Введите имя», «Подробнее →» on their own, not inside a sentence.
+const linesOf=b=>{const out=[];let s=0;for(const j of [...(b.gaps||[])].filter(j=>j>=0&&j<b.text.length).sort((x,y)=>x-y)){out.push([s,j]);s=j+1;}out.push([s,b.text.length]);return out;};
+const lineMatch=(seg,re)=>{const lead=seg.length-seg.trimStart().length;re.lastIndex=0;const m=re.exec(seg);re.lastIndex=0;if(!m||m.index!==lead||!/^[\s.…:!?→»>]*$/.test(seg.slice(m.index+m[0].length)))return null;return {start:m.index,end:m.index+m[0].trimEnd().length};};
 // blocks: [{text, kind:'p'|'li'|'h', tag?:'H1'|'H2'…}] → issues: [{block,start,end,id,category,label,message,fix}]
 export function checkStyle(blocks,{maxSentenceWords=25,maxParagraphWords=120}={}){
  const issues=[],add=(block,start,end,id,rule)=>issues.push({block,start,end,id,category:rule.category,label:CATEGORIES[rule.category]||rule.category,message:rule.message,fix:rule.fix,...(rule.replace&&{replace:rule.replace}),...(rule.exact&&{exact:true}),...(rule.variants&&{variants:rule.variants})});
  blocks.forEach((b,i)=>{
   const text=b.text,low=norm(text),list=sentences(text);
   // A start-only rule needs nothing but spaces between the sentence start and the match.
-  for(const {rule,re} of compiled){if(!re)continue;re.lastIndex=0;for(const m of low.matchAll(re)){if(rule.start){const s=sentenceAt(list,m.index);if(!s||low.slice(s.start,m.index).trim()!=='')continue;}{const found=text.slice(m.index,m.index+m[0].length);add(i,m.index,m.index+m[0].length,rule.id,offered(swapped(rule,m[0],found),found));}}}
+  const lines=linesOf(b);
+  for(const {rule,re} of compiled){if(!re)continue;re.lastIndex=0;if(rule.line){for(const [s,e] of lines){const m=lineMatch(low.slice(s,e),re);if(m){const a=s+m.start,z=s+m.end,found=text.slice(a,z);add(i,a,z,rule.id,offered(swapped(rule,low.slice(a,z),found),found));}}continue;}for(const m of low.matchAll(re)){if(rule.start){const s=sentenceAt(list,m.index);if(!s||low.slice(s.start,m.index).trim()!=='')continue;}{const found=text.slice(m.index,m.index+m[0].length);add(i,m.index,m.index+m[0].length,rule.id,offered(swapped(rule,m[0],found),found));}}}
   const {plain}=spansOf(b),tech=technical(text);
   for(const [id,re,fix] of TYPO)for(const m of text.matchAll(re))if(plain(m.index,m.index+m[0].length)&&!tech(m.index))add(i,m.index,m.index+m[0].length,id,fix?{...BUILTIN[id],replace:[fix(m[0])],exact:true}:BUILTIN[id]);
   for(const m of text.matchAll(/\p{L}+/gu))if(MIXED.test(m[0])&&plain(m.index,m.index+m[0].length)&&!tech(m.index))add(i,m.index,m.index+m[0].length,'typo-mixed-script',BUILTIN['typo-mixed-script']);
