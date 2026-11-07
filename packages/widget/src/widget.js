@@ -3,7 +3,7 @@
 // and the check reruns after a short pause. Without an endpoint the dictionary check runs in the browser;
 // with one, a Reedach server adds spelling and morphology.
 // The widget ships no visual styles: only what keeps the mirror on top of the text. The site styles the rest.
-import {checkStyle,sourceBlocks,textBlocks,mergeIssues} from 'reedach';
+import {checkStyle,sourceBlocks,textBlocks,mergeIssues,MISTAKES} from 'reedach';
 import {strings} from './i18n.js';
 import {shiftIssues,localDictionary,localSkips,skipKey,request,esc} from './core.js';
 
@@ -13,14 +13,17 @@ const NAV=new Set(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End','
 const HL=typeof CSS!=='undefined'&&!!CSS.highlights&&typeof Highlight==='function';
 const COPY=['fontFamily','fontSize','fontWeight','fontStyle','fontStretch','fontVariant','fontFeatureSettings','fontKerning','lineHeight','letterSpacing','wordSpacing','textIndent','textTransform','tabSize','wordBreak','paddingTop','paddingLeft','paddingBottom','borderTopWidth','borderRightWidth','borderBottomWidth','borderLeftWidth'];
 const kind=it=>it.id==='spelling'?'spell':LENGTH.has(it.id)?'long':'word';
+// A plain mistake («вообщем», a paronym, typography) is also in reedach-word, so a site without a style for
+// reedach-mistake marks it as before.
+const mistake=it=>kind(it)==='word'&&MISTAKES.has(it.category);
 const live=new Set(),attached=new WeakMap();
 let flashTimer=0;
 
-// Highlights are global by name, so every open widget paints into the same three.
+// Highlights are global by name, so every open widget paints into the same four.
 function paintAll(){
  if(!HL)return;
- const sets={spell:new Highlight(),word:new Highlight(),long:new Highlight()};
- for(const w of live)for(const it of w.issues)if(it.range)sets[kind(it)].add(it.range);
+ const sets={spell:new Highlight(),word:new Highlight(),long:new Highlight(),mistake:Object.assign(new Highlight(),{priority:1})};
+ for(const w of live)for(const it of w.issues)if(it.range){sets[kind(it)].add(it.range);if(mistake(it))sets.mistake.add(it.range);}
  for(const [name,h] of Object.entries(sets))h.size?CSS.highlights.set('reedach-'+name,h):CSS.highlights.delete('reedach-'+name);
 }
 
@@ -147,7 +150,7 @@ class Checker{
   const n=this.notice,done=n?'<li class="reedach-item reedach-done"><span role="status">'+esc(n.message)+'</span> <button type="button" class="reedach-action" '+(n.skip?'data-reedach-restore':'data-reedach-undo')+'>'+esc(t(n.skip?'restore':'undo'))+'</button></li>':'';
   const hidden=this.hidden.length?'<p class="reedach-hidden">'+esc(t('hidden',{n:this.hidden.length}))+' <button type="button" class="reedach-action" data-reedach-unskip>'+esc(t('showHidden'))+'</button></p>':'';
   if(!issues.length){panel.innerHTML=head+note+(done&&'<ol class="reedach-list">'+done+'</ol>')+'<p class="reedach-status" role="status">'+esc(t('none'))+'</p>'+hidden;return;}
-  panel.innerHTML=head+note+'<ol class="reedach-list">'+issues.map((it,i)=>(n?.i===i?done:'')+'<li class="reedach-item reedach-'+kind(it)+'"><button type="button" class="reedach-jump" data-reedach-index="'+i+'"><span class="reedach-label">'+esc(it.label)+'</span> <span class="reedach-fragment">'+esc(this.#fragment(it))+'</span></button><p class="reedach-message">'+esc(it.message)+(this.variants.get(it.word)?.length?'':' '+esc(it.fix))+'</p>'+this.#actions(it,i)+'</li>').join('')+(n&&n.i>=issues.length?done:'')+'</ol>'+hidden+'<p class="reedach-credit">'+esc(t('credit'))+'</p>';
+  panel.innerHTML=head+note+'<ol class="reedach-list">'+issues.map((it,i)=>(n?.i===i?done:'')+'<li class="reedach-item reedach-'+kind(it)+(mistake(it)?' reedach-mistake':'')+'"><button type="button" class="reedach-jump" data-reedach-index="'+i+'"><span class="reedach-label">'+esc(it.label)+'</span> <span class="reedach-fragment">'+esc(this.#fragment(it))+'</span></button><p class="reedach-message">'+esc(it.message)+(this.variants.get(it.word)?.length?'':' '+esc(it.fix))+'</p>'+this.#actions(it,i)+'</li>').join('')+(n&&n.i>=issues.length?done:'')+'</ol>'+hidden+'<p class="reedach-credit">'+esc(t('credit'))+'</p>';
  }
  async #onPanel(e){
   const el=e.target.closest('button');if(!el||!this.panel.contains(el))return;

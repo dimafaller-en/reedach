@@ -1,13 +1,13 @@
 /* Demo page. The part after "Widget" is an example of widget styles: copy it to your site and change the colors. */
 :root{
  --bg:#f3efe6;--paper:#fffdf8;--ink:#141414;--muted:#6b665d;--line:#e2dccf;--accent:#141414;--accent-text:#f3efe6;--accent-ink:#c92a10;
- --spell:#ff3d1f;--long:rgba(20,20,20,.06);--word:rgba(255,61,31,.15);--active:#ffc4b5;--blend:multiply;
+ --spell:#ff3d1f;--long:rgba(20,20,20,.06);--word:rgba(255,184,0,.24);--mistake:#e0321a;--active:#ffc4b5;--blend:multiply;
  --tip-bg:#141414;--tip-ink:#f3efe6;
  color-scheme:light;
 }
 @media (prefers-color-scheme:dark){
  :root{--bg:#141414;--paper:#1d1c1a;--ink:#f3efe6;--muted:#a39d92;--line:#34322e;--accent:#f3efe6;--accent-text:#141414;--accent-ink:#ff7a5c;
-  --spell:#ff6a4d;--long:rgba(243,239,230,.08);--word:rgba(255,90,61,.30);--active:#a8402b;--blend:screen;
+  --spell:#ff6a4d;--long:rgba(243,239,230,.08);--word:rgba(255,190,40,.26);--mistake:#ff6a4d;--active:#a8402b;--blend:screen;
   --tip-bg:#f3efe6;--tip-ink:#141414;color-scheme:dark}
 }
 *{box-sizing:border-box}
@@ -33,6 +33,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-app
 /* Widget */
 ::highlight(reedach-word){background-color:var(--word)}
 ::highlight(reedach-long){background-color:var(--long)}
+::highlight(reedach-mistake){text-decoration:underline solid var(--mistake);text-decoration-thickness:2px;text-underline-offset:3px}
 ::highlight(reedach-spell){text-decoration:underline wavy var(--spell);text-decoration-thickness:1.5px;text-underline-offset:3px}
 ::highlight(reedach-active){background-color:var(--active)}
 .reedach-mirror{mix-blend-mode:var(--blend)}
@@ -50,6 +51,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-app
 .reedach-label{display:inline-block;margin-right:4px;padding:1px 6px;border-radius:4px;background:var(--word);color:var(--ink);font-size:12px;font-weight:600}
 .reedach-spell .reedach-label{background:none;box-shadow:inset 0 0 0 1px var(--spell)}
 .reedach-long .reedach-label{background:var(--long)}
+.reedach-mistake .reedach-label{background:none;box-shadow:inset 0 -2px 0 var(--mistake)}
 .reedach-fragment{font-weight:500}
 .reedach-message{margin:4px 0 0;color:var(--muted)}
 .reedach-actions{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin-top:8px}

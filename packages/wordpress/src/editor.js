@@ -1,6 +1,6 @@
 // Reedach in the WordPress block editor: style hints for Russian text, checked in the browser.
 // The text never leaves the page: no server, no keys. Spelling needs a Reedach server and is not here.
-import {checkStyle} from 'reedach';
+import {checkStyle, MISTAKES} from 'reedach';
 
 const {createElement: el, Fragment, useSyncExternalStore} = wp.element;
 const {select, dispatch, subscribe} = wp.data;
@@ -163,7 +163,8 @@ function ranges(doc, issues) {
  return out;
 }
 
-const STYLE = '::highlight(reedach-word){background-color:rgba(255,61,31,.2)}::highlight(reedach-long){background-color:rgba(255,176,0,.2)}::highlight(reedach-active){background-color:rgba(255,61,31,.5)}';
+// Advice in amber, plain mistakes («вообщем», a paronym, typography) underlined in red on top of it.
+const STYLE = '::highlight(reedach-word){background-color:rgba(255,176,0,.25)}::highlight(reedach-long){background-color:rgba(0,0,0,.06)}::highlight(reedach-mistake){text-decoration:underline solid #d63612;text-decoration-thickness:2px;text-underline-offset:3px}::highlight(reedach-active){background-color:rgba(255,61,31,.5)}';
 // The editor redraws the text a moment after its data changes: paint after that, and once more to be sure.
 let soon = [];
 function paintSoon() { soon.forEach(clearTimeout); soon = [setTimeout(paint, 30), setTimeout(paint, 300)]; }
@@ -172,15 +173,16 @@ function paint() {
  if (!win?.CSS?.highlights) return;   // Firefox before 140, older Safari: the list still works
  if (!doc.getElementById('reedach-marks')) doc.head.append(Object.assign(doc.createElement('style'), {id: 'reedach-marks', textContent: STYLE}));
  const found = state.highlight ? ranges(doc, state.issues) : new Map();
- const word = [], long = [], active = [];
+ const word = [], long = [], mistake = [], active = [];
  for (const it of state.issues) {
   const range = found.get(it.uid);
   if (!range) continue;
   (LONG.has(it.id) ? long : word).push(range);
+  if (!LONG.has(it.id) && MISTAKES.has(it.category)) mistake.push(range);
   if (it.uid === state.active) active.push(range);
  }
  const set = (name, list, priority = 0) => win.CSS.highlights.set(name, Object.assign(new win.Highlight(...list), {priority}));
- set('reedach-long', long); set('reedach-word', word, 1); set('reedach-active', active, 2);
+ set('reedach-long', long); set('reedach-word', word, 1); set('reedach-mistake', mistake, 2); set('reedach-active', active, 3);
 }
 // The canvas iframe may load after the first check, and blocks may render later: repaint for a while.
 let tries = 0;
