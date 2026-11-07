@@ -4,7 +4,7 @@ Tags: russian, proofreading, writing, style, gutenberg
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.6.1
+Stable tag: 0.6.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -64,7 +64,7 @@ No, only with the block editor.
 
 == Changelog ==
 
-= 0.6.1 =
+= 0.6.2 =
 * Interface text: a new group of hints for buttons, links and messages — "Are you sure?" instead of undo, an "OK" button, an error that does not say what to do, a field label written as a command, "click here", a lone "More" link. It can be switched off in Settings → Reedach.
 * Mistakes and advice look different: advice is yellow, clear mistakes are underlined, long sentences are grey.
 * Typography: a non-breaking space between a number and its unit, in initials and after «№»; digit groups in long numbers; English quotes become «ёлочки». The button of a non-breaking space fix says "Non-breaking space", since the change itself is invisible.
