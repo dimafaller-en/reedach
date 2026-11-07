@@ -21,7 +21,7 @@ const RULES={
  'verb-chain':{category:'syntax',label:'Синтаксис',message:'Цепочка глаголов размывает действие.',fix:'Оставьте главный глагол: не «хотел бы начать делать», а «начну делать» или «делаю».'},
  'weak-verb-noun':{category:'bureaucratese',label:'Канцелярит',message:'Пустой глагол плюс отглагольное существительное звучат казённо.',fix:'Замените одним глаголом: не «осуществляем доставку», а «доставляем».'},
  'long-row':{category:'syntax',label:'Однородные',message:'Длинный ряд однородных слов: читатель не удержит все.',fix:'Оставьте два-три главных или превратите ряд в список.'},
- 'adjective-pile':{category:'adjective',label:'Прилагательное',message:'Несколько прилагательных подряд перегружают фразу.',fix:'Оставьте одно, самое точное, или замените фактом.'},
+ 'adjective-pile':{category:'adjective',label:'Прилагательное',message:'Несколько прилагательных подряд перегружают фразу.',fix:'Оставьте одно точное прилагательное или замените их фактом.'},
  'start-repeat':{category:'repetition',label:'Повтор',message:'Третье предложение подряд начинается с того же слова: текст звучит монотонно.',fix:'Начните одно из предложений иначе или объедините их.'},
  'lemma-repeat':{category:'repetition',label:'Повтор',message:'Одно и то же слово дважды в предложении.',fix:'Замените повтор местоимением или перестройте фразу.'},
  'ne-adjective':{category:'mistake',label:'Частая ошибка',message:'Не с прилагательным пишется слитно, если нет противопоставления.',fix:'Пишите слитно: несложные сайты. Раздельно — с противопоставлением: не сложные, а простые.'},
@@ -115,7 +115,7 @@ export async function morphCheck(blocks){
     const row=rowCase(words,k,gap);if(row)issues.push({block:i,start:words[row[0]].start,end:words[row[0]].end,id:'row-case',...RULES['row-case'],replace:[row[1]]});
     if(poiTypo(words,k,gap))issues.push({block:i,start:w.start,end:w.end,id:'typo-real-word',...RULES['typo-real-word'],replace:['мой']});
     if(w.pos==='PRTS'&&w.score>=0.5&&!/^(?:был|была|было|были|будет|будут)$/i.test(words[k-1]?.w||''))add(i,w.start,w.end,'short-passive');
-    if(w.pos==='VERB'&&WEAK.has(w.lemma)){const n=words.slice(k+1,k+3).find(x=>x.pos==='NOUN');if(n&&NOMINAL.test(n.lemma)&&n.lemma!=='участие'||n&&w.lemma.startsWith('при')&&n.lemma==='участие')add(i,w.start,n.end,'weak-verb-noun');}
+    if(w.pos==='VERB'&&WEAK.has(w.lemma)){const n=words.slice(k+1,k+3).find(x=>x.pos==='NOUN'||x.pos==='INFN');if(n?.pos==='NOUN'&&NOMINAL.test(n.lemma)&&n.lemma!=='участие'||n&&w.lemma.startsWith('при')&&n.lemma==='участие')add(i,w.start,n.end,'weak-verb-noun');}
    });
    for(let k=0;k<words.length;){let j=k;if(words[k].pos==='NOUN')while(j+1<words.length&&words[j+1].pos==='NOUN'&&words[j+1].cas==='gent'&&/^\s+$/.test(gap(words[j],words[j+1])))j++;if(j-k>=2){add(i,words[k].start,words[j].end,'genitive-chain');k=j+1;}else k++;}
    for(let k=0;k<words.length;k++){const head=words[k];if(!(head.pos==='VERB'&&CHAIN_HEAD.has(head.lemma)))continue;let j=k+1;if(words[j]?.w==='бы')j++;let n=0;while(words[j+n]?.pos==='INFN')n++;if(n>=2){add(i,head.start,words[j+n-1].end,'verb-chain');k=j+n;}}

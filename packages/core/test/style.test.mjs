@@ -109,12 +109,14 @@ test('rule ids are unique kebab-case',()=>{
  assert.equal(ids.size,RULES.length);
  for(const r of RULES)assert.match(r.id,/^[a-z]+(-[a-z]+)*$/,r.id);
 });
-test('rules have known category, short message and fix, no guillemets',()=>{
+test('rules have known category, short message and fix, no straight quotes',()=>{
  for(const r of RULES){
   assert.ok(CATEGORIES[r.category],r.id+' category');
-  for(const k of ['message','fix']){assert.equal(typeof r[k],'string',r.id+' '+k);assert.ok(r[k].length>5&&r[k].length<200,r.id+' '+k+' length');assert.ok(!/[«»"]/.test(r[k]),r.id+' '+k+' quotes');}
+  for(const k of ['message','fix']){assert.equal(typeof r[k],'string',r.id+' '+k);assert.ok(r[k].length>5&&r[k].length<200,r.id+' '+k+' length');assert.ok(!/"/.test(r[k]),r.id+' '+k+' quotes');}
   assert.ok(Array.isArray(r.words)&&r.words.length>0||Array.isArray(r.pairs)&&r.pairs.length>0||typeof r.pattern==='string',r.id+' words');
-  for(const v of Object.values({...r.swap,...r.hints}))assert.ok(!/[«»"]/.test(v),r.id+' quotes in '+v);
+  // A swap is put into the text, a hint is only shown.
+  for(const v of Object.values(r.swap||{}))assert.ok(!/[«»"]/.test(v),r.id+' quotes in '+v);
+  for(const v of Object.values(r.hints||{}))assert.ok(!/"/.test(v),r.id+' quotes in '+v);
   for(const w of r.words||[]){assert.equal(w,w.trim(),r.id+' '+w);assert.ok(!/\*./.test(w.replace(/\*(?=\s|$)/g,'')),r.id+' star not at word end: '+w);}
  }
 });
