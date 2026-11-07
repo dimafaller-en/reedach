@@ -5,7 +5,10 @@
 
 - **Без сервера** работает словарь стиля: канцелярит, штампы, вода, длинные предложения.
 - **С сервером Reedach** добавляются орфография с вариантами исправления и морфология.
-- Нажатие на вариант заменяет слово в поле, Ctrl+Z отменяет замену.
+- Нажатие на вариант заменяет слово в поле. Отменить замену можно прямо в списке, пока автор
+  не начал печатать, или Ctrl+Z.
+- «Пропустить» убирает замечание, если автор решил оставить как есть. Оно не вернётся, пока
+  не изменится его предложение; «Показать снова» возвращает пропущенные.
 - «Добавить в словарь» запоминает слово в браузере автора, а сайт может подключить своё
   хранилище.
 - Интерфейс на русском и английском. Сами подсказки на русском: они объясняют русский текст.
@@ -57,6 +60,11 @@ const checker = attach(document.querySelector('textarea'), {
     list: async () => ['Reedach'],
     add: async word => { /* сохранить у себя */ },
   },
+  skips: {                       // своё хранилище пропущенных замечаний; по умолчанию — localStorage
+    list: async () => [],        // ключи вида «правило|начало|конец|предложение»
+    add: async key => {},
+    remove: async keys => {},
+  },
   onChange: issues => {},        // после каждой проверки
   onClose: () => {},             // когда автор нажал «Закрыть»
 });
@@ -88,7 +96,8 @@ checker.stop();    // убрать подсветку и список
 `reedach-panel`, `reedach-head`, `reedach-title`, `reedach-count`, `reedach-close`,
 `reedach-status`, `reedach-error`, `reedach-list`, `reedach-item` (с `reedach-spell`,
 `reedach-word` или `reedach-long`), `reedach-jump`, `reedach-label`, `reedach-fragment`,
-`reedach-message`, `reedach-actions`, `reedach-variant`, `reedach-action`, `reedach-note`,
+`reedach-message`, `reedach-actions`, `reedach-variant`, `reedach-action` (у «Пропустить» ещё `reedach-skip`), `reedach-note`,
+`reedach-done` (строка «Заменено…», «Пропущено…» с кнопкой отмены), `reedach-hidden`,
 `reedach-credit`, `reedach-tooltip`. Готовый пример стилей для светлой и тёмной темы лежит
 в [`demo/demo.css`](demo/demo.css), начиная со строки `/* Widget */`.
 

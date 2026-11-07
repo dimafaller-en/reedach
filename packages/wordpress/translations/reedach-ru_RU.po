@@ -42,6 +42,27 @@ msgstr "Принять «%s»"
 msgid "Replace %1$s with %2$s"
 msgstr "Заменить %1$s на %2$s"
 
+msgid "Skip"
+msgstr "Пропустить"
+
+#. translators: %s: the text of the suggestion.
+msgid "Skip the suggestion %s"
+msgstr "Пропустить замечание %s"
+
+#. translators: %s: the text of the skipped suggestion.
+msgid "Skipped “%s”."
+msgstr "Пропущено «%s»."
+
+msgid "Bring back"
+msgstr "Вернуть"
+
+#. translators: %d: number of skipped suggestions.
+msgid "Skipped suggestions: %d."
+msgstr "Пропущено замечаний: %d."
+
+msgid "Show again"
+msgstr "Показать снова"
+
 msgid "Hints are a guide, not a rule: the choice is yours. The list updates as you type. Click a hint to find it in the text, or a suggested word to put it in."
 msgstr "Подсказки — ориентир, а не правило: решать вам. Список обновляется, пока вы пишете. Нажмите на подсказку, чтобы найти её в тексте, или на предложенное слово, чтобы вставить его."
 

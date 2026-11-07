@@ -7,6 +7,9 @@ export const STRINGS={
   add:'Добавить «{word}» в словарь',addFailed:'Не получилось добавить слово',
   variants:'Показать варианты',loading:'Подбираем варианты…',noVariants:'Вариантов нет',replace:'Заменить на «{word}»',
   remove:'Убрать',removeLabel:'Убрать «{text}»',apply:'Принять «{text}»',applyLabel:'Заменить «{from}» на «{to}»',
+  skip:'Пропустить',skipLabel:'Пропустить замечание «{text}»',
+  replaced:'Заменено на «{text}».',removed:'Убрано «{text}».',skipped:'Пропущено «{text}».',undo:'Отменить',restore:'Вернуть',
+  hidden:'Пропущено замечаний: {n}.',showHidden:'Показать снова',
  },
  en:{
   title:'Suggestions',close:'Close',checking:'Checking the text…',none:'No suggestions.',
@@ -15,6 +18,9 @@ export const STRINGS={
   add:'Add “{word}” to the dictionary',addFailed:'Could not add the word',
   variants:'Show variants',loading:'Looking for variants…',noVariants:'No variants',replace:'Replace with “{word}”',
   remove:'Remove',removeLabel:'Remove “{text}”',apply:'Accept “{text}”',applyLabel:'Replace “{from}” with “{to}”',
+  skip:'Skip',skipLabel:'Skip the suggestion “{text}”',
+  replaced:'Replaced with “{text}”.',removed:'Removed “{text}”.',skipped:'Skipped “{text}”.',undo:'Undo',restore:'Bring back',
+  hidden:'Skipped suggestions: {n}.',showHidden:'Show again',
  },
 };
 export function strings(lang){

@@ -43,7 +43,7 @@ function collect() {
 }
 
 // State shared by the sidebar and the marks in the text.
-let state = {issues: [], highlight: select('core/preferences')?.get('reedach', 'highlight') ?? true, active: null};
+let state = {issues: [], hidden: [], notice: null, highlight: select('core/preferences')?.get('reedach', 'highlight') ?? true, active: null};
 const listeners = new Set();
 function setState(patch) {
  state = {...state, ...patch};
@@ -52,17 +52,43 @@ function setState(patch) {
 }
 const useReedach = () => useSyncExternalStore(f => (listeners.add(f), () => listeners.delete(f)), () => state);
 
+// A skipped hint is known by its rule and the sentence around it (the same key as in reedach-widget):
+// it stays away while the author edits other sentences and comes back once its own sentence changes.
+// Skips are kept in this browser; storage may be blocked, then they last until the page reloads.
+function skipKey(text, it) {
+ const stop = /[.!?…\n]/;
+ let a = it.start; while (a > 0 && !stop.test(text[a - 1])) a--;
+ let b = it.end; while (b < text.length && !stop.test(text[b])) b++;
+ return [it.id, it.start - a, it.end - a, text.slice(a, b)].join('|');
+}
+const SKIPS = 'reedach:skipped';
+let memory = [];
+const skips = {
+ list() { try { const v = JSON.parse(localStorage.getItem(SKIPS) || '[]'); return Array.isArray(v) ? v.filter(k => typeof k === 'string') : memory; } catch { return memory; } },
+ write(list) { memory = list.slice(-500); try { localStorage.setItem(SKIPS, JSON.stringify(memory)); } catch {} },
+ add(key) { this.write([...this.list().filter(k => k !== key), key]); },
+ remove(keys) { const drop = new Set(keys); this.write(this.list().filter(k => !drop.has(k))); },
+};
+
 const texts = new Map();   // clientId:key → checked text, to match it with the page
+// Any change of the text ends the chance to bring a skipped hint back from its line: the list is rebuilt.
 function run() {
  const items = collect();
  texts.clear();
  for (const item of items) texts.set(item.clientId + ':' + item.key, item.text);
+ const skipped = new Set(skips.list()), hidden = [];
  const issues = checkStyle(items).filter(it => !disabled.has(it.category)).map(it => {
   const item = items[it.block];
-  return {...it, clientId: item.clientId, key: item.key, fragment: item.text.slice(it.start, it.end), ...(it.edit && {editFrom: item.text.slice(it.edit.start, it.edit.end)}), uid: [item.clientId, item.key, it.start, it.end, it.id].join(':')};
- });
- setState({issues, active: issues.some(it => it.uid === state.active) ? state.active : null});
+  return {...it, clientId: item.clientId, key: item.key, fragment: item.text.slice(it.start, it.end), ...(it.edit && {editFrom: item.text.slice(it.edit.start, it.edit.end)}), uid: [item.clientId, item.key, it.start, it.end, it.id].join(':'), skipKey: skipKey(item.text, it)};
+ }).filter(it => !skipped.has(it.skipKey) || (hidden.push(it.skipKey), false));
+ setState({issues, hidden, notice: null, active: issues.some(it => it.uid === state.active) ? state.active : null});
 }
+function skip(it, index) {
+ skips.add(it.skipKey);
+ setState({issues: state.issues.filter(x => x !== it), hidden: [...state.hidden.filter(k => k !== it.skipKey), it.skipKey], notice: {index, it}, active: state.active === it.uid ? null : state.active});
+}
+function restore() { if (state.notice) { skips.remove([state.notice.it.skipKey]); run(); } }
+function showHidden() { skips.remove(state.hidden); run(); }
 
 let lastBlocks, lastTitle, timer;
 subscribe(() => {
@@ -218,19 +244,41 @@ function Sidebar() {
      onChange: value => { dispatch('core/preferences')?.set('reedach', 'highlight', value); setState({highlight: value}); },
     }),
     el('p', {className: 'reedach-count'}, s.issues.length ? t('count').replace('%d', s.issues.length) : t('none')),
-    el('ul', {className: 'reedach-list'}, s.issues.map(it => el('li', {key: it.uid},
+    el('ul', {className: 'reedach-list'}, withNotice(s, s.issues.map((it, index) => el('li', {key: it.uid},
      el('button', {type: 'button', className: 'reedach-item' + (it.uid === s.active ? ' is-active' : ''), onClick: () => show(it)},
       el('span', {className: 'reedach-label'}, it.label),
       el('span', {className: 'reedach-fragment'}, short(it.fragment)),
       el('span', {className: 'reedach-message'}, [it.message, it.fix].filter(Boolean).join(' '))),
-     it.replace?.length ? el('div', {className: 'reedach-variants'}, it.replace.map(word => el('button', {
-      type: 'button', key: word, className: 'reedach-variant', onClick: () => replace(it, word),
-      'aria-label': t('replace').replace('%s', capital(it, word)),
-     }, capital(it, word)))) : it.edit ? el('div', {className: 'reedach-variants'}, el('button', {
-      type: 'button', className: 'reedach-variant', onClick: () => applyEdit(it),
-      'aria-label': it.edit.remove ? t('removeLabel').replace('%s', short(it.fragment)) : t('applyLabel').replace('%1$s', it.editFrom.trim()).replace('%2$s', it.edit.text.trim()),
-     }, it.edit.remove ? t('remove') : t('apply').replace('%s', it.edit.text.trim()))) : null))),
+     el('div', {className: 'reedach-variants'}, ...fixes(it), el('button', {
+      type: 'button', className: 'reedach-skip', onClick: () => skip(it, index),
+      'aria-label': t('skipLabel').replace('%s', short(it.fragment)),
+     }, t('skip'))))))),
+    s.hidden.length ? el('p', {className: 'reedach-hidden'}, t('hidden').replace('%d', s.hidden.length) + ' ',
+     el('button', {type: 'button', className: 'reedach-skip', onClick: showHidden}, t('showHidden'))) : null,
     el('p', {className: 'reedach-credit'}, t('credit')))));
+}
+// Ready words, or the core's ready edit; every hint also gets «Пропустить».
+function fixes(it) {
+ if (it.replace?.length) return it.replace.map(word => el('button', {
+  type: 'button', key: word, className: 'reedach-variant', onClick: () => replace(it, word),
+  'aria-label': t('replace').replace('%s', capital(it, word)),
+ }, capital(it, word)));
+ if (it.edit) return [el('button', {
+  type: 'button', key: 'edit', className: 'reedach-variant', onClick: () => applyEdit(it),
+  'aria-label': it.edit.remove ? t('removeLabel').replace('%s', short(it.fragment)) : t('applyLabel').replace('%1$s', it.editFrom.trim()).replace('%2$s', it.edit.text.trim()),
+ }, it.edit.remove ? t('remove') : t('apply').replace('%s', it.edit.text.trim()))];
+ return [];
+}
+// What the last skip did, with a way back, stands where the hint was until the text changes.
+function withNotice(s, items) {
+ const n = s.notice;
+ if (!n) return items;
+ const line = el('li', {key: 'reedach-done', className: 'reedach-done'},
+  el('span', {role: 'status'}, t('skipped').replace('%s', short(n.it.fragment)) + ' '),
+  el('button', {type: 'button', className: 'reedach-skip is-primary', onClick: restore}, t('restore')));
+ const out = [...items];
+ out.splice(Math.min(n.index, out.length), 0, line);
+ return out;
 }
 
 wp.plugins.registerPlugin('reedach', {render: Sidebar, icon});

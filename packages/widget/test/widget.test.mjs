@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {shiftIssues,localDictionary,request,esc} from '../src/core.js';
+import {shiftIssues,localDictionary,localSkips,skipKey,request,esc} from '../src/core.js';
 import {STRINGS,strings} from '../src/i18n.js';
 
 test('typing keeps marks before the edit, moves those after it and drops the touched ones',()=>{
@@ -31,6 +31,29 @@ test('own words live in the browser and survive a blocked storage',()=>{
  Object.defineProperty(globalThis,'localStorage',{configurable:true,get(){throw new Error('SecurityError');}});
  try{const blocked=localDictionary();assert.doesNotThrow(()=>blocked.add('слово'));assert.deepEqual(blocked.list(),[]);}
  finally{if(had)Object.defineProperty(globalThis,'localStorage',had);else delete globalThis.localStorage;}
+});
+
+test('a skipped hint is known by its rule and sentence: other sentences may change, its own may not',()=>{
+ const text='Цены растут. Не секрет, что спрос тоже. Конец',it={id:'stamp',start:13,end:22};
+ const key=skipKey(text,it);
+ assert.equal(skipKey('Цены быстро растут. Не секрет, что спрос тоже. Конец',{...it,start:20,end:29}),key);
+ assert.equal(skipKey('Цены растут. Не секрет, что спрос тоже! Всё',it),key);
+ assert.notEqual(skipKey('Цены растут. Не секрет, что спрос вырос. Конец',it),key);
+ assert.notEqual(skipKey(text,{...it,id:'filler'}),key);
+});
+
+test('skipped hints live in the browser, can come back, and survive a blocked storage',()=>{
+ const data={},storage={getItem:k=>data[k]??null,setItem:(k,v)=>{data[k]=v;}};
+ const skips=localSkips(storage);
+ skips.add('a');skips.add('b');skips.add('a');
+ assert.deepEqual(skips.list(),['b','a']);
+ skips.remove(['a','x']);
+ assert.deepEqual(skips.list(),['b']);
+ const broken=localSkips({getItem(){throw new Error('blocked');},setItem(){throw new Error('blocked');}});
+ assert.doesNotThrow(()=>broken.add('a'));
+ assert.deepEqual(broken.list(),['a']);   // kept until the page reloads
+ broken.remove(['a']);
+ assert.deepEqual(broken.list(),[]);
 });
 
 test('requests carry the key and turn server errors into readable messages',async()=>{

@@ -21,6 +21,29 @@ export function localDictionary(storage,key='reedach:words'){
  };
 }
 
+// A skipped hint is known by its rule and the sentence around it, so it stays skipped while the author
+// edits other sentences, and comes back once its own sentence changes. The same hint in a repeated sentence
+// is skipped too: it is the same choice.
+export function skipKey(text,it){
+ const stop=/[.!?…\n]/;
+ let a=it.start;while(a>0&&!stop.test(text[a-1]))a--;
+ let b=it.end;while(b<text.length&&!stop.test(text[b]))b++;
+ return [it.id,it.start-a,it.end-a,text.slice(a,b)].join('|');
+}
+
+// Skipped hints kept in this browser, the same way as own words. Without storage they last until the page reloads.
+export function localSkips(storage,key='reedach:skipped'){
+ let memory=[];
+ const store=()=>{try{return storage===undefined?globalThis.localStorage:storage;}catch{return null;}};
+ const read=()=>{try{const s=store();if(!s)return memory;const v=JSON.parse(s.getItem(key)||'[]');return Array.isArray(v)?v.filter(k=>typeof k==='string'):memory;}catch{return memory;}};
+ const write=list=>{memory=list.slice(-500);try{store()?.setItem(key,JSON.stringify(memory));}catch{}};
+ return {
+  list:read,
+  add(k){const list=read().filter(x=>x!==k);list.push(k);write(list);},
+  remove(keys){const drop=new Set(keys);write(read().filter(x=>!drop.has(x)));},
+ };
+}
+
 // Request to a Reedach server (or a site's own proxy with the same API).
 export async function request(endpoint,path,body,{key,signal,fetch:f=globalThis.fetch}={}){
  const res=await f(endpoint.replace(/\/+$/,'')+path,{method:'POST',signal,headers:{'content-type':'application/json',...(key&&{authorization:'Bearer '+key})},body:JSON.stringify(body)});

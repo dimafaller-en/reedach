@@ -73,6 +73,15 @@ add_action(
 				'apply'       => __( 'Accept “%s”', 'reedach' ),
 				/* translators: 1: the text in the post, 2: the text that replaces it. */
 				'applyLabel'  => __( 'Replace %1$s with %2$s', 'reedach' ),
+				'skip'        => __( 'Skip', 'reedach' ),
+				/* translators: %s: the text of the suggestion. */
+				'skipLabel'   => __( 'Skip the suggestion %s', 'reedach' ),
+				/* translators: %s: the text of the skipped suggestion. */
+				'skipped'     => __( 'Skipped “%s”.', 'reedach' ),
+				'restore'     => __( 'Bring back', 'reedach' ),
+				/* translators: %d: number of skipped suggestions. */
+				'hidden'      => __( 'Skipped suggestions: %d.', 'reedach' ),
+				'showHidden'  => __( 'Show again', 'reedach' ),
 				'credit'      => __( 'Hints are a guide, not a rule: the choice is yours. The list updates as you type. Click a hint to find it in the text, or a suggested word to put it in.', 'reedach' ),
 			),
 		);

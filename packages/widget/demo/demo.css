@@ -41,7 +41,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-app
 .reedach-title{font-size:16px;font-weight:650}
 .reedach-count{margin-left:4px;color:var(--muted);font-weight:500}
 .reedach-close,.reedach-action{padding:0;border:0;background:none;color:var(--accent-ink);font:inherit;font-size:13px;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
-.reedach-status,.reedach-credit{margin:8px 0 0;color:var(--muted)}
+.reedach-status,.reedach-credit,.reedach-hidden{margin:8px 0 0;color:var(--muted)}
 .reedach-error{margin:8px 0;padding:8px 10px;border-radius:6px;background:rgba(192,57,43,.1);color:var(--ink)}
 .reedach-list{margin:0;padding:0;list-style:none}
 .reedach-item{padding:10px 0;border-top:1px solid var(--line)}
@@ -56,6 +56,9 @@ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-app
 .reedach-variant{padding:2px 10px;border:1px solid var(--line);border-radius:999px;background:var(--bg);color:var(--ink);font:inherit;font-size:13px;cursor:pointer}
 .reedach-variant:hover{border-color:var(--accent-ink)}
 .reedach-note{color:var(--muted);font-size:13px}
+.reedach-done{color:var(--muted)}
+.reedach-panel .reedach-skip{color:var(--muted);text-decoration-color:color-mix(in srgb,currentColor 45%,transparent)}
+.reedach-panel .reedach-skip:hover{color:var(--accent-ink)}
 .reedach-tooltip{max-width:320px;padding:8px 10px;border-radius:6px;background:var(--tip-bg);color:var(--tip-ink);font-size:13px;line-height:1.4;box-shadow:0 6px 20px rgba(0,0,0,.18)}
 .reedach-tooltip .reedach-label{background:none;padding:0;color:inherit}
 
