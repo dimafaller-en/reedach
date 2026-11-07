@@ -4,7 +4,7 @@ Tags: russian, proofreading, writing, style, gutenberg
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.4.0
+Stable tag: 0.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -17,6 +17,7 @@ Reedach checks Russian text while you write in the block editor. It finds bureau
 * The Reedach panel in the editor lists the hints; marks appear right in the text.
 * Click a hint to jump to the fragment and select it.
 * Many hints offer a ready replacement: click the suggested word to put it in the text. Undo takes it back.
+* "Skip" a hint you decide to keep: it stays away until its sentence changes, and "Show again" brings the skipped ones back.
 * The check runs in the author's browser. The text is not sent anywhere, there is no external service and no account.
 * Settings → Reedach: switch off the kinds of hints your authors do not need.
 
@@ -56,7 +57,16 @@ Chrome and Edge 105+, Safari 17.2+, Firefox 140+. In older browsers the list of 
 
 No, only with the block editor.
 
+== Screenshots ==
+
+1. Hints in the Reedach panel and marks right in the text.
+2. Ready fixes, "Skip" for a hint you want to keep, and a way to bring it back.
+
 == Changelog ==
+
+= 0.5.0 =
+* "Skip" on every hint: the hint leaves the list and stays away until its sentence changes. Skips are kept in the browser; "Show again" brings them back.
+* A skipped hint leaves a line with "Bring back" in its place until the text changes.
 
 = 0.4.0 =
 * A "Remove" button where the hinted words can go without breaking the sentence (an aside between commas, «Не секрет, что», a formula sentence): extra commas and spaces go with them, Undo takes it back.

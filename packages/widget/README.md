@@ -19,8 +19,8 @@
 ## Подключение одной строкой
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/reedach-widget@0.4.0/dist/reedach.min.js"
-        integrity="sha384-E50ssZN/VEyJg6a5wUPc3rnzwyj9B6ycWv2+jDUf+6obtHFf7URab5Sa1G3PuUhI"
+<script src="https://cdn.jsdelivr.net/npm/reedach-widget@0.5.0/dist/reedach.min.js"
+        integrity="sha384-YiZbqDxPIUk3MrZskqDsKPMh/WtoCycHGw4Z7wcdvIpfVZ7O4R0ecb/W6joxp9gm"
         crossorigin="anonymous" defer></script>
 
 <textarea data-reedach
