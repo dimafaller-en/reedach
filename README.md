@@ -233,7 +233,8 @@ for (const it of issues)
 `start` и `end` указывают на место в исходном тексте, поэтому замечание можно подсветить
 прямо в поле ввода. Блоки можно передать и без Markdown: `checkStyle([{text: '…', kind: 'p'}])`,
 где `kind` — `p` (абзац), `li` (пункт списка) или `h` (заголовок). Длину предложения и абзаца
-можно настроить: `checkStyle(blocks, {maxSentenceWords: 25, maxParagraphWords: 120})`.
+можно настроить: `checkStyle(blocks, {maxSentenceWords: 25, maxParagraphWords: 120})`, а `yo: true`
+включает подсказку «еще» → «ещё». Категории явных ошибок — в `MISTAKES`.
 
 Всё вместе — орфография, морфология и стиль — в Node, без отдельного сервиса. Нужен установленный hunspell:
 
