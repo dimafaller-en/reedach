@@ -74,6 +74,9 @@ add_action(
 				'apply'       => __( 'Accept “%s”', 'reedach' ),
 				/* translators: 1: the text in the post, 2: the text that replaces it. */
 				'applyLabel'  => __( 'Replace %1$s with %2$s', 'reedach' ),
+				'nbsp'        => __( 'Non-breaking space', 'reedach' ),
+				/* translators: %s: the text that gets a non-breaking space. */
+				'nbspLabel'   => __( 'Put a non-breaking space in %s', 'reedach' ),
 				'skip'        => __( 'Skip', 'reedach' ),
 				/* translators: %s: the text of the suggestion. */
 				'skipLabel'   => __( 'Skip the suggestion %s', 'reedach' ),

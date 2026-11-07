@@ -211,6 +211,8 @@ const short = s => (s.length > 70 ? s.slice(0, 67).trimEnd() + '…' : s);
 // already cased and takes in the commas and spaces that go with it. The new text keeps the formatting of the place:
 // the capital a removal gives the next word keeps that word's.
 const capital = (it, word) => (/^\p{Lu}/u.test(it.fragment) ? word[0].toUpperCase() + word.slice(1) : word);
+// A replacement that only turns spaces into non-breaking ones looks like the text itself, so its button is named instead.
+const nbspOnly = (from, to) => from !== to && from.replace(/ /g, ' ') === to.replace(/ /g, ' ');
 const replace = (it, word) => put(it, it.start, it.end, it.fragment, capital(it, word), it.start);
 const applyEdit = it => put(it, it.edit.start, it.edit.end, it.editFrom, it.edit.text, it.edit.remove ? it.edit.end - 1 : it.edit.start);
 function put(it, start, end, expected, text, at) {
@@ -261,14 +263,20 @@ function Sidebar() {
 }
 // Ready words, or the core's ready edit; every hint also gets «Пропустить».
 function fixes(it) {
- if (it.replace?.length) return it.replace.map(word => el('button', {
-  type: 'button', key: word, className: 'reedach-variant', onClick: () => replace(it, word),
-  'aria-label': t('replace').replace('%s', capital(it, word)),
- }, capital(it, word)));
- if (it.edit) return [el('button', {
-  type: 'button', key: 'edit', className: 'reedach-variant', onClick: () => applyEdit(it),
-  'aria-label': it.edit.remove ? t('removeLabel').replace('%s', short(it.fragment)) : t('applyLabel').replace('%1$s', it.editFrom.trim()).replace('%2$s', it.edit.text.trim()),
- }, it.edit.remove ? t('remove') : t('apply').replace('%s', it.edit.text.trim()))];
+ if (it.replace?.length) return it.replace.map(word => {
+  const nbsp = nbspOnly(it.fragment, capital(it, word));
+  return el('button', {
+   type: 'button', key: word, className: 'reedach-variant', onClick: () => replace(it, word),
+   'aria-label': nbsp ? t('nbspLabel').replace('%s', it.fragment) : t('replace').replace('%s', capital(it, word)),
+  }, nbsp ? t('nbsp') : capital(it, word));
+ });
+ if (it.edit) {
+  const from = it.editFrom.trim(), to = it.edit.text.trim(), nbsp = !it.edit.remove && nbspOnly(from, to);
+  return [el('button', {
+   type: 'button', key: 'edit', className: 'reedach-variant', onClick: () => applyEdit(it),
+   'aria-label': it.edit.remove ? t('removeLabel').replace('%s', short(it.fragment)) : nbsp ? t('nbspLabel').replace('%s', from) : t('applyLabel').replace('%1$s', from).replace('%2$s', to),
+  }, it.edit.remove ? t('remove') : nbsp ? t('nbsp') : t('apply').replace('%s', to))];
+ }
  return [];
 }
 // What the last skip did, with a way back, stands where the hint was until the text changes.

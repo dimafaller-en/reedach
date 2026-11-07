@@ -16,6 +16,8 @@ const kind=it=>it.id==='spelling'?'spell':LENGTH.has(it.id)?'long':'word';
 // A plain mistake («вообщем», a paronym, typography) is also in reedach-word, so a site without a style for
 // reedach-mistake marks it as before.
 const mistake=it=>kind(it)==='word'&&MISTAKES.has(it.category);
+// A replacement that only turns spaces into non-breaking ones looks like the text itself, so its button is named instead.
+const nbspOnly=(from,to)=>from!==to&&from.replace(/ /g,' ')===to.replace(/ /g,' ');
 const live=new Set(),attached=new WeakMap();
 let flashTimer=0;
 
@@ -129,10 +131,11 @@ class Checker{
  #fixes(it,i){
   // A style hint with ready replacements: buttons only, a style word is not a typo for the dictionary.
   // The replacement starts with a capital letter when the found word does.
-  if(Array.isArray(it.replace)&&it.replace.length){const cap=/^\p{Lu}/u.test(this.value.slice(it.start,it.end)),up=w=>cap?w[0].toUpperCase()+w.slice(1):w;return it.replace.map(w=>this.#variant(i,up(w))).join('');}
+  if(Array.isArray(it.replace)&&it.replace.length){const found=this.value.slice(it.start,it.end),cap=/^\p{Lu}/u.test(found),up=w=>cap?w[0].toUpperCase()+w.slice(1):w;return it.replace.map(w=>this.#variant(i,up(w),found)).join('');}
   // A ready edit of the core: «Убрать» or a piece wider than the hint, already cased and with its commas and spaces.
-  if(it.edit){const e=it.edit,from=this.value.slice(e.start,e.end).trim(),to=e.text.trim(),label=e.remove?this.t('removeLabel',{text:this.#fragment(it)}):this.t('applyLabel',{from,to});
-   return '<button type="button" class="reedach-variant" data-reedach-edit="'+i+'" aria-label="'+esc(label)+'">'+esc(e.remove?this.t('remove'):this.t('apply',{text:to}))+'</button>';}
+  if(it.edit){const e=it.edit,from=this.value.slice(e.start,e.end).trim(),to=e.text.trim(),nb=!e.remove&&nbspOnly(from,to);
+   const label=e.remove?this.t('removeLabel',{text:this.#fragment(it)}):nb?this.t('nbspLabel',{text:from}):this.t('applyLabel',{from,to});
+   return '<button type="button" class="reedach-variant" data-reedach-edit="'+i+'" aria-label="'+esc(label)+'">'+esc(e.remove?this.t('remove'):nb?this.t('nbsp'):this.t('apply',{text:to}))+'</button>';}
   if(!it.word)return '';
   const t=this.t,v=this.variants.get(it.word);let out='';
   if(Array.isArray(v))out=v.length?v.map(w=>this.#variant(i,w)).join(''):'<span class="reedach-note">'+esc(t('noVariants'))+'</span>';
@@ -140,7 +143,8 @@ class Checker{
   else if(this.send)out='<button type="button" class="reedach-action" data-reedach-variants="'+esc(it.word)+'">'+esc(t('variants'))+'</button>';
   return out+'<button type="button" class="reedach-action" data-reedach-add="'+esc(it.word)+'">'+esc(t('add',{word:it.word}))+'</button>';
  }
- #variant(i,w){return '<button type="button" class="reedach-variant" data-reedach-replace="'+i+'" data-reedach-value="'+esc(w)+'" aria-label="'+esc(this.t('replace',{word:w}))+'">'+esc(w)+'</button>';}
+ #variant(i,w,from){const nb=from!==undefined&&nbspOnly(from,w);
+  return '<button type="button" class="reedach-variant" data-reedach-replace="'+i+'" data-reedach-value="'+esc(w)+'" aria-label="'+esc(nb?this.t('nbspLabel',{text:from}):this.t('replace',{word:w}))+'">'+esc(nb?this.t('nbsp'):w)+'</button>';}
  #renderPanel(){
   const {panel,issues,busy,error,t}=this;
   const head='<div class="reedach-head"><div class="reedach-title" role="heading" aria-level="2">'+esc(t('title'))+(busy?'':' <span class="reedach-count">'+issues.length+'</span>')+'</div><button type="button" class="reedach-close" data-reedach-close>'+esc(t('close'))+'</button></div>';
