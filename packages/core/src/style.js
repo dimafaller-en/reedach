@@ -51,7 +51,7 @@ export const BUILTIN={
  'passive-was':{category:'passive',message:'Страдательный залог прячет того, кто действует.',fix:'Назовите действующее лицо: не «было принято решение», а «мы решили».'},
  'nominal-chain':{category:'nominalization',message:'Цепочка отглагольных существительных звучит казённо.',fix:'Превратите одно из слов в глагол: не «проведение проверки», а «проверили».'},
  'word-repeat':{category:'repetition',message:'Одно и то же слово повторяется в абзаце.',fix:'Уберите лишние повторы или замените местоимением.'},
- 'title-too-long':{category:'structure',message:'Длинный заголовок трудно охватить взглядом.',fix:'Сократите до одной мысли, примерно до 70 знаков.'},
+ 'title-too-long':{category:'structure',message:'Длинный заголовок трудно охватить взглядом.',fix:'Сократите до одной мысли, не длиннее 70 знаков.'},
  'first-paragraph-long':{category:'structure',message:'Длинный первый абзац: читатель может уйти, не дойдя до главного.',fix:'Начните с главной мысли в двух-трёх предложениях, подробности перенесите ниже.'},
  'no-headings':{category:'structure',message:'Длинный текст без подзаголовков: в нём трудно ориентироваться.',fix:'Разбейте текст на части с подзаголовками по смыслу.'},
  'thin-section':{category:'structure',message:'Под подзаголовком почти нет текста.',fix:'Допишите раздел или объедините его с соседним.'},
@@ -75,8 +75,13 @@ export const BUILTIN={
  'typo-currency-glued':{category:'typography',message:'Сумма слиплась со знаком валюты.',fix:'Отделите пробелом: «1500 ₽», «1500 руб.».'},
  'typo-power':{category:'typography',message:'Степень записана цифрой.',fix:'Поставьте знак степени: «м²», «м³».'},
  'typo-ordinal':{category:'typography',message:'Лишние буквы в окончании порядкового числительного.',fix:'Пишите коротко: «25-й», «1-я», «5-е», «в 3-м».'},
- 'typo-number-sign':{category:'typography',message:'Знак номера вплотную к числу.',fix:'Отделите пробелом: «№ 5».'},
+ 'typo-number-sign':{category:'typography',message:'Знак номера вплотную к числу.',fix:'Отделите неразрывным пробелом: «№ 5».'},
  'typo-copyright':{category:'typography',message:'Знак набран буквами в скобках.',fix:'Поставьте сам знак: ©, ™, ®.'},
+ 'typo-nbsp-unit':{category:'typography',message:'Число и единица разделены обычным пробелом: при переносе строки они разъедутся.',fix:'Поставьте неразрывный пробел: «100\u00A0₽», «5\u00A0кг», «2024\u00A0г.».'},
+ 'typo-nbsp-initials':{category:'typography',message:'Инициалы могут оторваться от фамилии при переносе строки.',fix:'Поставьте неразрывные пробелы: «А.\u00A0С.\u00A0Пушкин».'},
+ 'typo-digits':{category:'typography',message:'В длинном числе не видно разрядов.',fix:'Разделите разряды неразрывным пробелом: «1\u00A0500\u00A0000». Четырёхзначные числа пишут слитно: «1500».'},
+ 'typo-quotes-en':{category:'typography',message:'Английские кавычки в русском тексте.',fix:'Поставьте ёлочки: «Стандарт», а внутри других кавычек — „лапки“.'},
+ 'typo-yo':{category:'yo',message:'Слово можно написать с «ё»: так его легче прочитать.',fix:'Напишите «ё», как в словах «ещё», «её», «чёрный».'},
  'typo-mixed-script':{category:'typography',message:'В слове смешаны русские и латинские буквы: так бывает после копирования. Поиск и проверка орфографии такое слово не узнают.',fix:'Наберите слово заново на одной раскладке.'},
 };
 // Typography: [id, pattern, fix?]; fix(match) gives the text a click puts in its place. A match must not span removed markup or a joined line break (see plain below).
@@ -98,10 +103,30 @@ const TYPO=[
  ['typo-currency-glued',/(?<![\d.,])\d+(?:[.,]\d+)?(?:₽|руб\.|рубл[а-яё]*|руб(?![А-Яа-яЁё]))/g,m=>m.replace(/(?=₽|руб)/,' ')],
  ['typo-power',/(?<![А-Яа-яЁёA-Za-z\d])[кдсм]?м[23](?![\dА-Яа-яЁёA-Za-z])/g,m=>m.slice(0,-1)+(m.endsWith('2')?'²':'³')],
  ['typo-ordinal',/(?<=\d)-(?:ый|ий|ой|ей|ая|ое|ые|ых|их|ым|ом|ую|ого|ому|ыми|ими)(?![А-Яа-яЁё])/g,m=>'-'+{ый:'й',ий:'й',ой:'й',ей:'й',ая:'я',ое:'е',ые:'е',ых:'х',их:'х',ым:'м',ом:'м',ую:'ю',ого:'го',ому:'му',ыми:'ми',ими:'ми'}[m.slice(1)]],
- ['typo-number-sign',/№\d+/g,m=>'№ '+m.slice(1)],
+ ['typo-number-sign',/№\d+/g,m=>'№'+NB+m.slice(1)],
+ // A number and its unit, two initials and a surname stay on one line: a non-breaking space between them.
+ ['typo-nbsp-unit',/(?<![\d.,\-–])\d+(?:[.,]\d+)? (?:₽|руб\.|рубл[а-яё]*|руб|коп\.|долл\.|\$|€|кг|мг|км|см|мм|мл|тыс\.|млн|млрд|гг?\.|шт\.|т|м|л|г)(?![А-Яа-яЁёA-Za-z])/g,m=>m.replace(' ',NB)],
+ ['typo-nbsp-initials',/(?<![\p{L}.])[А-ЯЁ]\. [А-ЯЁ]\. [А-ЯЁ][а-яё]{2,}/gu,m=>m.replace(/ /g,NB)],
+ // Five digits and more get groups of three: «1 500 000», also «1,500,000». Not a code, an account or a phone number:
+ // nothing glued to it, no digits («916 1234567»), «№», «ИНН» or «артикул» right before it.
+ ['typo-digits',/(?<![\d.,№#+\-\/:])(?<!\d[ \-])(?<!(?:ИНН|ОГРН|ОГРНИП|КПП|БИК|ОКПО|СНИЛС|[Аа]ртикул[а-я]*|[Ии]ндекс[а-я]*|[Кк]од[а-я]*|[Нн]омер[а-я]*|[Сс]чет[а-я]*|[Сс]чёт[а-я]*|№|#)[:\s]{0,2})(?:[1-9]\d{4,8}(?!\d|[\-\/:.,]\d)|[1-9]\d{0,2}(?:,\d{3}){2,}(?![\d,])|[1-9]\d{0,2}(?:\.\d{3}){2,}(?![\d.]))/g,m=>/[.,]/.test(m)?m.replace(/[.,]/g,NB):m.replace(/\B(?=(?:\d{3})+$)/g,NB)],
  ['typo-copyright',/\([cс]\)(?=\s*\d)|\((?:tm|TM|r|R)\)/g,m=>({'(tm)':'™','(TM)':'™','(r)':'®','(R)':'®'})[m]||'©'],
 ];
 // Mixed scripts are checked word by word: one pattern over the whole text backtracked for seconds on a long word.
+// «ё» where a word with «е» has no other reading: «еще» is always «ещё», but «все» may be «все» or «всё».
+const YO=('ещё её моё твоё своё вперёд шёл пришёл ушёл нашёл пошёл зашёл вошёл трёх четырёх идём пойдём придём найдём берём даём живём ждём поймём '+
+ 'чёрный чёрная чёрное чёрные чёрного чёрной чёрным чёрную чёрных чёрными жёлтый жёлтая жёлтое жёлтые жёлтого жёлтой жёлтым жёлтую жёлтых '+
+ 'тёмный тёмная тёмное тёмные тёмного тёмной тёмным тёмную тёмных лёгкий лёгкая лёгкое лёгкие лёгкого лёгкой лёгким лёгкую лёгких '+
+ 'твёрдый твёрдая твёрдое твёрдые твёрдого твёрдой твёрдым твёрдую твёрдых тёплый тёплая тёплое тёплые тёплого тёплой тёплым тёплую тёплых '+
+ 'зелёный зелёная зелёное зелёные зелёного зелёной зелёным зелёную зелёных чёткий чёткая чёткое чёткие чётко '+
+ 'самолёт самолёта самолёты самолётов самолёте ребёнок ребёнка ребёнку ребёнком ребёнке ёлка ёлки ёлку ёлкой ёмкость ёмкости '+
+ 'актёр актёра актёры актёров партнёр партнёра партнёру партнёром партнёре партнёры партнёров партнёрам партнёрами партнёрах партнёрство '+
+ 'приём приёма приёму приёмом приёме приёмы приёмов отчёт отчёта отчёту отчётом отчёте отчёты отчётов отчётность отчётности '+
+ 'учёт учёта учёту учётом учёте расчёт расчёта расчёту расчётом расчёте расчёты расчётов объём объёма объёму объёмом объёме объёмы объёмов '+
+ 'подъём подъёма счёт счётом счёте счётчик счётчика полёт полёта полёты звёзд лёд щётка щётки решётка решётки').split(' ');
+const YO_MAP=new Map(YO.map(w=>[w.replace(/ё/g,'е'),w])),YO_RE=new RegExp('(?<![А-Яа-яЁё])(?:'+[...YO_MAP.keys()].join('|')+')(?![А-Яа-яЁё])','gi');
+const withYo=found=>{const y=YO_MAP.get(norm(found));return [...found].map((c,k)=>y[k]==='ё'?(c==='Е'?'Ё':'ё'):c).join('');};
+const NB='\u00A0';
 const MIXED=/\p{Script=Cyrillic}\p{Script=Latin}|\p{Script=Latin}\p{Script=Cyrillic}/u;
 // Addresses, e-mails and HTML entities are not prose: no typography hints inside them.
 // Marked once per block (a looked-up word per hint made a long text with many hints quadratic).
@@ -150,17 +175,26 @@ function addEdits(issues,blocks){
  }
  return issues;
 }
+// Lines of a block: a gap stands for a line break. A line rule fires only on a line that is nothing but the match
+// and trailing marks: «Введите имя», «Подробнее →» on their own, not inside a sentence.
+const linesOf=b=>{const out=[];let s=0;for(const j of [...(b.gaps||[])].filter(j=>j>=0&&j<b.text.length).sort((x,y)=>x-y)){out.push([s,j]);s=j+1;}out.push([s,b.text.length]);return out;};
+const lineMatch=(seg,re)=>{const lead=seg.length-seg.trimStart().length;re.lastIndex=0;const m=re.exec(seg);re.lastIndex=0;if(!m||m.index!==lead||!/^[\s.…:!?→»>]*$/.test(seg.slice(m.index+m[0].length)))return null;return {start:m.index,end:m.index+m[0].trimEnd().length};};
 // blocks: [{text, kind:'p'|'li'|'h', tag?:'H1'|'H2'…}] → issues: [{block,start,end,id,category,label,message,fix}]
-export function checkStyle(blocks,{maxSentenceWords=25,maxParagraphWords=120}={}){
+// yo: also suggest «ё» where it is skipped; off by default, as many sites write «е».
+export function checkStyle(blocks,{maxSentenceWords=25,maxParagraphWords=120,yo=false}={}){
  const issues=[],add=(block,start,end,id,rule)=>issues.push({block,start,end,id,category:rule.category,label:CATEGORIES[rule.category]||rule.category,message:rule.message,fix:rule.fix,...(rule.replace&&{replace:rule.replace}),...(rule.exact&&{exact:true}),...(rule.variants&&{variants:rule.variants})});
  blocks.forEach((b,i)=>{
   const text=b.text,low=norm(text),list=sentences(text);
   // A start-only rule needs nothing but spaces between the sentence start and the match.
-  for(const {rule,re} of compiled){if(!re)continue;re.lastIndex=0;for(const m of low.matchAll(re)){if(rule.start){const s=sentenceAt(list,m.index);if(!s||low.slice(s.start,m.index).trim()!=='')continue;}{const found=text.slice(m.index,m.index+m[0].length);add(i,m.index,m.index+m[0].length,rule.id,offered(swapped(rule,m[0],found),found));}}}
+  const lines=linesOf(b);
+  for(const {rule,re} of compiled){if(!re)continue;re.lastIndex=0;if(rule.line){for(const [s,e] of lines){const m=lineMatch(low.slice(s,e),re);if(m){const a=s+m.start,z=s+m.end,found=text.slice(a,z);add(i,a,z,rule.id,offered(swapped(rule,low.slice(a,z),found),found));}}continue;}for(const m of low.matchAll(re)){if(rule.start){const s=sentenceAt(list,m.index);if(!s||low.slice(s.start,m.index).trim()!=='')continue;}{const found=text.slice(m.index,m.index+m[0].length);add(i,m.index,m.index+m[0].length,rule.id,offered(swapped(rule,m[0],found),found));}}}
   const {plain}=spansOf(b),tech=technical(text);
   for(const [id,re,fix] of TYPO)for(const m of text.matchAll(re))if(plain(m.index,m.index+m[0].length)&&!tech(m.index))add(i,m.index,m.index+m[0].length,id,fix?{...BUILTIN[id],replace:[fix(m[0])],exact:true}:BUILTIN[id]);
   for(const m of text.matchAll(/\p{L}+/gu))if(MIXED.test(m[0])&&plain(m.index,m.index+m[0].length)&&!tech(m.index))add(i,m.index,m.index+m[0].length,'typo-mixed-script',BUILTIN['typo-mixed-script']);
   for(const m of text.matchAll(/"[^"\n]*"/g))if(/[А-Яа-яЁё]/.test(m[0]))add(i,m.index,m.index+m[0].length,'typo-quotes',BUILTIN['typo-quotes']);
+  // English “…” around Russian words: ёлочки, or лапки inside open ёлочки.
+  for(const m of text.matchAll(/“([^“”„«»\n]*)”/g)){const e=m.index+m[0].length;if(!/[А-Яа-яЁё]/.test(m[1])||!plain(m.index,e)||tech(m.index))continue;const before=text.slice(0,m.index),inner=(before.match(/«/g)||[]).length>(before.match(/»/g)||[]).length;add(i,m.index,e,'typo-quotes-en',{...BUILTIN['typo-quotes-en'],replace:[inner?'„'+m[1]+'“':'«'+m[1]+'»'],exact:true});}
+  if(yo)for(const m of text.matchAll(YO_RE))add(i,m.index,m.index+m[0].length,'typo-yo',{...BUILTIN['typo-yo'],replace:[withYo(m[0])],exact:true});
   for(const k of unpaired(text))add(i,k,k+1,'typo-unpaired',BUILTIN['typo-unpaired']);
   for(const m of low.matchAll(new RegExp('(?<!['+L+'])(['+L+']+)\\s+\\1(?![-'+L+'])','g')))if(!DOUBLE_OK.has(m[1])&&plain(m.index,m.index+m[0].length))add(i,m.index,m.index+m[0].length,'word-double',BUILTIN['word-double']);
   if(b.kind==='h')return;

@@ -54,3 +54,8 @@ test('rules list covers dictionary, built-in and morphology rules',()=>{
  assert.ok(list.every(r=>r.message&&r.label));
  assert.equal(categories.spelling,'Орфография');
 });
+test('«ё» only when the request asks for it',async()=>{
+ const yo=async extra=>(await check({text:'Еще ее черный кот.',checks:['style'],...extra})).issues.filter(it=>it.id==='typo-yo').map(it=>it.replace[0]);
+ assert.deepEqual(await yo({}),[]);
+ assert.deepEqual(await yo({yo:true}),['Ещё','её','чёрный']);
+});

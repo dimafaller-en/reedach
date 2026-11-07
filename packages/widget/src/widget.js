@@ -3,26 +3,33 @@
 // and the check reruns after a short pause. Without an endpoint the dictionary check runs in the browser;
 // with one, a Reedach server adds spelling and morphology.
 // The widget ships no visual styles: only what keeps the mirror on top of the text. The site styles the rest.
-import {checkStyle,sourceBlocks,textBlocks,mergeIssues} from 'reedach';
+import {checkStyle,sourceBlocks,textBlocks,mergeIssues,MISTAKES} from 'reedach';
 import {strings} from './i18n.js';
 import {shiftIssues,localDictionary,localSkips,skipKey,request,esc} from './core.js';
 
 const LENGTH=new Set(['long-sentence','long-paragraph']);
+// Keys that move the caret without typing: after them the hint of the word under the caret shows, as on hover.
+const NAV=new Set(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End','PageUp','PageDown']);
 const HL=typeof CSS!=='undefined'&&!!CSS.highlights&&typeof Highlight==='function';
 const COPY=['fontFamily','fontSize','fontWeight','fontStyle','fontStretch','fontVariant','fontFeatureSettings','fontKerning','lineHeight','letterSpacing','wordSpacing','textIndent','textTransform','tabSize','wordBreak','paddingTop','paddingLeft','paddingBottom','borderTopWidth','borderRightWidth','borderBottomWidth','borderLeftWidth'];
 const kind=it=>it.id==='spelling'?'spell':LENGTH.has(it.id)?'long':'word';
+// A plain mistake («вообщем», a paronym, typography) is also in reedach-word, so a site without a style for
+// reedach-mistake marks it as before.
+const mistake=it=>kind(it)==='word'&&MISTAKES.has(it.category);
+// A replacement that only turns spaces into non-breaking ones looks like the text itself, so its button is named instead.
+const nbspOnly=(from,to)=>from!==to&&from.replace(/ /g,' ')===to.replace(/ /g,' ');
 const live=new Set(),attached=new WeakMap();
 let flashTimer=0;
 
-// Highlights are global by name, so every open widget paints into the same three.
+// Highlights are global by name, so every open widget paints into the same four.
 function paintAll(){
  if(!HL)return;
- const sets={spell:new Highlight(),word:new Highlight(),long:new Highlight()};
- for(const w of live)for(const it of w.issues)if(it.range)sets[kind(it)].add(it.range);
+ const sets={spell:new Highlight(),word:new Highlight(),long:new Highlight(),mistake:Object.assign(new Highlight(),{priority:1})};
+ for(const w of live)for(const it of w.issues)if(it.range){sets[kind(it)].add(it.range);if(mistake(it))sets.mistake.add(it.range);}
  for(const [name,h] of Object.entries(sets))h.size?CSS.highlights.set('reedach-'+name,h):CSS.highlights.delete('reedach-'+name);
 }
 
-// attach(textarea, {endpoint, key, request, format, panel, lang, delay, dictionary, skips, disable, onChange, onClose}) → checker.
+// attach(textarea, {endpoint, key, request, format, panel, lang, delay, dictionary, skips, disable, yo, onChange, onClose}) → checker.
 // Attaching to a field that is already checked runs the check again.
 export function attach(source,options={}){
  const open=attached.get(source);
@@ -31,9 +38,9 @@ export function attach(source,options={}){
 }
 
 class Checker{
- constructor(source,{endpoint=null,key=null,request:send=null,format='text',panel=null,lang,delay=1000,dictionary=localDictionary(),skips=localSkips(),disable=[],onChange,onClose}={}){
+ constructor(source,{endpoint=null,key=null,request:send=null,format='text',panel=null,lang,delay=1000,dictionary=localDictionary(),skips=localSkips(),disable=[],yo=false,onChange,onClose}={}){
   if(!(source instanceof HTMLTextAreaElement))throw new TypeError('Reedach: attach() expects a textarea');
-  Object.assign(this,{source,format,delay,dictionary,skips,disable:new Set(disable),onChange,onClose});
+  Object.assign(this,{source,format,delay,dictionary,skips,disable:new Set(disable),yo:yo===true,onChange,onClose});
   // Server calls go through the site's own function when given (cookies, CSRF), else straight to the endpoint.
   this.send=send||(endpoint?(path,body,o={})=>request(endpoint,path,body,{key,...o}):null);
   this.t=strings(lang);this.issues=[];this.value=source.value;this.busy=true;this.error='';this.variants=new Map();this.hidden=[];this.notice=null;
@@ -42,7 +49,7 @@ class Checker{
   source.before(this.mirror);
   this.ownPanel=!panel;this.panel=panel||document.createElement('div');this.panel.classList.add('reedach-panel');this.panel.hidden=false;
   if(this.ownPanel)source.after(this.panel);
-  this.tooltip=Object.assign(document.createElement('div'),{className:'reedach-tooltip',hidden:true});this.tooltip.setAttribute('role','tooltip');
+  this.tooltip=Object.assign(document.createElement('div'),{className:'reedach-tooltip',hidden:true});this.tooltip.setAttribute('role','tooltip');this.tooltip.setAttribute('aria-live','polite');
   Object.assign(this.tooltip.style,{position:'fixed',zIndex:'2147483000',pointerEvents:'none'});
   document.body.append(this.tooltip);
   this.#listen();live.add(this);this.render();this.check();
@@ -52,9 +59,15 @@ class Checker{
   const place=()=>{if(!this.closed)this.place();};
   this.off=[
    [source,'input',()=>this.#onInput()],
-   [source,'scroll',()=>{mirror.scrollTop=source.scrollTop;mirror.scrollLeft=source.scrollLeft;}],
+   [source,'scroll',()=>{mirror.scrollTop=source.scrollTop;mirror.scrollLeft=source.scrollLeft;tooltip.hidden=true;}],
    [source,'mousemove',e=>{if(frame)return;frame=requestAnimationFrame(()=>{frame=0;if(this.closed)return;this.#tip(e.clientX,e.clientY);});}],
    [source,'mouseleave',()=>{tooltip.hidden=true;}],
+   // Keyboard and touch have no hover: the hint follows the caret after an arrow key or a tap on a word.
+   [source,'keyup',e=>{if(NAV.has(e.key))this.#caretTip();}],
+   [source,'keydown',e=>{if(e.key==='Escape')tooltip.hidden=true;}],
+   [source,'pointerdown',e=>{this.pointer=e.pointerType;}],
+   [source,'click',()=>{if(this.pointer&&this.pointer!=='mouse')this.#caretTip();}],
+   [source,'blur',()=>{tooltip.hidden=true;}],
    [panel,'click',e=>this.#onPanel(e)],
    [window,'resize',place],
   ].map(([el,type,fn])=>{el.addEventListener(type,fn);return ()=>el.removeEventListener(type,fn);});
@@ -75,10 +88,10 @@ class Checker{
   if(this.closed)return;
   clearTimeout(this.timer);this.timer=0;this.controller?.abort();
   const controller=new AbortController(),value=this.source.value;this.controller=controller;
-  const local=()=>{const blocks=this.format==='markdown'?sourceBlocks(value):textBlocks(value);return mergeIssues(blocks,{local:checkStyle(blocks)});};
+  const local=()=>{const blocks=this.format==='markdown'?sourceBlocks(value):textBlocks(value);return mergeIssues(blocks,{local:checkStyle(blocks,{yo:this.yo})});};
   let issues,error='';
   if(this.send){
-   try{const ignore=await this.dictionary.list();({issues}=await this.send('/check',{[this.format==='markdown'?'markdown':'text']:value,ignore,disable:[...this.disable]},{signal:controller.signal}));}
+   try{const ignore=await this.dictionary.list();({issues}=await this.send('/check',{[this.format==='markdown'?'markdown':'text']:value,ignore,disable:[...this.disable],...(this.yo&&{yo:true})},{signal:controller.signal}));}
    catch(e){if(e.name==='AbortError')return;error=this.t('serverFailed',{error:e.message||'?'});issues=local();}
   }else issues=local();
   let skipped=new Set();try{skipped=new Set(await this.skips.list());}catch{}
@@ -96,6 +109,7 @@ class Checker{
  }
  // The author's own typing ends the chance to undo the last fix or skip from the list; Ctrl+Z still works.
  #onInput(){
+  this.tooltip.hidden=true;
   if(!this.ours)this.notice=null;
   clearTimeout(this.timer);this.timer=setTimeout(()=>this.check(),this.delay);
   if(this.busy)return;
@@ -117,10 +131,11 @@ class Checker{
  #fixes(it,i){
   // A style hint with ready replacements: buttons only, a style word is not a typo for the dictionary.
   // The replacement starts with a capital letter when the found word does.
-  if(Array.isArray(it.replace)&&it.replace.length){const cap=/^\p{Lu}/u.test(this.value.slice(it.start,it.end)),up=w=>cap?w[0].toUpperCase()+w.slice(1):w;return it.replace.map(w=>this.#variant(i,up(w))).join('');}
+  if(Array.isArray(it.replace)&&it.replace.length){const found=this.value.slice(it.start,it.end),cap=/^\p{Lu}/u.test(found),up=w=>cap?w[0].toUpperCase()+w.slice(1):w;return it.replace.map(w=>this.#variant(i,up(w),found)).join('');}
   // A ready edit of the core: «Убрать» or a piece wider than the hint, already cased and with its commas and spaces.
-  if(it.edit){const e=it.edit,from=this.value.slice(e.start,e.end).trim(),to=e.text.trim(),label=e.remove?this.t('removeLabel',{text:this.#fragment(it)}):this.t('applyLabel',{from,to});
-   return '<button type="button" class="reedach-variant" data-reedach-edit="'+i+'" aria-label="'+esc(label)+'">'+esc(e.remove?this.t('remove'):this.t('apply',{text:to}))+'</button>';}
+  if(it.edit){const e=it.edit,from=this.value.slice(e.start,e.end).trim(),to=e.text.trim(),nb=!e.remove&&nbspOnly(from,to);
+   const label=e.remove?this.t('removeLabel',{text:this.#fragment(it)}):nb?this.t('nbspLabel',{text:from}):this.t('applyLabel',{from,to});
+   return '<button type="button" class="reedach-variant" data-reedach-edit="'+i+'" aria-label="'+esc(label)+'">'+esc(e.remove?this.t('remove'):nb?this.t('nbsp'):this.t('apply',{text:to}))+'</button>';}
   if(!it.word)return '';
   const t=this.t,v=this.variants.get(it.word);let out='';
   if(Array.isArray(v))out=v.length?v.map(w=>this.#variant(i,w)).join(''):'<span class="reedach-note">'+esc(t('noVariants'))+'</span>';
@@ -128,7 +143,8 @@ class Checker{
   else if(this.send)out='<button type="button" class="reedach-action" data-reedach-variants="'+esc(it.word)+'">'+esc(t('variants'))+'</button>';
   return out+'<button type="button" class="reedach-action" data-reedach-add="'+esc(it.word)+'">'+esc(t('add',{word:it.word}))+'</button>';
  }
- #variant(i,w){return '<button type="button" class="reedach-variant" data-reedach-replace="'+i+'" data-reedach-value="'+esc(w)+'" aria-label="'+esc(this.t('replace',{word:w}))+'">'+esc(w)+'</button>';}
+ #variant(i,w,from){const nb=from!==undefined&&nbspOnly(from,w);
+  return '<button type="button" class="reedach-variant" data-reedach-replace="'+i+'" data-reedach-value="'+esc(w)+'" aria-label="'+esc(nb?this.t('nbspLabel',{text:from}):this.t('replace',{word:w}))+'">'+esc(nb?this.t('nbsp'):w)+'</button>';}
  #renderPanel(){
   const {panel,issues,busy,error,t}=this;
   const head='<div class="reedach-head"><div class="reedach-title" role="heading" aria-level="2">'+esc(t('title'))+(busy?'':' <span class="reedach-count">'+issues.length+'</span>')+'</div><button type="button" class="reedach-close" data-reedach-close>'+esc(t('close'))+'</button></div>';
@@ -138,7 +154,7 @@ class Checker{
   const n=this.notice,done=n?'<li class="reedach-item reedach-done"><span role="status">'+esc(n.message)+'</span> <button type="button" class="reedach-action" '+(n.skip?'data-reedach-restore':'data-reedach-undo')+'>'+esc(t(n.skip?'restore':'undo'))+'</button></li>':'';
   const hidden=this.hidden.length?'<p class="reedach-hidden">'+esc(t('hidden',{n:this.hidden.length}))+' <button type="button" class="reedach-action" data-reedach-unskip>'+esc(t('showHidden'))+'</button></p>':'';
   if(!issues.length){panel.innerHTML=head+note+(done&&'<ol class="reedach-list">'+done+'</ol>')+'<p class="reedach-status" role="status">'+esc(t('none'))+'</p>'+hidden;return;}
-  panel.innerHTML=head+note+'<ol class="reedach-list">'+issues.map((it,i)=>(n?.i===i?done:'')+'<li class="reedach-item reedach-'+kind(it)+'"><button type="button" class="reedach-jump" data-reedach-index="'+i+'"><span class="reedach-label">'+esc(it.label)+'</span> <span class="reedach-fragment">'+esc(this.#fragment(it))+'</span></button><p class="reedach-message">'+esc(it.message)+(this.variants.get(it.word)?.length?'':' '+esc(it.fix))+'</p>'+this.#actions(it,i)+'</li>').join('')+(n&&n.i>=issues.length?done:'')+'</ol>'+hidden+'<p class="reedach-credit">'+esc(t('credit'))+'</p>';
+  panel.innerHTML=head+note+'<ol class="reedach-list">'+issues.map((it,i)=>(n?.i===i?done:'')+'<li class="reedach-item reedach-'+kind(it)+(mistake(it)?' reedach-mistake':'')+'"><button type="button" class="reedach-jump" data-reedach-index="'+i+'"><span class="reedach-label">'+esc(it.label)+'</span> <span class="reedach-fragment">'+esc(this.#fragment(it))+'</span></button><p class="reedach-message">'+esc(it.message)+(this.variants.get(it.word)?.length?'':' '+esc(it.fix))+'</p>'+this.#actions(it,i)+'</li>').join('')+(n&&n.i>=issues.length?done:'')+'</ol>'+hidden+'<p class="reedach-credit">'+esc(t('credit'))+'</p>';
  }
  async #onPanel(e){
   const el=e.target.closest('button');if(!el||!this.panel.contains(el))return;
@@ -208,11 +224,27 @@ class Checker{
  }
  #tip(x,y){
   const hits=this.issues.filter(it=>it.range&&[...it.range.getClientRects()].some(r=>x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom));
-  const it=hits.find(h=>!LENGTH.has(h.id))||hits[0],{tooltip}=this;
+  const it=hits.find(h=>!LENGTH.has(h.id))||hits[0];
+  if(!it){this.tooltip.hidden=true;return;}
+  this.#show(it,x+14,y+14,y-14);
+ }
+ // The hint of the word with the caret in it or right after it; a long sentence alone is not worth a hint on every
+ // arrow key. Placed under the line with the caret, or above it when there is no room below.
+ #caretTip(){
+  const {source,mirror,tooltip}=this,at=source.selectionEnd;
+  const it=document.activeElement===source&&this.value===source.value&&this.issues.find(h=>h.range&&!LENGTH.has(h.id)&&h.start<=at&&at<=h.end);
   if(!it){tooltip.hidden=true;return;}
+  this.place();const node=mirror.firstChild,r=new Range();r.setStart(node,at);r.setEnd(node,at);
+  const c=r.getClientRects()[0]||it.range.getClientRects()[0],s=source.getBoundingClientRect();
+  if(!c||c.bottom<s.top||c.top>s.bottom){tooltip.hidden=true;return;}
+  this.#show(it,c.left,c.bottom+6,c.top-6);
+ }
+ // Top-left corner at x, y, or the bottom edge at above when the hint does not fit below.
+ #show(it,x,y,above){
+  const {tooltip}=this;
   tooltip.innerHTML='<strong class="reedach-label">'+esc(it.label)+'</strong> '+esc(it.message)+'<br>'+esc(it.fix);tooltip.hidden=false;
-  const pad=14,w=tooltip.offsetWidth,h=tooltip.offsetHeight;
-  tooltip.style.left=Math.max(8,Math.min(innerWidth-w-8,x+pad))+'px';tooltip.style.top=(y+pad+h>innerHeight?y-h-pad:y+pad)+'px';
+  const w=tooltip.offsetWidth,h=tooltip.offsetHeight;
+  tooltip.style.left=Math.max(8,Math.min(innerWidth-w-8,x))+'px';tooltip.style.top=Math.max(8,y+h>innerHeight-8?above-h:y)+'px';
  }
  stop(){
   if(this.closed)return;this.closed=true;

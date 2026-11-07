@@ -42,6 +42,13 @@ msgstr "Принять «%s»"
 msgid "Replace %1$s with %2$s"
 msgstr "Заменить %1$s на %2$s"
 
+msgid "Non-breaking space"
+msgstr "Неразрывный пробел"
+
+#. translators: %s: the text that gets a non-breaking space.
+msgid "Put a non-breaking space in %s"
+msgstr "Поставить неразрывный пробел в %s"
+
 msgid "Skip"
 msgstr "Пропустить"
 
@@ -77,6 +84,9 @@ msgstr "Какие подсказки показывать"
 
 msgid "Uncheck what your authors do not need. The setting applies to everyone on the site."
 msgstr "Снимите галочки с того, что авторам не нужно. Настройка действует для всех на сайте."
+
+msgid "Suggest the letter ё where e is written: еще → ещё"
+msgstr "Предлагать букву «ё» там, где написано «е»: «еще» → «ещё»"
 
 #. translators: %s: link to the project site.
 msgid "Rules, sources and the full version with a spelling server: %s"

@@ -1,6 +1,6 @@
 // Reedach in the WordPress block editor: style hints for Russian text, checked in the browser.
 // The text never leaves the page: no server, no keys. Spelling needs a Reedach server and is not here.
-import {checkStyle} from 'reedach';
+import {checkStyle, MISTAKES} from 'reedach';
 
 const {createElement: el, Fragment, useSyncExternalStore} = wp.element;
 const {select, dispatch, subscribe} = wp.data;
@@ -77,7 +77,7 @@ function run() {
  texts.clear();
  for (const item of items) texts.set(item.clientId + ':' + item.key, item.text);
  const skipped = new Set(skips.list()), hidden = [];
- const issues = checkStyle(items).filter(it => !disabled.has(it.category)).map(it => {
+ const issues = checkStyle(items, {yo: settings.yo === true}).filter(it => !disabled.has(it.category)).map(it => {
   const item = items[it.block];
   return {...it, clientId: item.clientId, key: item.key, fragment: item.text.slice(it.start, it.end), ...(it.edit && {editFrom: item.text.slice(it.edit.start, it.edit.end)}), uid: [item.clientId, item.key, it.start, it.end, it.id].join(':'), skipKey: skipKey(item.text, it)};
  }).filter(it => !skipped.has(it.skipKey) || (hidden.push(it.skipKey), false));
@@ -163,7 +163,8 @@ function ranges(doc, issues) {
  return out;
 }
 
-const STYLE = '::highlight(reedach-word){background-color:rgba(255,61,31,.2)}::highlight(reedach-long){background-color:rgba(255,176,0,.2)}::highlight(reedach-active){background-color:rgba(255,61,31,.5)}';
+// Advice in amber, plain mistakes («вообщем», a paronym, typography) underlined in red on top of it.
+const STYLE = '::highlight(reedach-word){background-color:rgba(255,176,0,.25)}::highlight(reedach-long){background-color:rgba(0,0,0,.06)}::highlight(reedach-mistake){text-decoration:underline solid #d63612;text-decoration-thickness:2px;text-underline-offset:3px}::highlight(reedach-active){background-color:rgba(255,61,31,.5)}';
 // The editor redraws the text a moment after its data changes: paint after that, and once more to be sure.
 let soon = [];
 function paintSoon() { soon.forEach(clearTimeout); soon = [setTimeout(paint, 30), setTimeout(paint, 300)]; }
@@ -172,15 +173,16 @@ function paint() {
  if (!win?.CSS?.highlights) return;   // Firefox before 140, older Safari: the list still works
  if (!doc.getElementById('reedach-marks')) doc.head.append(Object.assign(doc.createElement('style'), {id: 'reedach-marks', textContent: STYLE}));
  const found = state.highlight ? ranges(doc, state.issues) : new Map();
- const word = [], long = [], active = [];
+ const word = [], long = [], mistake = [], active = [];
  for (const it of state.issues) {
   const range = found.get(it.uid);
   if (!range) continue;
   (LONG.has(it.id) ? long : word).push(range);
+  if (!LONG.has(it.id) && MISTAKES.has(it.category)) mistake.push(range);
   if (it.uid === state.active) active.push(range);
  }
  const set = (name, list, priority = 0) => win.CSS.highlights.set(name, Object.assign(new win.Highlight(...list), {priority}));
- set('reedach-long', long); set('reedach-word', word, 1); set('reedach-active', active, 2);
+ set('reedach-long', long); set('reedach-word', word, 1); set('reedach-mistake', mistake, 2); set('reedach-active', active, 3);
 }
 // The canvas iframe may load after the first check, and blocks may render later: repaint for a while.
 let tries = 0;
@@ -209,6 +211,8 @@ const short = s => (s.length > 70 ? s.slice(0, 67).trimEnd() + '…' : s);
 // already cased and takes in the commas and spaces that go with it. The new text keeps the formatting of the place:
 // the capital a removal gives the next word keeps that word's.
 const capital = (it, word) => (/^\p{Lu}/u.test(it.fragment) ? word[0].toUpperCase() + word.slice(1) : word);
+// A replacement that only turns spaces into non-breaking ones looks like the text itself, so its button is named instead.
+const nbspOnly = (from, to) => from !== to && from.replace(/ /g, ' ') === to.replace(/ /g, ' ');
 const replace = (it, word) => put(it, it.start, it.end, it.fragment, capital(it, word), it.start);
 const applyEdit = it => put(it, it.edit.start, it.edit.end, it.editFrom, it.edit.text, it.edit.remove ? it.edit.end - 1 : it.edit.start);
 function put(it, start, end, expected, text, at) {
@@ -259,14 +263,20 @@ function Sidebar() {
 }
 // Ready words, or the core's ready edit; every hint also gets «Пропустить».
 function fixes(it) {
- if (it.replace?.length) return it.replace.map(word => el('button', {
-  type: 'button', key: word, className: 'reedach-variant', onClick: () => replace(it, word),
-  'aria-label': t('replace').replace('%s', capital(it, word)),
- }, capital(it, word)));
- if (it.edit) return [el('button', {
-  type: 'button', key: 'edit', className: 'reedach-variant', onClick: () => applyEdit(it),
-  'aria-label': it.edit.remove ? t('removeLabel').replace('%s', short(it.fragment)) : t('applyLabel').replace('%1$s', it.editFrom.trim()).replace('%2$s', it.edit.text.trim()),
- }, it.edit.remove ? t('remove') : t('apply').replace('%s', it.edit.text.trim()))];
+ if (it.replace?.length) return it.replace.map(word => {
+  const nbsp = nbspOnly(it.fragment, capital(it, word));
+  return el('button', {
+   type: 'button', key: word, className: 'reedach-variant', onClick: () => replace(it, word),
+   'aria-label': nbsp ? t('nbspLabel').replace('%s', it.fragment) : t('replace').replace('%s', capital(it, word)),
+  }, nbsp ? t('nbsp') : capital(it, word));
+ });
+ if (it.edit) {
+  const from = it.editFrom.trim(), to = it.edit.text.trim(), nbsp = !it.edit.remove && nbspOnly(from, to);
+  return [el('button', {
+   type: 'button', key: 'edit', className: 'reedach-variant', onClick: () => applyEdit(it),
+   'aria-label': it.edit.remove ? t('removeLabel').replace('%s', short(it.fragment)) : nbsp ? t('nbspLabel').replace('%s', from) : t('applyLabel').replace('%1$s', from).replace('%2$s', to),
+  }, it.edit.remove ? t('remove') : nbsp ? t('nbsp') : t('apply').replace('%s', to))];
+ }
  return [];
 }
 // What the last skip did, with a way back, stands where the hint was until the text changes.

@@ -48,7 +48,8 @@ const issues = mergeIssues(blocks, {local: checkStyle(blocks)});
 
 Без Markdown: `checkStyle([{text: '…', kind: 'p'}])`, где `kind` — `p` (абзац), `li` (пункт
 списка) или `h` (заголовок). Настройки длины: `checkStyle(blocks, {maxSentenceWords: 25,
-maxParagraphWords: 120})`.
+maxParagraphWords: 120})`, а `yo: true` включает подсказку «еще» → «ещё». Категории явных
+ошибок (частые ошибки, паронимы, просторечия, типографика) — в `MISTAKES`.
 
 Словарь правил, источники и лицензии — в README и NOTICE.md [репозитория проекта](https://github.com/dimafaller-en/reedach).
 

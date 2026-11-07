@@ -56,6 +56,7 @@ const checker = attach(document.querySelector('textarea'), {
   lang: 'en',                    // язык интерфейса; по умолчанию берётся из <html lang>
   delay: 1000,                   // пауза перед повторной проверкой, мс
   disable: ['intensifiers'],     // выключить правила по id или целые категории
+  yo: true,                      // предлагать «ё» там, где написано «е»: «еще» → «ещё»; по умолчанию нет
   dictionary: {                  // своё хранилище слов автора; по умолчанию — localStorage
     list: async () => ['Reedach'],
     add: async word => { /* сохранить у себя */ },
@@ -85,17 +86,22 @@ checker.stop();    // убрать подсветку и список
 точно над текстом. Остальное задаёт сайт:
 
 ```css
-::highlight(reedach-word)  { background-color: rgba(255, 61, 31, .15); }  /* слова и обороты */
+::highlight(reedach-word)  { background-color: rgba(255, 184, 0, .24); }  /* слова и обороты */
+::highlight(reedach-mistake) { text-decoration: underline solid #e0321a 2px; }  /* из них явные ошибки */
 ::highlight(reedach-long)  { background-color: rgba(20, 20, 20, .06); }   /* длинные предложения и абзацы */
 ::highlight(reedach-spell) { text-decoration: underline wavy #ff3d1f; }   /* опечатки */
 ::highlight(reedach-active){ background-color: #ffc4b5; }                 /* место, куда перешли из списка */
 .reedach-mirror { mix-blend-mode: multiply; }  /* на тёмном фоне — screen */
 ```
 
+Явные ошибки (частые ошибки, паронимы, просторечия, типографика) попадают и в `reedach-word`,
+и в `reedach-mistake`, поэтому без стиля для `reedach-mistake` они выглядят как раньше. Список
+категорий — `MISTAKES` из пакета `reedach`.
+
 Список и подсказка при наведении собраны из элементов с классами `reedach-*`:
 `reedach-panel`, `reedach-head`, `reedach-title`, `reedach-count`, `reedach-close`,
 `reedach-status`, `reedach-error`, `reedach-list`, `reedach-item` (с `reedach-spell`,
-`reedach-word` или `reedach-long`), `reedach-jump`, `reedach-label`, `reedach-fragment`,
+`reedach-word` или `reedach-long`; у явных ошибок ещё `reedach-mistake`), `reedach-jump`, `reedach-label`, `reedach-fragment`,
 `reedach-message`, `reedach-actions`, `reedach-variant`, `reedach-action` (у «Пропустить» ещё `reedach-skip`), `reedach-note`,
 `reedach-done` (строка «Заменено…», «Пропущено…» с кнопкой отмены), `reedach-hidden`,
 `reedach-credit`, `reedach-tooltip`. Готовый пример стилей для светлой и тёмной темы лежит
