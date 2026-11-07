@@ -8,6 +8,8 @@ import {strings} from './i18n.js';
 import {shiftIssues,localDictionary,localSkips,skipKey,request,esc} from './core.js';
 
 const LENGTH=new Set(['long-sentence','long-paragraph']);
+// Keys that move the caret without typing: after them the hint of the word under the caret shows, as on hover.
+const NAV=new Set(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End','PageUp','PageDown']);
 const HL=typeof CSS!=='undefined'&&!!CSS.highlights&&typeof Highlight==='function';
 const COPY=['fontFamily','fontSize','fontWeight','fontStyle','fontStretch','fontVariant','fontFeatureSettings','fontKerning','lineHeight','letterSpacing','wordSpacing','textIndent','textTransform','tabSize','wordBreak','paddingTop','paddingLeft','paddingBottom','borderTopWidth','borderRightWidth','borderBottomWidth','borderLeftWidth'];
 const kind=it=>it.id==='spelling'?'spell':LENGTH.has(it.id)?'long':'word';
@@ -42,7 +44,7 @@ class Checker{
   source.before(this.mirror);
   this.ownPanel=!panel;this.panel=panel||document.createElement('div');this.panel.classList.add('reedach-panel');this.panel.hidden=false;
   if(this.ownPanel)source.after(this.panel);
-  this.tooltip=Object.assign(document.createElement('div'),{className:'reedach-tooltip',hidden:true});this.tooltip.setAttribute('role','tooltip');
+  this.tooltip=Object.assign(document.createElement('div'),{className:'reedach-tooltip',hidden:true});this.tooltip.setAttribute('role','tooltip');this.tooltip.setAttribute('aria-live','polite');
   Object.assign(this.tooltip.style,{position:'fixed',zIndex:'2147483000',pointerEvents:'none'});
   document.body.append(this.tooltip);
   this.#listen();live.add(this);this.render();this.check();
@@ -52,9 +54,15 @@ class Checker{
   const place=()=>{if(!this.closed)this.place();};
   this.off=[
    [source,'input',()=>this.#onInput()],
-   [source,'scroll',()=>{mirror.scrollTop=source.scrollTop;mirror.scrollLeft=source.scrollLeft;}],
+   [source,'scroll',()=>{mirror.scrollTop=source.scrollTop;mirror.scrollLeft=source.scrollLeft;tooltip.hidden=true;}],
    [source,'mousemove',e=>{if(frame)return;frame=requestAnimationFrame(()=>{frame=0;if(this.closed)return;this.#tip(e.clientX,e.clientY);});}],
    [source,'mouseleave',()=>{tooltip.hidden=true;}],
+   // Keyboard and touch have no hover: the hint follows the caret after an arrow key or a tap on a word.
+   [source,'keyup',e=>{if(NAV.has(e.key))this.#caretTip();}],
+   [source,'keydown',e=>{if(e.key==='Escape')tooltip.hidden=true;}],
+   [source,'pointerdown',e=>{this.pointer=e.pointerType;}],
+   [source,'click',()=>{if(this.pointer&&this.pointer!=='mouse')this.#caretTip();}],
+   [source,'blur',()=>{tooltip.hidden=true;}],
    [panel,'click',e=>this.#onPanel(e)],
    [window,'resize',place],
   ].map(([el,type,fn])=>{el.addEventListener(type,fn);return ()=>el.removeEventListener(type,fn);});
@@ -96,6 +104,7 @@ class Checker{
  }
  // The author's own typing ends the chance to undo the last fix or skip from the list; Ctrl+Z still works.
  #onInput(){
+  this.tooltip.hidden=true;
   if(!this.ours)this.notice=null;
   clearTimeout(this.timer);this.timer=setTimeout(()=>this.check(),this.delay);
   if(this.busy)return;
@@ -208,11 +217,27 @@ class Checker{
  }
  #tip(x,y){
   const hits=this.issues.filter(it=>it.range&&[...it.range.getClientRects()].some(r=>x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom));
-  const it=hits.find(h=>!LENGTH.has(h.id))||hits[0],{tooltip}=this;
+  const it=hits.find(h=>!LENGTH.has(h.id))||hits[0];
+  if(!it){this.tooltip.hidden=true;return;}
+  this.#show(it,x+14,y+14,y-14);
+ }
+ // The hint of the word with the caret in it or right after it; a long sentence alone is not worth a hint on every
+ // arrow key. Placed under the line with the caret, or above it when there is no room below.
+ #caretTip(){
+  const {source,mirror,tooltip}=this,at=source.selectionEnd;
+  const it=document.activeElement===source&&this.value===source.value&&this.issues.find(h=>h.range&&!LENGTH.has(h.id)&&h.start<=at&&at<=h.end);
   if(!it){tooltip.hidden=true;return;}
+  this.place();const node=mirror.firstChild,r=new Range();r.setStart(node,at);r.setEnd(node,at);
+  const c=r.getClientRects()[0]||it.range.getClientRects()[0],s=source.getBoundingClientRect();
+  if(!c||c.bottom<s.top||c.top>s.bottom){tooltip.hidden=true;return;}
+  this.#show(it,c.left,c.bottom+6,c.top-6);
+ }
+ // Top-left corner at x, y, or the bottom edge at above when the hint does not fit below.
+ #show(it,x,y,above){
+  const {tooltip}=this;
   tooltip.innerHTML='<strong class="reedach-label">'+esc(it.label)+'</strong> '+esc(it.message)+'<br>'+esc(it.fix);tooltip.hidden=false;
-  const pad=14,w=tooltip.offsetWidth,h=tooltip.offsetHeight;
-  tooltip.style.left=Math.max(8,Math.min(innerWidth-w-8,x+pad))+'px';tooltip.style.top=(y+pad+h>innerHeight?y-h-pad:y+pad)+'px';
+  const w=tooltip.offsetWidth,h=tooltip.offsetHeight;
+  tooltip.style.left=Math.max(8,Math.min(innerWidth-w-8,x))+'px';tooltip.style.top=Math.max(8,y+h>innerHeight-8?above-h:y)+'px';
  }
  stop(){
   if(this.closed)return;this.closed=true;
