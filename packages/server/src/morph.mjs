@@ -26,6 +26,7 @@ const RULES={
  'lemma-repeat':{category:'repetition',label:'Повтор',message:'Одно и то же слово дважды в предложении.',fix:'Замените повтор местоимением или перестройте фразу.'},
  'ne-adjective':{category:'mistake',label:'Частая ошибка',message:'Не с прилагательным пишется слитно, если нет противопоставления.',fix:'Пишите слитно: несложные сайты. Раздельно — с противопоставлением: не сложные, а простые.'},
  'instrumental-case':{category:'mistake',label:'Частая ошибка',message:'После этого глагола нужен творительный падеж: заниматься чем?',fix:'Поставьте слово в творительный падеж: занимался настройкой сетей.'},
+ 'row-case':{category:'mistake',label:'Частая ошибка',message:'Однородные слова после одного предлога стоят в одном падеже.',fix:'Поставьте второе слово в тот же падеж: «после подписания и оплаты».'},
  'typo-real-word':{category:'mistake',label:'Частая ошибка',message:'Похоже на опечатку: слово есть в словаре, но здесь не к месту.',fix:'Проверьте слово: возможно, имелось в виду мой.'},
 };
 const WEAK=new Set(['осуществлять','осуществить','производить','произвести','проводить','провести','совершать','совершить','оказывать','оказать','выполнять','выполнить','обеспечивать','обеспечить','предоставлять','предоставить','принимать','принять','давать','дать']);
@@ -69,6 +70,28 @@ function instrumental(words,k,gap){
  if(subject)return null;
  try{return n.inflect(['ablt',n.tag.NMbr])?.word||null;}catch{return null;}
 }
+// Cases a preposition takes. «после подписания договора и оплату»: the noun after «и» takes none of them, while the
+// first noun does. Its case may also match a genitive in between («при подписании договора и акта» is right).
+const PREP_CASES={без:'gent',для:'gent',до:'gent',из:'gent',изо:'gent',от:'gent',ото:'gent',у:'gent',около:'gent',после:'gent',кроме:'gent',среди:'gent',вместо:'gent',ради:'gent','из-за':'gent','из-под':'gent',вокруг:'gent',против:'gent',к:'datv',ко:'datv',благодаря:'datv',про:'accs',через:'accs',сквозь:'accs',над:'ablt',надо:'ablt',перед:'ablt',передо:'ablt',о:'loct',об:'loct',обо:'loct',при:'loct',в:'accs loct',во:'accs loct',на:'accs loct',с:'gent ablt accs',со:'gent ablt accs',по:'datv loct accs',за:'accs ablt',под:'accs ablt',подо:'accs ablt'};
+const CASE={gen2:'gent',acc2:'accs',loc2:'loct'};
+// Dictionary noun parses of a word, or null when it may be something else («вечером» is also an adverb).
+const nounParses=w=>{const ps=all(w.w);return ps.length&&ps.every(p=>p.parser==='Dictionary'&&p.tag.POS==='NOUN')?ps:null;};
+const casesOf=ps=>new Set(ps.map(p=>CASE[p.tag.CAse]||p.tag.CAse));
+// k is the preposition. Gives [index of the second noun, the noun in the right case] or null.
+function rowCase(words,k,gap){
+ const prep=PREP_CASES[words[k].w.toLowerCase()];if(!prep||words[k].pos!=='PREP')return null;
+ const n1=words[k+1]&&nounParses(words[k+1]);if(!n1||!/^\s+$/.test(gap(words[k],words[k+1])))return null;
+ const want=[...casesOf(n1)].filter(c=>prep.split(' ').includes(c));if(!want.length)return null;
+ // Up to two genitives may hang on the first noun: «подписания договора поставки».
+ let j=k+2;const between=[];while(j<k+4&&words[j]&&!/^(?:и|или)$/i.test(words[j].w)){const g=nounParses(words[j]);if(!g||!casesOf(g).has('gent')||!/^\s+$/.test(gap(words[j-1],words[j])))return null;between.push(g);j++;}
+ const and=words[j],n2w=words[j+1];if(!and||!/^(?:и|или)$/i.test(and.w)||!n2w||!/^\s+$/.test(gap(words[j-1],and)+gap(and,n2w)))return null;
+ const n2=nounParses(n2w);if(!n2)return null;
+ const c2=casesOf(n2);if(want.some(c=>c2.has(c))||between.length&&c2.has('gent'))return null;
+ // Only after the whole row: «до обеда и вечер был» — a verb right after the second noun may make it a subject.
+ const next=words[j+2];if(next&&/^\s+$/.test(gap(n2w,next))&&['VERB','PRTS','ADJS'].includes(next.pos))return null;
+ for(const c of want)for(const p of n2){try{const r=p.inflect([c,p.tag.NMbr]);if(r?.word)return [j+1,r.word];}catch{}}
+ return null;
+}
 // «изменило пой подход»: the imperative of «петь» cannot follow a preposition or a verb (but «давай пой») and stand before a noun.
 const poiTypo=(words,k,gap)=>{const [prev,w,next]=[words[k-1],words[k],words[k+1]];return !!(prev&&next&&w.w.toLowerCase()==='пой'&&/^\s+$/.test(gap(prev,w))&&/^\s+$/.test(gap(w,next))&&next.pos==='NOUN'&&(prev.pos==='PREP'||prev.pos==='INFN'||prev.pos==='VERB'&&!all(prev.w).some(p=>p.tag.MOod==='impr')));};
 const sentences=text=>[...text.matchAll(/[^.!?…]+(?:[.!?…]+|$)/g)].map(m=>({start:m.index,text:m[0]})).filter(s=>s.text.trim());
@@ -89,6 +112,7 @@ export async function morphCheck(blocks){
    words.forEach((w,k)=>{
     if(neAdjective(words,k,gap))issues.push({block:i,start:w.start,end:words[k+1].end,id:'ne-adjective',...RULES['ne-adjective'],replace:['не'+words[k+1].w.toLowerCase()]});
     const ablt=instrumental(words,k,gap);if(ablt)issues.push({block:i,start:words[k+1].start,end:words[k+1].end,id:'instrumental-case',...RULES['instrumental-case'],replace:[ablt]});
+    const row=rowCase(words,k,gap);if(row)issues.push({block:i,start:words[row[0]].start,end:words[row[0]].end,id:'row-case',...RULES['row-case'],replace:[row[1]]});
     if(poiTypo(words,k,gap))issues.push({block:i,start:w.start,end:w.end,id:'typo-real-word',...RULES['typo-real-word'],replace:['мой']});
     if(w.pos==='PRTS'&&w.score>=0.5&&!/^(?:был|была|было|были|будет|будут)$/i.test(words[k-1]?.w||''))add(i,w.start,w.end,'short-passive');
     if(w.pos==='VERB'&&WEAK.has(w.lemma)){const n=words.slice(k+1,k+3).find(x=>x.pos==='NOUN');if(n&&NOMINAL.test(n.lemma)&&n.lemma!=='участие'||n&&w.lemma.startsWith('при')&&n.lemma==='участие')add(i,w.start,n.end,'weak-verb-noun');}
