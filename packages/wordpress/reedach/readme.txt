@@ -4,7 +4,7 @@ Tags: russian, proofreading, writing, style, gutenberg
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.5.0
+Stable tag: 0.6.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -63,6 +63,13 @@ No, only with the block editor.
 2. Ready fixes, "Skip" for a hint you want to keep, and a way to bring it back.
 
 == Changelog ==
+
+= 0.6.0 =
+* Interface text: a new group of hints for buttons, links and messages — "Are you sure?" instead of undo, an "OK" button, an error that does not say what to do, a field label written as a command, "click here", a lone "More" link. It can be switched off in Settings → Reedach.
+* Mistakes and advice look different: advice is yellow, clear mistakes are underlined, long sentences are grey.
+* Typography: a non-breaking space between a number and its unit, in initials and after «№»; digit groups in long numbers; English quotes become «ёлочки». The button of a non-breaking space fix says "Non-breaking space", since the change itself is invisible.
+* Optional «ё» hints («еще» → «ещё»): a checkbox in Settings → Reedach, off by default.
+* Clearer hint texts: the words a hint speaks about are in quotes, and hints no longer suggest what they flag themselves.
 
 = 0.5.0 =
 * "Skip" on every hint: the hint leaves the list and stays away until its sentence changes. Skips are kept in the browser; "Show again" brings them back.
