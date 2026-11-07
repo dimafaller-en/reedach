@@ -77,7 +77,7 @@ function run() {
  texts.clear();
  for (const item of items) texts.set(item.clientId + ':' + item.key, item.text);
  const skipped = new Set(skips.list()), hidden = [];
- const issues = checkStyle(items).filter(it => !disabled.has(it.category)).map(it => {
+ const issues = checkStyle(items, {yo: settings.yo === true}).filter(it => !disabled.has(it.category)).map(it => {
   const item = items[it.block];
   return {...it, clientId: item.clientId, key: item.key, fragment: item.text.slice(it.start, it.end), ...(it.edit && {editFrom: item.text.slice(it.edit.start, it.edit.end)}), uid: [item.clientId, item.key, it.start, it.end, it.id].join(':'), skipKey: skipKey(item.text, it)};
  }).filter(it => !skipped.has(it.skipKey) || (hidden.push(it.skipKey), false));

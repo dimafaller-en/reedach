@@ -8,3 +8,4 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 }
 
 delete_option( 'reedach_disabled' );
+delete_option( 'reedach_yo' );

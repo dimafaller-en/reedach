@@ -56,6 +56,7 @@ const checker = attach(document.querySelector('textarea'), {
   lang: 'en',                    // язык интерфейса; по умолчанию берётся из <html lang>
   delay: 1000,                   // пауза перед повторной проверкой, мс
   disable: ['intensifiers'],     // выключить правила по id или целые категории
+  yo: true,                      // предлагать «ё» там, где написано «е»: «еще» → «ещё»; по умолчанию нет
   dictionary: {                  // своё хранилище слов автора; по умолчанию — localStorage
     list: async () => ['Reedach'],
     add: async word => { /* сохранить у себя */ },

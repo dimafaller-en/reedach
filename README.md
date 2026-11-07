@@ -188,7 +188,7 @@ curl https://checker.example.ru/v1/check \
 
 | Запрос | Что делает |
 |---|---|
-| `POST /v1/check` | проверить `markdown`, `text` или `blocks`; `ignore` — слова автора, `disable` — выключенные правила, `checks` — какие проверки запускать: `spelling`, `morph`, `style` |
+| `POST /v1/check` | проверить `markdown`, `text` или `blocks`; `ignore` — слова автора, `disable` — выключенные правила, `checks` — какие проверки запускать: `spelling`, `morph`, `style`; `yo: true` — предлагать «ё» |
 | `POST /v1/suggest` | варианты исправления: `{"words": ["превет"]}`, до 20 слов за раз |
 | `GET /v1/rules` | все правила с категориями и объяснениями — для страницы настроек |
 | `GET /health` | сервер работает; ключ не нужен |

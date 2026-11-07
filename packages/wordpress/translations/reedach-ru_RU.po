@@ -78,6 +78,9 @@ msgstr "Какие подсказки показывать"
 msgid "Uncheck what your authors do not need. The setting applies to everyone on the site."
 msgstr "Снимите галочки с того, что авторам не нужно. Настройка действует для всех на сайте."
 
+msgid "Suggest the letter ё where e is written: еще → ещё"
+msgstr "Предлагать букву «ё» там, где написано «е»: «еще» → «ещё»"
+
 #. translators: %s: link to the project site.
 msgid "Rules, sources and the full version with a spelling server: %s"
 msgstr "Правила, источники и полная версия с сервером орфографии: %s"

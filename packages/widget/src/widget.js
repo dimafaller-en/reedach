@@ -27,7 +27,7 @@ function paintAll(){
  for(const [name,h] of Object.entries(sets))h.size?CSS.highlights.set('reedach-'+name,h):CSS.highlights.delete('reedach-'+name);
 }
 
-// attach(textarea, {endpoint, key, request, format, panel, lang, delay, dictionary, skips, disable, onChange, onClose}) → checker.
+// attach(textarea, {endpoint, key, request, format, panel, lang, delay, dictionary, skips, disable, yo, onChange, onClose}) → checker.
 // Attaching to a field that is already checked runs the check again.
 export function attach(source,options={}){
  const open=attached.get(source);
@@ -36,9 +36,9 @@ export function attach(source,options={}){
 }
 
 class Checker{
- constructor(source,{endpoint=null,key=null,request:send=null,format='text',panel=null,lang,delay=1000,dictionary=localDictionary(),skips=localSkips(),disable=[],onChange,onClose}={}){
+ constructor(source,{endpoint=null,key=null,request:send=null,format='text',panel=null,lang,delay=1000,dictionary=localDictionary(),skips=localSkips(),disable=[],yo=false,onChange,onClose}={}){
   if(!(source instanceof HTMLTextAreaElement))throw new TypeError('Reedach: attach() expects a textarea');
-  Object.assign(this,{source,format,delay,dictionary,skips,disable:new Set(disable),onChange,onClose});
+  Object.assign(this,{source,format,delay,dictionary,skips,disable:new Set(disable),yo:yo===true,onChange,onClose});
   // Server calls go through the site's own function when given (cookies, CSRF), else straight to the endpoint.
   this.send=send||(endpoint?(path,body,o={})=>request(endpoint,path,body,{key,...o}):null);
   this.t=strings(lang);this.issues=[];this.value=source.value;this.busy=true;this.error='';this.variants=new Map();this.hidden=[];this.notice=null;
@@ -86,10 +86,10 @@ class Checker{
   if(this.closed)return;
   clearTimeout(this.timer);this.timer=0;this.controller?.abort();
   const controller=new AbortController(),value=this.source.value;this.controller=controller;
-  const local=()=>{const blocks=this.format==='markdown'?sourceBlocks(value):textBlocks(value);return mergeIssues(blocks,{local:checkStyle(blocks)});};
+  const local=()=>{const blocks=this.format==='markdown'?sourceBlocks(value):textBlocks(value);return mergeIssues(blocks,{local:checkStyle(blocks,{yo:this.yo})});};
   let issues,error='';
   if(this.send){
-   try{const ignore=await this.dictionary.list();({issues}=await this.send('/check',{[this.format==='markdown'?'markdown':'text']:value,ignore,disable:[...this.disable]},{signal:controller.signal}));}
+   try{const ignore=await this.dictionary.list();({issues}=await this.send('/check',{[this.format==='markdown'?'markdown':'text']:value,ignore,disable:[...this.disable],...(this.yo&&{yo:true})},{signal:controller.signal}));}
    catch(e){if(e.name==='AbortError')return;error=this.t('serverFailed',{error:e.message||'?'});issues=local();}
   }else issues=local();
   let skipped=new Set();try{skipped=new Set(await this.skips.list());}catch{}

@@ -220,7 +220,7 @@ test('pleonasms keep the needed word as written, paronyms mark only the wrong wo
 test('typography hints offer the corrected characters',()=>{
  const fixes=w=>checkStyle(textBlocks(w)).filter(it=>it.id.startsWith('typo-')&&it.replace).map(it=>w.slice(it.start,it.end)+'→'+it.replace[0]);
  assert.deepEqual(fixes('Пн-пт 10:00-18:00, 8-12 мм.'),['Пн-пт→Пн–пт','10:00-18:00→10:00–18:00','8-12 мм→8–12 мм']);
- assert.deepEqual(fixes('Дом №5, 25-ый, м2, г.Москва, т.е.'),['№5→№ 5','-ый→-й','м2→м²','г.Москва→г. Москва','т.е.→т. е.']);
+ assert.deepEqual(fixes('Дом №5, 25-ый, м2, г.Москва, т.е.'),['№5→№ 5','-ый→-й','м2→м²','г.Москва→г. Москва','т.е.→т. е.']);
  assert.deepEqual(fixes('Дата 2020-10-12, тел. 8-800-555-35-35, версия 1.2.3, x86-64.'),[]);
 });
 
@@ -239,4 +239,17 @@ test('line rules fire on a line of its own, not inside a sentence',()=>{
  assert.deepEqual(ui('Введите пароль и нажмите кнопку входа. Подробнее расскажем на встрече.'),[]);
  assert.deepEqual(ui('Введите в поле адрес, на который мы пришлём счёт за установку'),[]);
  assert.deepEqual(ui('Мы расскажем подробнее'),[]);
+});
+test('Bureau typography: non-breaking spaces, digit groups, English quotes',()=>{
+ const NB=' ',fixes=w=>checkStyle(textBlocks(w)).filter(it=>it.id.startsWith('typo-')&&it.replace).map(it=>[it.id,w.slice(it.start,it.end),it.replace[0]]);
+ assert.deepEqual(fixes('Стоит 100 ₽, весит 5 кг.'),[['typo-nbsp-unit','100 ₽','100'+NB+'₽'],['typo-nbsp-unit','5 кг','5'+NB+'кг']]);
+ assert.deepEqual(fixes('Выручка 1500000 и 2,300,000.'),[['typo-digits','1500000','1'+NB+'500'+NB+'000'],['typo-digits','2,300,000','2'+NB+'300'+NB+'000']]);
+ assert.deepEqual(fixes('Стихи А. С. Пушкина.'),[['typo-nbsp-initials','А. С. Пушкина','А.'+NB+'С.'+NB+'Пушкина']]);
+ assert.deepEqual(fixes('Он сказал “привет”. «Компания “Рога”»'),[['typo-quotes-en','“привет”','«привет»'],['typo-quotes-en','“Рога”','„Рога“']]);
+ assert.deepEqual(fixes('ИНН 7701234567, артикул 123456, № 45678, тел. +7 916 1234567, год 1500, 12345,50, 8–12 мм.').map(f=>f[0]),[]);
+});
+test('«ё» only when asked',()=>{
+ const yo=(w,o)=>checkStyle(textBlocks(w),o).filter(it=>it.id==='typo-yo').map(it=>it.replace[0]);
+ assert.deepEqual(yo('Еще ее черный кот. Все ушли.'),[]);
+ assert.deepEqual(yo('Еще ее черный кот. Все ушли.',{yo:true}),['Ещё','её','чёрный']);
 });

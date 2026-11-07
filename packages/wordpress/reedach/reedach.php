@@ -59,6 +59,7 @@ add_action(
 		);
 		$settings = array(
 			'disabled' => reedach_disabled(),
+			'yo'       => (bool) get_option( 'reedach_yo', false ),
 			'strings'  => array(
 				/* translators: %d: number of suggestions. */
 				'count'       => __( 'Suggestions: %d', 'reedach' ),
@@ -100,6 +101,15 @@ add_action(
 				'type'              => 'array',
 				'default'           => array(),
 				'sanitize_callback' => 'reedach_sanitize_disabled',
+			)
+		);
+		register_setting(
+			'reedach',
+			'reedach_yo',
+			array(
+				'type'              => 'boolean',
+				'default'           => false,
+				'sanitize_callback' => 'rest_sanitize_boolean',
 			)
 		);
 	}
@@ -168,6 +178,11 @@ function reedach_settings_page() {
 					</label>
 				<?php endforeach; ?>
 			</fieldset>
+			<label style="display: block; margin: 0 0 1em;">
+				<input type="hidden" name="reedach_yo" value="0">
+				<input type="checkbox" name="reedach_yo" value="1" <?php checked( (bool) get_option( 'reedach_yo', false ) ); ?>>
+				<?php esc_html_e( 'Suggest the letter ё where e is written: еще → ещё', 'reedach' ); ?>
+			</label>
 			<?php submit_button(); ?>
 		</form>
 		<p>

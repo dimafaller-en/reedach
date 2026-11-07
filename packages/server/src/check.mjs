@@ -11,7 +11,8 @@ const suggester=()=>shared??=new Suggester();
 // Blocks from the caller: every UTF-16 unit keeps its own offset (emoji take two).
 const identity=b=>({text:b.text,kind:['h','li'].includes(b.kind)?b.kind:'p',map:Array.from({length:b.text.length},(_,i)=>i)});
 
-// input: {markdown | text | blocks:[{text,kind}], ignore:[own words], disable:[rule ids or categories], checks:[...]}
+// input: {markdown | text | blocks:[{text,kind}], ignore:[own words], disable:[rule ids or categories], checks:[...],
+// yo: true to suggest «ё» where it is skipped}
 // Markdown and text hints point into the source string; block hints carry `block` and point into that block's text.
 // Options for running elsewhere: `suggester` and `misspelled` replace the hunspell calls (the HTTP server's workers ask its main thread).
 export async function check(input,{suggester:sg=suggester(),misspelled:ms=misspelled,limits={}}={}){
@@ -27,7 +28,7 @@ export async function check(input,{suggester:sg=suggester(),misspelled:ms=misspe
   checks.has('spelling')?findSpelling(blocks,ignore,sg,lim,ms):[],
   checks.has('morph')?morphCheck(blocks).catch(()=>[]):[],
  ]);
- const local=checks.has('style')?await inflectReplacements(checkStyle(blocks),blocks).catch(()=>checkStyle(blocks)):[];
+ const style={yo:input.yo===true},local=checks.has('style')?await inflectReplacements(checkStyle(blocks,style),blocks).catch(()=>checkStyle(blocks,style)):[];
  await formReplacements([...local,...morph],blocks).catch(()=>{});
  const issues=mergeIssues(blocks,{spelling,style:morph,local}).filter(it=>!disable.has(it.id)&&!disable.has(it.category));
  return {issues:blocksInput?issues.sort((a,b)=>a.block-b.block||a.start-b.start):issues.map(({block,...it})=>it)};
