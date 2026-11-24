@@ -4,7 +4,7 @@ Tags: russian, proofreading, writing, style, gutenberg
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.6.2
+Stable tag: 0.6.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -63,6 +63,11 @@ No, only with the block editor.
 2. Ready fixes, "Skip" for a hint you want to keep, and a way to bring it back.
 
 == Changelog ==
+
+= 0.6.3 =
+* Markdown: keep advice without an unsafe replacement that would damage links or emphasis.
+* Digit grouping leaves IPv4 addresses, alphanumeric identifiers, and postcodes before an address unchanged.
+* Optional ё suggestions leave email addresses and URLs unchanged.
 
 = 0.6.2 =
 * Interface text: a new group of hints for buttons, links and messages — "Are you sure?" instead of undo, an "OK" button, an error that does not say what to do, a field label written as a command, "click here", a lone "More" link. It can be switched off in Settings → Reedach.

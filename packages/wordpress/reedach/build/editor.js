@@ -1,4 +1,4 @@
-/* Reedach 0.6.2 for WordPress — https://github.com/dimafaller-en/reedach. Source: packages/wordpress/src. Includes the Reedach core (MIT). */
+/* Reedach 0.6.3 for WordPress — https://github.com/dimafaller-en/reedach. Source: packages/wordpress/src. Includes the Reedach core (MIT). */
 (() => {
   // ../core/src/rules.js
   var CATEGORIES = { paronym: "Пароним", borrowing: "Заимствование", generalization: "Обобщение", euphemism: "Эвфемизм", preachy: "Назидание", filler: "Вода", slang: "Жаргон", stamp: "Штамп", bureaucratese: "Канцелярит", vague: "Неконкретно", evaluation: "Оценка", modality: "Модальность", intro: "Вводное", time: "Паразит времени", pleonasm: "Плеоназм", pronoun: "Местоимение", adjective: "Прилагательное", kotory: "«Который»", syntax: "Синтаксис", passive: "Страдательный залог", nominalization: "Отглагольное", repetition: "Повтор", length: "Длина", numbers: "Числа", structure: "Структура", mistake: "Частая ошибка", colloquial: "Просторечие", typography: "Типографика", ui: "Текст интерфейса", yo: "Буква ё" };
@@ -508,9 +508,19 @@
   var MIXED = /\p{Script=Cyrillic}\p{Script=Latin}|\p{Script=Latin}\p{Script=Cyrillic}/u;
   var technical = (text) => {
     const marks = new Uint8Array(text.length);
-    for (const m of text.matchAll(/[^ ]+/g)) if (/[/@&=]/.test(m[0])) marks.fill(1, m.index, m.index + m[0].length);
+    for (const m of text.matchAll(/\S+/g)) if (/[/@&=]/.test(m[0])) marks.fill(1, m.index, m.index + m[0].length);
     return (s) => marks[s] === 1;
   };
+  var attachedId = /[\p{L}\p{M}_]/u;
+  var ipv4 = /^(?:\d{1,3}\.){3}\d{1,3}$/;
+  var addressLead = /,\s*(?:(?:г|ул|пер|просп|пос|с|д|рп)\.\s*|(?:город|улица|переулок|проспект|пос[её]лок|село|деревня)\s+)/iy;
+  function numberIdentifier(text, m) {
+    const from = m.index, end = from + m[0].length, n = m[0];
+    if (attachedId.test(text[from - 1] || "") || attachedId.test(text[end] || "")) return true;
+    if (ipv4.test(n) && n.split(".").every((o) => +o <= 255)) return true;
+    addressLead.lastIndex = end;
+    return n.length === 6 && /^\d+$/.test(n) && addressLead.test(text);
+  }
   var sentenceAt = (list, at) => {
     let lo = 0, hi = list.length - 1, hit = null;
     while (lo <= hi) {
@@ -623,7 +633,7 @@
         }
       }
       const { plain } = spansOf(b), tech = technical(text);
-      for (const [id, re, fix] of TYPO) for (const m of text.matchAll(re)) if (plain(m.index, m.index + m[0].length) && !tech(m.index)) add(i, m.index, m.index + m[0].length, id, fix ? { ...BUILTIN[id], replace: [fix(m[0])], exact: true } : BUILTIN[id]);
+      for (const [id, re, fix] of TYPO) for (const m of text.matchAll(re)) if (plain(m.index, m.index + m[0].length) && !tech(m.index) && (id !== "typo-digits" || !numberIdentifier(text, m))) add(i, m.index, m.index + m[0].length, id, fix ? { ...BUILTIN[id], replace: [fix(m[0])], exact: true } : BUILTIN[id]);
       for (const m of text.matchAll(/\p{L}+/gu)) if (MIXED.test(m[0]) && plain(m.index, m.index + m[0].length) && !tech(m.index)) add(i, m.index, m.index + m[0].length, "typo-mixed-script", BUILTIN["typo-mixed-script"]);
       for (const m of text.matchAll(/"[^"\n]*"/g)) if (/[А-Яа-яЁё]/.test(m[0])) add(i, m.index, m.index + m[0].length, "typo-quotes", BUILTIN["typo-quotes"]);
       for (const m of text.matchAll(/“([^“”„«»\n]*)”/g)) {
@@ -632,7 +642,9 @@
         const before = text.slice(0, m.index), inner = (before.match(/«/g) || []).length > (before.match(/»/g) || []).length;
         add(i, m.index, e, "typo-quotes-en", { ...BUILTIN["typo-quotes-en"], replace: [inner ? "„" + m[1] + "“" : "«" + m[1] + "»"], exact: true });
       }
-      if (yo) for (const m of text.matchAll(YO_RE)) add(i, m.index, m.index + m[0].length, "typo-yo", { ...BUILTIN["typo-yo"], replace: [withYo(m[0])], exact: true });
+      if (yo) {
+        for (const m of text.matchAll(YO_RE)) if (plain(m.index, m.index + m[0].length) && !tech(m.index)) add(i, m.index, m.index + m[0].length, "typo-yo", { ...BUILTIN["typo-yo"], replace: [withYo(m[0])], exact: true });
+      }
       for (const k of unpaired(text)) add(i, k, k + 1, "typo-unpaired", BUILTIN["typo-unpaired"]);
       for (const m of low.matchAll(new RegExp("(?<![" + L + "])([" + L + "]+)\\s+\\1(?![-" + L + "])", "g"))) if (!DOUBLE_OK.has(m[1]) && plain(m.index, m.index + m[0].length)) add(i, m.index, m.index + m[0].length, "word-double", BUILTIN["word-double"]);
       if (b.kind === "h") return;
