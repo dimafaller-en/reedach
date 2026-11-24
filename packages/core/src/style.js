@@ -130,7 +130,18 @@ const NB='\u00A0';
 const MIXED=/\p{Script=Cyrillic}\p{Script=Latin}|\p{Script=Latin}\p{Script=Cyrillic}/u;
 // Addresses, e-mails and HTML entities are not prose: no typography hints inside them.
 // Marked once per block (a looked-up word per hint made a long text with many hints quadratic).
-const technical=text=>{const marks=new Uint8Array(text.length);for(const m of text.matchAll(/[^ ]+/g))if(/[/@&=]/.test(m[0]))marks.fill(1,m.index,m.index+m[0].length);return s=>marks[s]===1;};
+const technical=text=>{const marks=new Uint8Array(text.length);for(const m of text.matchAll(/\S+/g))if(/[/@&=]/.test(m[0]))marks.fill(1,m.index,m.index+m[0].length);return s=>marks[s]===1;};
+// Leave IPv4 literals, alphanumeric identifiers and six-digit postcodes preceding an address alone.
+const attachedId=/[\p{L}\p{M}_]/u;
+const ipv4=/^(?:\d{1,3}\.){3}\d{1,3}$/;
+const addressLead=/,\s*(?:(?:г|ул|пер|просп|пос|с|д|рп)\.\s*|(?:город|улица|переулок|проспект|пос[её]лок|село|деревня)\s+)/iy;
+function numberIdentifier(text,m){
+ const from=m.index,end=from+m[0].length,n=m[0];
+ if(attachedId.test(text[from-1]||'')||attachedId.test(text[end]||''))return true;
+ if(ipv4.test(n)&&n.split('.').every(o=>+o<=255))return true;
+ addressLead.lastIndex=end;
+ return n.length===6&&/^\d+$/.test(n)&&addressLead.test(text);
+}
 // The last sentence starting at or before `at` (sentences are in order), by binary search.
 const sentenceAt=(list,at)=>{let lo=0,hi=list.length-1,hit=null;while(lo<=hi){const mid=(lo+hi)>>1;if(list[mid].start<=at){hit=list[mid];lo=mid+1;}else hi=mid-1;}return hit;};
 // Brackets and guillemets without a pair. Not brackets: «а)», «1)», «п. 2)», smileys «:)», «:-(», «:))»;
@@ -189,12 +200,12 @@ export function checkStyle(blocks,{maxSentenceWords=25,maxParagraphWords=120,yo=
   const lines=linesOf(b);
   for(const {rule,re} of compiled){if(!re)continue;re.lastIndex=0;if(rule.line){for(const [s,e] of lines){const m=lineMatch(low.slice(s,e),re);if(m){const a=s+m.start,z=s+m.end,found=text.slice(a,z);add(i,a,z,rule.id,offered(swapped(rule,low.slice(a,z),found),found));}}continue;}for(const m of low.matchAll(re)){if(rule.start){const s=sentenceAt(list,m.index);if(!s||low.slice(s.start,m.index).trim()!=='')continue;}{const found=text.slice(m.index,m.index+m[0].length);add(i,m.index,m.index+m[0].length,rule.id,offered(swapped(rule,m[0],found),found));}}}
   const {plain}=spansOf(b),tech=technical(text);
-  for(const [id,re,fix] of TYPO)for(const m of text.matchAll(re))if(plain(m.index,m.index+m[0].length)&&!tech(m.index))add(i,m.index,m.index+m[0].length,id,fix?{...BUILTIN[id],replace:[fix(m[0])],exact:true}:BUILTIN[id]);
+  for(const [id,re,fix] of TYPO)for(const m of text.matchAll(re))if(plain(m.index,m.index+m[0].length)&&!tech(m.index)&&(id!=='typo-digits'||!numberIdentifier(text,m)))add(i,m.index,m.index+m[0].length,id,fix?{...BUILTIN[id],replace:[fix(m[0])],exact:true}:BUILTIN[id]);
   for(const m of text.matchAll(/\p{L}+/gu))if(MIXED.test(m[0])&&plain(m.index,m.index+m[0].length)&&!tech(m.index))add(i,m.index,m.index+m[0].length,'typo-mixed-script',BUILTIN['typo-mixed-script']);
   for(const m of text.matchAll(/"[^"\n]*"/g))if(/[А-Яа-яЁё]/.test(m[0]))add(i,m.index,m.index+m[0].length,'typo-quotes',BUILTIN['typo-quotes']);
   // English “…” around Russian words: ёлочки, or лапки inside open ёлочки.
   for(const m of text.matchAll(/“([^“”„«»\n]*)”/g)){const e=m.index+m[0].length;if(!/[А-Яа-яЁё]/.test(m[1])||!plain(m.index,e)||tech(m.index))continue;const before=text.slice(0,m.index),inner=(before.match(/«/g)||[]).length>(before.match(/»/g)||[]).length;add(i,m.index,e,'typo-quotes-en',{...BUILTIN['typo-quotes-en'],replace:[inner?'„'+m[1]+'“':'«'+m[1]+'»'],exact:true});}
-  if(yo)for(const m of text.matchAll(YO_RE))add(i,m.index,m.index+m[0].length,'typo-yo',{...BUILTIN['typo-yo'],replace:[withYo(m[0])],exact:true});
+  if(yo)for(const m of text.matchAll(YO_RE))if(plain(m.index,m.index+m[0].length)&&!tech(m.index))add(i,m.index,m.index+m[0].length,'typo-yo',{...BUILTIN['typo-yo'],replace:[withYo(m[0])],exact:true});
   for(const k of unpaired(text))add(i,k,k+1,'typo-unpaired',BUILTIN['typo-unpaired']);
   for(const m of low.matchAll(new RegExp('(?<!['+L+'])(['+L+']+)\\s+\\1(?![-'+L+'])','g')))if(!DOUBLE_OK.has(m[1])&&plain(m.index,m.index+m[0].length))add(i,m.index,m.index+m[0].length,'word-double',BUILTIN['word-double']);
   if(b.kind==='h')return;
